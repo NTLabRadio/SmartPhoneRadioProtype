@@ -36,7 +36,6 @@ void UART_Receive_Pck_Wait(UART_HandleTypeDef *huart, uint8_t *pBufForRecData)
 
 void UART_Send_TestData(UART_HandleTypeDef *huart)
 {
-	//uint8_t pBufTestData[8] = {0x00, 0x06, 0x48, 0x00, 0x00, 0xBE, 0x00, 0x00};
 	uint8_t pBufTestData[8] = {0x00, 0x06, 0x00, 0x00, 0x48, 0x00, 0x00, 0xBE};
 		
 	HAL_UART_Transmit_DMA(huart, pBufTestData, 8);

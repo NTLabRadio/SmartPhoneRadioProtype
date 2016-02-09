@@ -66,7 +66,7 @@
 #define	AUDIO_ROUTING_REG		0x5D
 #define	NOISE_GATE_REG			0x5E
 #define	REG_DONE_SELECT			0x69
-#define	PROG_REG						0x6A	//  DSPIO_SW_WR9
+#define	PROG_REG						0x6A	// DSPIO_SW_WR9
 #define	VCTRL_REG   				0x6B	// DSPIO_SW_WR0
 #define	IRQ_ENABLE_REG			0x6C
 #define	DSPIO_SW_RD0				0x70

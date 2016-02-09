@@ -1,7 +1,6 @@
 #include "cmx7262.h"
 
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
+//TODO Этот handle (htim5) и интерфейсы, использующие его, стоит вынести в соответствующий модуль: timers.c
 extern TIM_HandleTypeDef htim5;
 
 SPI_HandleTypeDef *hspi_CMX7262 = NULL;
@@ -24,7 +23,6 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 	//Передаем данные
 	pCMX7262TxData[0] = 0x01;
 	if(hspi_CMX7262)
-		//HAL_SPI_TransmitReceive_DMA(hspi_CMX7262, pCMX7262TxData, pCMX7262RxData, 1);
 		HAL_SPI_TransmitReceive_IT(hspi_CMX7262, pCMX7262TxData, pCMX7262RxData, 1);
 	
 	// Wait for a second.
@@ -37,19 +35,16 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 	CMX7262_CSN_LOW();
 	//Передаем данные и одновременно принимаем ответ
 	pCMX7262TxData[0] = 0x4F;
-	pCMX7262TxData[1] = 0x00;
+	pCMX7262TxData[1] = CBUS_DUMMY_BYTE;
 	if(hspi_CMX7262)	
-		//HAL_SPI_TransmitReceive_DMA(hspi_CMX7262, pCMX7262TxData, pCMX7262RxData, 2);
 		HAL_SPI_TransmitReceive_IT(hspi_CMX7262, pCMX7262TxData, pCMX7262RxData, 2);
 
-	
-	// Wait for a 0.1 second.
-	WaitTimeMCS(1e5);
+	//Подождем 100 мкс. Этого хватит для передачи по SPI 2 байт с тактовой выше 200 кГц
+	WaitTimeMCS(1e2);
 	
 	//Должны принять 3
 	if(pCMX7262RxData[1]!=0x03)
 		return 0;
-	
 	
 	return 1;
 }

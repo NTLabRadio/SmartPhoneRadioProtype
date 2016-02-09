@@ -35,39 +35,58 @@
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
-#include "spi_periphery.h"
-#include "timers.h"
-#include "uart_intermodule.h"
 
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi1;
+DMA_HandleTypeDef hdma_spi1_rx;
+DMA_HandleTypeDef hdma_spi1_tx;
+
+TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim5;
+
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart1_tx;
 
-CMX7262_TypeDef  pCmx7262;
-
+/* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim5;
 
-extern SPI_HandleTypeDef hspi1;
+/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
+static void MX_SPI1_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
+static void MX_TIM4_Init(void);
+static void MX_TIM5_Init(void);
 static void MX_USART1_UART_Init(void);
-
-uint32_t cntTimerInit7262;
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+CMX7262_TypeDef  pCmx7262;
+
 /* USER CODE END PFP */
 
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
+
 int main(void)
-{	
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -75,55 +94,41 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_SPI1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
-	MX_TIM5_Init();
+  MX_TIM4_Init();
+  MX_TIM5_Init();
+  MX_USART1_UART_Init();
 
-	/* РЎС‚Р°СЂС‚СѓРµРј РІС‹СЃРѕРєРѕС‚РѕС‡РЅС‹Р№ С‚Р°Р№РјРµСЂ (TIM2+TIM3) РґР»СЏ РЅРёР·РєРѕСѓСЂРѕРІРЅРµРІС‹С… С„СѓРЅРєС†РёР№ */
+  /* USER CODE BEGIN 2 */
+	// Устанавливаем CS периферийных микросхем в высокое состояние
+	CC1120_CSN_HIGH();
+	CMX7262_CSN_HIGH();
+	
+	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
 	HAL_TIM_Base_Start(&htim2);
 	HAL_TIM_Base_Start(&htim3);
 	
-	/* РЎС‚Р°СЂС‚СѓРµРј С‚Р°Р№РјРµСЂ РґР»СЏ РєРѕРЅС‚СЂРѕР»СЏ РїСЂРѕС†РµСЃСЃРѕРІ СѓРїСЂР°РІР»РµРЅРёСЏ CMX7262 */
+	/* Стартуем таймер для контроля процессов управления микросхемой CMX7262 */
 	HAL_TIM_Base_Start(&htim5);
-	
-  /* Initialize all configured peripherals */
-	MX_GPIO_Init();
-  MX_DMA_Init();
-	
-  MX_SPI1_Init();
-  MX_USART1_UART_Init();
 
-	UART_Receive_Pck_Wait(&huart1,NULL);
-	
-	
-	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//РџСЂРѕРІРµСЂРєР° СЂР°Р±РѕС‚РѕСЃРїРѕСЃРѕР±РЅРѕСЃС‚Рё РїРµСЂРёС„РµСЂРёР№РЅС‹С… РјРѕРґСѓР»РµР№
+	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
 	CC1120_CheckModule(&hspi1);
 	CMX7262_CheckModule(&hspi1);
 	#endif
-	
-	#ifdef DEBUG_CALCULATE_CMX7262_INIT_TIME	//РР·РјРµСЂРµРЅРёРµ РІСЂРµРјРµРЅРё РёРЅРёС†РёР°Р»РёР·Р°С†РёРё CMX7262
-	//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ CMX7262 - РґРѕР»РіРѕРІСЂРµРјРµРЅРЅС‹Р№ РїСЂРѕС†РµСЃСЃ. РџРѕСЌС‚РѕРјСѓ РёР·РјРµРЅРµРЅСЏРј С‚РѕС‡РЅРѕСЃС‚СЊ С‚Р°Р№РјРµСЂР° 
-	//РІРѕ РёР·Р±РµР¶Р°РЅРёРµ РїРµСЂРµРїРѕР»РЅРµРЅРёСЏ 16-Р±РёС‚РЅРѕРіРѕ СЃС‡РµС‚С‡РёРєР° С‚Р°Р№РјРµСЂР°
-	htim5.Init.Prescaler = (uint16_t) ((SystemCoreClock)/1e3 - 1);	//С‚Р°РєС‚ - РІ 1 РјСЃ
-  HAL_TIM_Base_Init(&htim5);	
-	
-	cntTimerInit7262 = ReadCMX7262TimerCounter();
-	#endif
-	
-	//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ CMX7262: Р·Р°РіСЂСѓР·РєР° РѕР±СЂР°Р·Р° РІ РїР°РјСЏС‚СЊ, РЅР°С‡Р°Р»СЊРЅР°СЏ РЅР°СЃС‚СЂРѕР№РєР°
+
+	//Инициализация CMX7262: загрузка образа в память, начальная настройка
 	CMX7262_Init(&pCmx7262, &hspi1);
-	
-	#ifdef DEBUG_CALCULATE_CMX7262_INIT_TIME	//РР·РјРµСЂРµРЅРёРµ РІСЂРµРјРµРЅРё РёРЅРёС†РёР°Р»РёР·Р°С†РёРё CMX7262
-	cntTimerInit7262 = ReadCMX7262TimerCounter() - cntTimerInit7262;
-	printf("Time of CMX7262_Init() exec: %d s \r\n", cntTimerInit7262/1000);
-	//Р’РѕР·РІСЂР°С‰Р°РµРј РёСЃС…РѕРґРЅС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё С‚Р°Р№РјРµСЂР° (С‚РѕС‡РЅРѕСЃС‚СЊ - 10 РјРєСЃ)
-	MX_TIM5_Init();
-	#endif
-	
-	//РџРµСЂРµРІРѕРґ CMX7262 РІ СЂРµР¶РёРј Idle
+
+	//Перевод CMX7262 в режим Idle
 	CMX7262_Idle(&pCmx7262);
-	
-	//РџРµСЂРµРІРѕРґ CMX7262 РІ СЂР°Р±РѕС‡РёР№ СЂРµР¶РёРј
+
+	//Перевод CMX7262 в рабочий режим
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
 	CMX7262_EncodeDecode_Audio(&pCmx7262);	
 	#else
@@ -133,13 +138,20 @@ int main(void)
 	CMX7262_Encode(&pCmx7262);
 	#endif
 	#endif	
-	
+
+
+  /* USER CODE END 2 */
+
   /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
-		
+  /* USER CODE END WHILE */
+
+  /* USER CODE BEGIN 3 */
 
   }
+  /* USER CODE END 3 */
 
 }
 
@@ -166,7 +178,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);		//РїСЂРµСЂС‹РІР°РЅРёРµ - РєР°Р¶РґСѓСЋ РјСЃ
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
@@ -175,17 +187,139 @@ void SystemClock_Config(void)
 }
 
 
+/* SPI1 init function */
+void MX_SPI1_Init(void)
+{
+
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;						// режим работы: двухпроводный full duplex
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;								// размер данных - 8 бит
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;									// синхронизация по заднему фронту
+  hspi1.Init.NSS = SPI_NSS_SOFT;													// программный CS (аппаратный (SPI_NSS_HARD_OUTPUT) не понятно, как задействовать)
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;	//предделитель частоты SPI: 64МГц/8 = 8 МГц
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;									// старший бит - первый
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;// CRC не вычисляется
+  hspi1.Init.CRCPolynomial = 10;
+  HAL_SPI_Init(&hspi1);
+
+}
+
+
+/* Таймеры TIM2 и TIM3 реализуют высокоточный (точность - 1мкс) 32-битный таймер для оценки временных
+интервалов в реализации низкоуровневых функций (передача байта по SPI, UART и т.п.) */
+
+/* TIM2 init function */
+void MX_TIM2_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = (uint16_t) ((SystemCoreClock) / 1e6) - 1;		//такт таймера - в 1 мкс
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_Base_Init(&htim2);
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig);
+
+	//Таймер используется как master в каскадной цепочке таймеров для реализации 32-битного таймера
+	//Слейвом выступает TIM3. Формируем для него сигнал тригера по истечению периода
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig);
+
+}
+
+/* TIM3 init function */
+void MX_TIM3_Init(void)
+{
+
+  TIM_SlaveConfigTypeDef sSlaveConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_Base_Init(&htim3);
+
+	//Таймер используется как slave в каскадной цепочке таймеров для реализации 32-битного таймера
+	//По переполнению счетчика master-таймера (TIM2) инкрементируется счетчик данного slave-таймера
+	//Прерывание ITR1 используется как внешний тригер для инкрементирования значения счетчика
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+  sSlaveConfig.InputTrigger = TIM_TS_ITR1;
+  HAL_TIM_SlaveConfigSynchronization(&htim3, &sSlaveConfig);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig);
+
+}
+
+/* TIM4 init function */
+void MX_TIM4_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = (uint16_t) ((SystemCoreClock)/1e5 - 1);	//такт таймера - в 10 мкс	
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 65535;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_Base_Init(&htim4);
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig);
+
+}
+
+/* TIM5 init function */
+void MX_TIM5_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = (uint16_t) ((SystemCoreClock)/1e5 - 1);	//такт таймера - в 10 мкс	
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 65535;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_Base_Init(&htim5);
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig);
+
+}
+
 /* USART1 init function */
 void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 57600;										// СЃРєРѕСЂРѕСЃС‚СЊ РїРµСЂРµРґР°С‡Рё РґР°РЅРЅС‹С…
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;		// СЂР°Р·РјРµСЂ РєР°РґСЂР° - 8 Р±РёС‚
-  huart1.Init.StopBits = UART_STOPBITS_1;					// РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚РѕРї Р±РёС‚РѕРІ - 1
-  huart1.Init.Parity = UART_PARITY_NONE;					// РєРѕРЅС‚СЂРѕР»СЊ С‡РµС‚РЅРѕСЃС‚Рё РѕС‚РєР»СЋС‡РµРЅ
-  huart1.Init.Mode = UART_MODE_TX_RX;							// СЂРµР¶РёРј СЂР°Р±РѕС‚С‹: Tx+Rx
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;		// РІС‹РєР»СЋС‡РµРЅРёРµ Р°РїРїР°СЂР°С‚РЅРѕРіРѕ РєРѕРЅС‚СЂРѕР»СЏ РїРѕС‚РѕРєР°
+  huart1.Init.BaudRate = 57600;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   HAL_UART_Init(&huart1);
 
@@ -211,19 +345,45 @@ void MX_DMA_Init(void)
 
 }
 
-/** Pinout Configuration
+/** Configure pins as 
+        * Analog 
+        * Input 
+        * Output
+        * EVENT_OUT
+        * EXTI
 */
 void MX_GPIO_Init(void)
 {
 
+  GPIO_InitTypeDef GPIO_InitStruct;
+
   /* GPIO Ports Clock Enable */
+  __GPIOE_CLK_ENABLE();
   __GPIOA_CLK_ENABLE();
-	
-	__GPIOE_CLK_ENABLE();	
-	HAL_GPIO_MspInit();
+
+  /*Configure GPIO pins : PE6 PE7 PE0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA0 PA1 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA2 PA4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
 
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
 
 #ifdef USE_FULL_ASSERT
 

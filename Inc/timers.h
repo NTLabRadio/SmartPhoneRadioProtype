@@ -19,10 +19,6 @@
 	 
 #include "stm32f1xx_hal.h"
 
-void MX_TIM2_Init(void);
-void MX_TIM3_Init(void);
-void MX_TIM5_Init(void);
-
 uint32_t ReadHighPrecisionCounter (void);
 void ClearHighPrecisionCounter(void);
 void WaitTimeMCS(uint32_t lTimeMS);

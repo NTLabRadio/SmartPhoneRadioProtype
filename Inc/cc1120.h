@@ -25,6 +25,11 @@
 
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
 	 
+
+uint8_t CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint16_t *data_ptr, uint16_t uAccesses);
+uint8_t CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint16_t *data_ptr, uint16_t uAccesses);
+
+	 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
