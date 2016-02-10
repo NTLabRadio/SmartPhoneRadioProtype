@@ -3,8 +3,8 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'SmartPadioRadioPrototypeWCube' 
- * Target:  'SmartPadioRadioPrototypeWCube Configuration' 
+ * Project: 'SmartPhonePrototype' 
+ * Target:  'SmartPhonePrototype Configuration' 
  */
 
 #ifndef RTE_COMPONENTS_H

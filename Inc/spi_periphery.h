@@ -93,6 +93,7 @@ void ResetCpltState_SPI_TransmitReceive(SPI_HandleTypeDef *hspi);
 uint8_t isCplt_SPI_TransmitReceive(SPI_HandleTypeDef *hspi);
 
 HAL_StatusTypeDef SPI_TransmitRecieveByte(SPI_HandleTypeDef *hspi, uint8_t nByteForTX, uint8_t *nByteForRX);
+HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData, uint8_t *pRxData, uint16_t Size);
 void SPI_TIMEOUT_UserCallback(SPI_HandleTypeDef *hspi);
 	 	 
  

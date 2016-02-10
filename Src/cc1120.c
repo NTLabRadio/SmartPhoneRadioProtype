@@ -10,15 +10,20 @@ uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
 	
-	pCC1120TxData[0] = 0xAF;	pCC1120TxData[1] = 0x8F; pCC1120TxData[2] = 0x00;
-	pCC1120TxData[3] = 0xAF;	pCC1120TxData[4] = 0x90; pCC1120TxData[5] = 0x00;	
+//	pCC1120TxData[0] = 0xAF;	pCC1120TxData[1] = 0x8F; pCC1120TxData[2] = 0x00;
+//	pCC1120TxData[3] = 0xAF;	pCC1120TxData[4] = 0x90; pCC1120TxData[5] = 0x00;	
 	
 	//ќпускаем CS	
 	CC1120_CSN_LOW();
 	
 	//ѕередаем данные и одновременно принимаем ответ
-	//HAL_SPI_TransmitReceive_DMA(hspiCC1120, pCC1120TxData, pCC1120RxData, 6);
-	HAL_SPI_TransmitReceive_IT(hspiCC1120, pCC1120TxData, pCC1120RxData, 6);
+	//SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, 6);
+	
+	CC1120_Read (EXT_PARTNUMBER, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01);
+	
+	
+	
+	// Ќе забыть сделать обработку ошибок обмена по SPI !!!!!
 	
 	//ѕодождем 100 мкс. Ётого хватит дл€ передачи по SPI 6 байт с тактовой выше 500 к√ц
 	WaitTimeMCS(1e2);
@@ -52,10 +57,60 @@ uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi)
 	*					0 - успешное выполнение;
 	*					иначе - ошибка при выполнении функции (зан€та шина SPI, некорректное значение входных данных)
   */
-uint8_t CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint16_t *data_ptr, uint16_t uAccesses)
+ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint16_t uAccesses)
 {
-	return 0;	
+	uint8_t buff_index = 1; // индекс буфера записи
+	uint8_t buff_count = 0; // индекс записи данных
+	
+	
+	switch (uExtAddress) // формирование первого байта адреса или дополнительного адреса
+	{
+		case EXT_ADDRESS:
+			pCC1120TxData[0] = EXT_ADDRESS;
+			pCC1120TxData[1] = uGenAddress;
+			buff_index++;
+		break;
+
+		case REG_DMA:
+			pCC1120TxData[0] = REG_DMA;
+			pCC1120TxData[1] = uGenAddress;
+			buff_index++;
+		break;
+
+		case REG_ADDRESS:
+			pCC1120TxData[0] = uGenAddress;
+		break;
+
+    default:
+			
+			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
+		
+		break;		
+	
+	}
+	
+	pCC1120TxData[0] = pCC1120TxData[0] | (WRITE_CC1120 << 7); // установка признака записи (знаю, что он 0. Ёто дл€ единообрази€)
+	
+	if (bBurst) 
+	{
+		pCC1120TxData[0] = pCC1120TxData[0] |  (BURST << 6); // установка режима поточной записи 
+	}		
+	
+	for (buff_count = buff_index; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные пол€.
+		{
+				pCC1120TxData[buff_count] = data_ptr[buff_count-buff_index];
+		}
+	//ѕередаем данные и одновременно принимаем ответ
+	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, uAccesses+buff_index)) 
+	{
+			return (SPIBusy);
+	} else {
+			return (ReadWriteOk);
+	}	
 }
+
+
+
 
 /**
   * @brief  ‘ункци€ чтени€ данных (значений регистров/данных FIFO-буферов) из CC1120
@@ -76,7 +131,54 @@ uint8_t CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, 
 	*					0 - успешное выполнение;
 	*					иначе - ошибка при выполнении функции (зан€та шина SPI, некорректное значение входных данных)
   */
-uint8_t CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint16_t *data_ptr, uint16_t uAccesses)
+ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint8_t uAccesses)
 {
-	return 0;	
+	uint8_t buff_index = 1; // индекс буфера записи
+	uint8_t buff_count = 0; // индекс записи данных
+	
+	
+	switch (uExtAddress) // формирование первого байта адреса или дополнительного адреса
+	{
+		case EXT_ADDRESS:
+			pCC1120TxData[0] = EXT_ADDRESS;
+			pCC1120TxData[1] = uGenAddress;
+			buff_index++;
+		break;
+
+		case REG_DMA:
+			pCC1120TxData[0] = REG_DMA;
+			pCC1120TxData[1] = uGenAddress;
+			buff_index++;
+		break;
+
+		case REG_ADDRESS:
+			pCC1120TxData[0] = uGenAddress;
+		break;
+
+    default:
+			
+			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
+		
+		break;		
+	
+	}
+	
+	pCC1120TxData[0] = pCC1120TxData[0] | (READ_CC1120 << 7); // установка признака записи (знаю, что он 0. Ёто дл€ единообрази€)
+	
+	if (bBurst) 	
+		{	
+			pCC1120TxData[0] = pCC1120TxData[0] |  (BURST << 6); // установка режима поточной записи 
+		}
+		
+	for (buff_count = buff_index; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные пол€.
+		{
+				pCC1120TxData[buff_count] = data_ptr[buff_count-buff_index];
+		}
+	//ѕередаем данные и одновременно принимаем ответ
+	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, uAccesses+buff_index)) 
+	{
+			return (SPIBusy);
+	} else {
+			return (ReadWriteOk);
+	}	
 }

@@ -55,7 +55,7 @@ uint8_t isCplt_SPI_TransmitReceive(SPI_HandleTypeDef *hspi)
   */
 HAL_StatusTypeDef SPI_TransmitRecieveByte(SPI_HandleTypeDef *hspi, uint8_t nByteForTX, uint8_t *nByteForRX)
 {
-	HAL_StatusTypeDef nRes = HAL_OK;
+	HAL_StatusTypeDef nRes = HAL_OK; // начальное состояние HAL. 
 	
 	#ifndef WAIT_END_OF_SPI_TRNSACTION_BY_TIM_COUNTER
 	uint32_t cntWaitEndOfTransaction;
@@ -102,3 +102,60 @@ void SPI_TIMEOUT_UserCallback(SPI_HandleTypeDef *hspi)
 {	
 	printf("ERROR In SPI Exchange: No Answer From Slave\n");
 }
+
+
+/**
+  * @brief  Sends a number of Bytes through the SPI interface and return the number of Bytes received
+	* @param  hspi : Handle of SPI Interface
+	* 				pTxData: pointer to transmission data buffer
+	*					pRxData: pointer to reception data buffer to be
+  *					Size: amount of data to be sent
+
+  * @retval Result of Transmission (HAL Status)
+  */
+HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData, uint8_t *pRxData, uint16_t Size)
+{
+	HAL_StatusTypeDef nRes = HAL_OK; // начальное состояние HAL. 
+	
+	#ifndef WAIT_END_OF_SPI_TRNSACTION_BY_TIM_COUNTER // если меряем таймаут прецезионным таймером
+	uint32_t cntWaitEndOfTransaction;
+	#endif
+	
+	ResetCpltState_SPI_TransmitReceive(hspi); //Cброс состояния успешного окончания транзакции SPI 
+	
+	//Передаем Size байтов и в это же время принимаем
+	//Если что-то не так (например, занята шина), возвращаем 0	
+	nRes=HAL_SPI_TransmitReceive_IT(hspi, pTxData, pRxData, Size);
+	
+	if(nRes) // если nRes отличен от нуля (HAL не OK)
+	{
+		printf("ERROR In SPI Exchange: HAL_Status=%d\n",nRes);
+		return(nRes);
+	}
+
+	/* Ожидание окончания транзакции */
+	
+	//Wait end of transmission for 100 mcs
+	#ifdef WAIT_END_OF_CBUS_TRANSACTION_BY_TIM_COUNTER // если используем прецезионный таймер
+	ClearHighPrecisionCounter();
+	while(ReadHighPrecisionCounter() < 1e2)
+	#else
+	cntWaitEndOfTransaction = 1e6; // или просто вычитаем до 0 
+	while(cntWaitEndOfTransaction)
+	#endif
+	{
+		cntWaitEndOfTransaction--;
+		if(isCplt_SPI_TransmitReceive(hspi)) // если SPI передача прием завершены возвращаем HAL_OK в nRes
+		{
+			return nRes;
+		}
+	}
+	
+	SPI_TIMEOUT_UserCallback(hspi); // если до сих пор функция не закнчилась (return не сработал)
+		
+	return HAL_TIMEOUT; // возвращаем ошибку таймаут по SPI
+}
+
+
+
+

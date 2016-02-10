@@ -119,7 +119,7 @@ int main(void)
 
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
 	CC1120_CheckModule(&hspi1);
-	CMX7262_CheckModule(&hspi1);
+	//CMX7262_CheckModule(&hspi1);
 	#endif
 
 	//Инициализация CMX7262: загрузка образа в память, начальная настройка
@@ -198,7 +198,7 @@ void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;									// синхронизация по заднему фронту
   hspi1.Init.NSS = SPI_NSS_SOFT;													// программный CS (аппаратный (SPI_NSS_HARD_OUTPUT) не понятно, как задействовать)
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;	//предделитель частоты SPI: 64МГц/8 = 8 МГц
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64 ;	//предделитель частоты SPI: 64МГц/8 = 8 МГц
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;									// старший бит - первый
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;// CRC не вычисляется
