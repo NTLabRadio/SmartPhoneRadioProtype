@@ -21,6 +21,7 @@
 #include <math.h>       /* для floor() */
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_spi.h"
+#include "globals.h"
 #include "spi_periphery.h"
 #include "timers.h"
 	 

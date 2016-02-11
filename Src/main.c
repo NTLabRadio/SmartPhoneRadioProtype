@@ -35,6 +35,7 @@
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
+#include "uart_intermodule.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -117,9 +118,12 @@ int main(void)
 	/* Стартуем таймер для контроля процессов управления микросхемой CMX7262 */
 	HAL_TIM_Base_Start(&htim5);
 
+	// Инициализируем работу по UART
+	UART_InitInterface(&huart1);
+
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
 	CC1120_CheckModule(&hspi1);
-	//CMX7262_CheckModule(&hspi1);
+	CMX7262_CheckModule(&hspi1);
 	#endif
 
 	//Инициализация CMX7262: загрузка образа в память, начальная настройка
@@ -319,7 +323,7 @@ void MX_USART1_UART_Init(void)
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
   huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   HAL_UART_Init(&huart1);
 
