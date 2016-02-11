@@ -32,9 +32,6 @@ typedef enum
 } ReadWriteRegTypeDef;	 
 	 
 	 
-	 
-	 
-	 
 #define EXT_ADDRESS						0x2F  			/* EXTENDED ADDRESS fields */			 
 #define REG_ADDRESS						0x00				/* Register space */
 #define	REG_DMA								0x3E				/* Direct FIFO Access */	 
@@ -47,9 +44,11 @@ typedef enum
 	 
 	 
 	 
-#define EXT_PARTNUMBER				0x8F  			/* PARTNUMBER */			 
-	 
-	 
+#define EXT_PARTNUMBER				0x8F  			/* PARTNUMBER */
+#define EXT_PARTVERSION				0x90  			/* PARTVERSION */
+#define STATUS								0x3D				/* No operation. May be used to get access to the chip status byte */
+#define TX										0x35				/* Enable Tx */	 
+#define RX										0x34				/* Enable Rx */ 
 	 
 	 
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
@@ -58,6 +57,8 @@ uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
 ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint16_t uAccesses);
 ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint8_t uAccesses);
 
+uint8_t CC1120_Status (SPI_HandleTypeDef *hspi);
+uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi);
 	 
 #ifdef __cplusplus
 }

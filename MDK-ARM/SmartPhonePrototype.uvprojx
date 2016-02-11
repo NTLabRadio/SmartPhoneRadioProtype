@@ -486,6 +486,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\uart_intermodule.c</FilePath>
             </File>
+            <File>
+              <FileName>uart_gui.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\uart_gui.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

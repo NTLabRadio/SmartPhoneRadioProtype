@@ -35,6 +35,7 @@
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
+#include "uart_gui.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -110,6 +111,8 @@ int main(void)
 	CC1120_CSN_HIGH();
 	CMX7262_CSN_HIGH();
 	
+
+	
 	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
 	HAL_TIM_Base_Start(&htim2);
 	HAL_TIM_Base_Start(&htim3);
@@ -118,8 +121,11 @@ int main(void)
 	HAL_TIM_Base_Start(&htim5);
 
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
-	CC1120_CheckModule(&hspi1);
+	//CC1120_CheckModule(&hspi1);
 	//CMX7262_CheckModule(&hspi1);
+	
+		GUI_rx (&huart1);
+	
 	#endif
 
 	//Инициализация CMX7262: загрузка образа в память, начальная настройка
@@ -138,6 +144,9 @@ int main(void)
 	CMX7262_Encode(&pCmx7262);
 	#endif
 	#endif	
+
+
+
 
 
   /* USER CODE END 2 */
@@ -319,7 +328,7 @@ void MX_USART1_UART_Init(void)
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
   huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   HAL_UART_Init(&huart1);
 

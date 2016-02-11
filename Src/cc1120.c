@@ -1,4 +1,5 @@
 #include "cc1120.h"
+#include "uart_gui.h"
 
 SPI_HandleTypeDef *hspiCC1120 = NULL;
 
@@ -6,24 +7,21 @@ uint8_t pCC1120TxData[255];
 uint8_t pCC1120RxData[255];
 
 
-uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi)
+
+uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi) // запрос ChipID трансивера CC1120
 {
 	hspiCC1120 = hspi;
 	
-//	pCC1120TxData[0] = 0xAF;	pCC1120TxData[1] = 0x8F; pCC1120TxData[2] = 0x00;
-//	pCC1120TxData[3] = 0xAF;	pCC1120TxData[4] = 0x90; pCC1120TxData[5] = 0x00;	
 	
 	//Опускаем CS	
 	CC1120_CSN_LOW();
+		
+		
+if (CC1120_Read (EXT_PARTNUMBER, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01))	// если есть ошибки обмена данными по SPI возвращаем ошибку функции
+			{
+				return 0;
+			}
 	
-	//Передаем данные и одновременно принимаем ответ
-	//SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, 6);
-	
-	CC1120_Read (EXT_PARTNUMBER, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01);
-	
-	
-	
-	// Не забыть сделать обработку ошибок обмена по SPI !!!!!
 	
 	//Подождем 100 мкс. Этого хватит для передачи по SPI 6 байт с тактовой выше 500 кГц
 	WaitTimeMCS(1e2);
@@ -37,6 +35,88 @@ uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi)
 	
 	return(1);
 }
+
+
+uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi) // запрос версии firmware трансивера CC1120
+{
+	hspiCC1120 = hspi;
+	
+	//Опускаем CS	
+	CC1120_CSN_LOW();
+	
+	if (CC1120_Read (EXT_PARTVERSION, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01))	// если есть ошибки обмена данными по SPI возвращаем ошибку функции
+			{
+				return 0;
+			}
+	
+	//Подождем 100 мкс. Этого хватит для передачи по SPI 6 байт с тактовой выше 500 кГц
+	WaitTimeMCS(1e2);
+	
+	//Поднимаем CS	
+	CC1120_CSN_HIGH();
+	
+		return pCC1120RxData[2];	
+	
+	return(1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// переделать
+uint8_t CC1120_Status (SPI_HandleTypeDef *hspi) // запрос статусного байта CC1120
+{
+	hspiCC1120 = hspi;
+	//Опускаем CS	
+	CC1120_CSN_LOW();
+	
+	CC1120_Write (STATUS, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00);
+	
+	//Подождем 100 мкс. Этого хватит для передачи по SPI 6 байт с тактовой выше 500 кГц
+	WaitTimeMCS(1e2);
+	
+	//Поднимаем CS	
+	CC1120_CSN_HIGH();
+}
+
+
+
+// переделать
+uint8_t CC1120_Rx (SPI_HandleTypeDef *hspi) // перевод трансивера CC1120 в режим приема
+{
+	hspiCC1120 = hspi;
+	//Опускаем CS	
+	CC1120_CSN_LOW();
+	
+	CC1120_Write (RX, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00);
+	
+	//Подождем 100 мкс. Этого хватит для передачи по SPI 6 байт с тактовой выше 500 кГц
+	WaitTimeMCS(1e2);
+	
+	//Поднимаем CS	
+	CC1120_CSN_HIGH();
+}
+
+
+
+
+
+
+
 
 /**
   * @brief  Функция записи данных (значений регистров/данных для FIFO-буферов) в CC1120
