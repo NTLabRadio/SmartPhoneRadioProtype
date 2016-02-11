@@ -30,7 +30,21 @@ typedef enum
 	SPIBusy       		= 0x01, // шина SPI занята
 	DataInMismatch		= 0x02  // несоответствие формата входных данных
 } ReadWriteRegTypeDef;	 
-	 
+
+typedef enum
+{
+	STATUS_IDLE   							= 0x00, 
+	STATUS_RX       						= 0x01,
+	STATUS_TX										= 0x02,
+	STATUS_FSTXON 							= 0x03,
+	STATUS_CALIBRATE 						= 0x04,
+	STATUS_SETTLING 						= 0x05,
+	STATUS_RX_FIFO_ERROR				= 0x06,
+	STATUS_TX_FIFO_ERROR 				= 0x07,
+	STATUS_SPI_ERROR 						= 0x08
+} CC1120STATUSTypeDef;	
+
+
 	 
 #define EXT_ADDRESS						0x2F  			/* EXTENDED ADDRESS fields */			 
 #define REG_ADDRESS						0x00				/* Register space */
@@ -46,10 +60,15 @@ typedef enum
 	 
 #define EXT_PARTNUMBER				0x8F  			/* PARTNUMBER */
 #define EXT_PARTVERSION				0x90  			/* PARTVERSION */
-#define STATUS								0x3D				/* No operation. May be used to get access to the chip status byte */
-#define TX										0x35				/* Enable Tx */	 
-#define RX										0x34				/* Enable Rx */ 
-	 
+#define S_STATUS							0x3D				/* No operation. May be used to get access to the chip status byte */
+#define S_TX									0x35				/* Enable Tx */	 
+#define S_RX									0x34				/* Enable Rx */
+#define S_IDLE								0x36				/* IDLE */
+
+
+#define CC1120_ID							0x48				/* Chip ID CC1120 */ 
+
+
 	 
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
 	 
@@ -59,6 +78,11 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 
 uint8_t CC1120_Status (SPI_HandleTypeDef *hspi);
 uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_Status(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_Tx(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_IDLE_set(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_Rx(SPI_HandleTypeDef *hspi);
+
 	 
 #ifdef __cplusplus
 }

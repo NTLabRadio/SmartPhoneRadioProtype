@@ -60,6 +60,39 @@ void ChipFWVersionRead () // запрос версии firmware трансивера
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
 
+void STATUSCC1120Read () // запрос статуса трансивера
+{
+		UART_Tx_Buff[2] = CC1120_Status (&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+void CC1120TxSet() // перевод трансивера в режим передачи
+{
+		UART_Tx_Buff[2] = CC1120_Tx(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+void CC1120IDLESet() // перевод трансивера в режим IDLE
+{
+		UART_Tx_Buff[2] = CC1120_IDLE_set(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+void CC1120RxSet() // перевод трансивера в режим приема
+{
+		UART_Tx_Buff[2] = CC1120_Rx(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+
 
 uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 {
@@ -75,8 +108,34 @@ uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 		
 		ChipFWVersionRead();
 		
-		break;		
+		break;
+
+		case STATUS_CC1120: // запрос статусного байта
+		
+		STATUSCC1120Read ();
+		
+		break;
+
+		case CC1120_TX: // превод трансивера в режим передачи
+		
+		CC1120TxSet();
+		
+		break;
+		
+		case CC1120_IDLE: // превод трансивера в режим IDLE
+		
+		CC1120IDLESet();
+		
+		break;
+		
+		case CC1120_RX: // превод трансивера в режим приема
+		
+		CC1120RxSet();
+		
+		break;
 	}
+	
+	return 0;
 }
 
 
