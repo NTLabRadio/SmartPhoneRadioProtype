@@ -47,6 +47,10 @@
 #define CMX7262_NOISEGATE_THRESHOLD_DEFAULT		(70)
 #define CMX7262_NOISEGATE_FRAMEDELAY_DEFAULT	(3)
 
+// IRQ flag bit definitions.
+#define	CMX7262_ODA								(1<<3)
+#define	CMX7262_IDW								(1<<4)
+
 // CMX7262 errors use the upper 16 bits.
 #define	CMX7262_FI_LOAD_ERROR						(0x00010000)		// FI failed to load correctly.
 #define	CMX7262_CONFIG_CLK_ERROR				(0x00020000)		// Failed to initialise the config clocks.
@@ -144,7 +148,7 @@ typedef enum {
 	CMX7262_ENCODE_MODE =		3,
 	CMX7262_PASSTHRU_MODE = 4,
 	CMX7262_TEST_MODE = 		5,
-	CMX7262_ENCDEC_MODE = 	6		//NO: Дополнено Залесским Н. (NTLab)
+	CMX7262_ENCDEC_MODE = 	6
 } cmx7262Mode;
 
 
@@ -228,6 +232,7 @@ typedef struct
 uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi);
 
 uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface);
+
 uint16_t  CMX7262_Init (CMX7262_TypeDef  *pCmx7262, SPI_HandleTypeDef *hspi);
 uint16_t  CMX7262_InitHardware (CMX7262_TypeDef *pCmx7262);
 void CMX7262_Config (CMX7262_TypeDef  *pCmx7262, uint16_t uConfig);
@@ -238,14 +243,22 @@ void CMX7262_FlushStatusReg (CMX7262_TypeDef  *pCmx7262);
 uint16_t CMX7262_ConfigClocks (CMX7262_TypeDef  *pCmx7262);
 void  CMX7262_AnalogBlocks (CMX7262_TypeDef *pCmx7262);
 void CMX7262_AudioPA (CMX7262_TypeDef  *pCmx7262, FunctionalState eState);
-void CMX7262_Idle(CMX7262_TypeDef *pCmx7262);
+
 uint16_t CMX7262_Transcode(CMX7262_TypeDef *pCmx7262, uint16_t uMode);
+
+void CMX7262_Idle(CMX7262_TypeDef *pCmx7262);
 void CMX7262_Encode(CMX7262_TypeDef *pCmx7262);
 void CMX7262_Decode(CMX7262_TypeDef *pCmx7262);
 void CMX7262_EncodeDecode_Audio(CMX7262_TypeDef *pCmx7262);
+void CMX7262_EncodeDecode_Audio2CBUS(CMX7262_TypeDef *pCmx7262);
 void CMX7262_Test_AudioOut(CMX7262_TypeDef *pCmx7262);
+
 void CMX7262_EnableIRQ(CMX7262_TypeDef *pCmx7262, uint16_t uIRQ);
 void CMX7262_DisableIRQ(CMX7262_TypeDef *pCmx7262, uint16_t uIRQ);
+void CMX7262_IRQ(void *pData);
+
+void CMX7262_RxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
+void CMX7262_TxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 
 //-------------------------------------- CBUS DEFINES AND FUNCTIONS ----------------------------------------------
 

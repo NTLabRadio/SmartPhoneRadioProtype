@@ -5,24 +5,24 @@ SPI_HandleTypeDef *hspiCC1120 = NULL;
 uint8_t pCC1120TxData[255];
 uint8_t pCC1120RxData[255];
 
-
+/**
+  * @brief  Функция проверки работоспособности микросхемы с СС1120
+	* @param  hspi - handle SPI-интерфейса, к которому подключена СС1120
+  * @note   
+	* @retval Результат выполнения функции:
+	*					0 - микросхема неработоспособна (не отвечает);
+	*					1 - микросхема работоспособна
+  */
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
-	
-//	pCC1120TxData[0] = 0xAF;	pCC1120TxData[1] = 0x8F; pCC1120TxData[2] = 0x00;
-//	pCC1120TxData[3] = 0xAF;	pCC1120TxData[4] = 0x90; pCC1120TxData[5] = 0x00;	
 	
 	//Опускаем CS	
 	CC1120_CSN_LOW();
 	
 	//Передаем данные и одновременно принимаем ответ
-	//SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, 6);
-	
 	CC1120_Read (EXT_PARTNUMBER, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01);
-	
-	
-	
+
 	// Не забыть сделать обработку ошибок обмена по SPI !!!!!
 	
 	//Подождем 100 мкс. Этого хватит для передачи по SPI 6 байт с тактовой выше 500 кГц
@@ -33,7 +33,7 @@ uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi)
 	
 	//Должны принять в байте 2 значение 0x48, соответствующее ChipID микросхемы CC1120
 	if(pCC1120RxData[2]!=0x48)
-		return 0;	
+		return(0);	
 	
 	return(1);
 }
@@ -84,9 +84,7 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
     default:
 			
 			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
-		
-		break;		
-	
+			
 	}
 	
 	pCC1120TxData[0] = pCC1120TxData[0] | (WRITE_CC1120 << 7); // установка признака записи (знаю, что он 0. Это для единообразия)
@@ -158,8 +156,6 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
     default:
 			
 			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
-		
-		break;		
 	
 	}
 	

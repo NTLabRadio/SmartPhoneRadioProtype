@@ -30,11 +30,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 	 
 void UART_InitInterface(UART_HandleTypeDef *huart);
 	 
-#ifdef DEBUG_UART_TEST_TXRX	 
-void UART_Receive_Pck_Wait(UART_HandleTypeDef *huart, uint8_t *pBufForRecData);	 
-void UART_Send_TestData(UART_HandleTypeDef *huart);
-#endif
-	 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -32,13 +32,12 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
+
+/* USER CODE BEGIN Includes */
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
 #include "uart_intermodule.h"
-
-/* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -135,13 +134,19 @@ int main(void)
 	//Перевод CMX7262 в рабочий режим
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
 	CMX7262_EncodeDecode_Audio(&pCmx7262);	
-	#else
+	#endif
+
 	#ifdef TEST_CMX7262_AUDIO_TESTMODE
 	CMX7262_Test_AudioOut(&pCmx7262);
-	#else
+	#endif
+	
+	#ifdef TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE
+	CMX7262_EncodeDecode_Audio2CBUS(&pCmx7262);
+	#endif
+	
+	#ifdef TEST_CMX7262_ENC_MODE
 	CMX7262_Encode(&pCmx7262);
 	#endif
-	#endif	
 
 
   /* USER CODE END 2 */
@@ -313,6 +318,7 @@ void MX_TIM5_Init(void)
 
 }
 
+
 /* USART1 init function */
 void MX_USART1_UART_Init(void)
 {
@@ -373,7 +379,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PA0 PA1 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -382,6 +388,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
 }
 

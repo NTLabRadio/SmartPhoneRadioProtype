@@ -25,8 +25,8 @@ uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 	if(hspi_CMX7262)
 		HAL_SPI_TransmitReceive_IT(hspi_CMX7262, pCMX7262TxData, pCMX7262RxData, 1);
 	
-	// Wait for a second.
-	WaitTimeMCS(1e6);
+	// Wait for a 0.3 second.
+	WaitTimeMCS(3e5);
 	
 
 	//Передаем команду запроса FIFO output level
@@ -68,8 +68,8 @@ uint16_t SDR_Load_FI (cmxFI_TypeDef *pFI, uint8_t uInterface )
 	state = 0;
 	// Write a general reset to the pDSP6
 	CBUS_Write8(1, (uint8_t *)&data, 0, uInterface);
-	// Wait for a second.
-	WaitTimeMCS(1e6);
+	// Wait for a 0.3 second.
+	WaitTimeMCS(3e5);
 
 	// Read the FIFO output level. It should be 3
 	CBUS_Read8(0x4F,(uint8_t*)&data,1,uInterface);
@@ -395,6 +395,29 @@ void CMX7262_EncodeDecode_Audio (CMX7262_TypeDef *pCmx7262)
 	}
 }
 
+void CMX7262_EncodeDecode_Audio2CBUS (CMX7262_TypeDef *pCmx7262)
+{
+	// PCM samples in through audio port, encode, decode and out through cbus port - in relation to the CMX7262
+	CMX7262_Routing(pCmx7262, SRC_AUDIO | DEST_CBUS);
+
+	#ifdef TEST_CMX7262_NOISE_GATE_IN_ENCDEC_MODE
+	uData = (CMX7262_NOISEGATE_FRAMEDELAY_DEFAULT<<12) | CMX7262_NOISEGATE_THRESHOLD_DEFAULT;
+	CBUS_Write16(NOISE_GATE_REG,&uData,1,pCmx7262->uInterface);
+	#endif
+	
+	// The encoder+decoder is started, there will be a delay before we are requested to service it..
+	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCDEC))
+		pCmx7262->uError |= CMX7262_ENCODE_ERROR;
+	else
+	{
+		// Set the soft copy of the mode before we enable the IRQ because this is used by the IRQ
+		// to set the appropriate request flags.
+		pCmx7262->uMode = CMX7262_ENCDEC_MODE;
+		CMX7262_EnableIRQ(pCmx7262, IRQ+ODA);	//не знаю, какие прерывания нужны в этом режиме
+	}	
+}
+
+
 
 /* Тестовый режим формирования гармонического сигнала на звуковом выходе*/
 void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
@@ -641,6 +664,98 @@ void CMX7262_AudioPA (CMX7262_TypeDef  *pCmx7262, FunctionalState eState)
 		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_SET);
 }
 
+
+// These functions provide a clear interface to the DMR application calling them. They simply read and write
+// data to and from the codec FIFOs and extract the interface and packet size from the Cmx7262 data structure.
+
+void CMX7262_RxFIFO (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
+{
+	CBUS_Read8(CBUS_VOCODER_OUT,pData,pCmx7262->uPacketSize,pCmx7262->uInterface);
+}
+
+
+void CMX7262_TxFIFO (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
+{
+	CBUS_Write8(CBUS_VOCODER_IN,pData,pCmx7262->uPacketSize,pCmx7262->uInterface);
+}
+
+
+// This is called from the IRQ. The parameter is void so that the function pointer that
+// references this can handle different parameter types.
+void CMX7262_IRQ (void *pData)
+{
+	uint16_t uTemp;
+	CMX7262_TypeDef * pCmx7262;
+
+	pCmx7262 = (CMX7262_TypeDef*)pData;
+
+	// Read the status register into a shaoow register.
+	CBUS_Read16 (IRQ_STATUS_REG,&uTemp,1,pCmx7262->uInterface);
+	pCmx7262->uIRQ_STATUS_REG |= uTemp;
+
+	// Check the appropriate bits in the shadow register based on the codec mode.
+	if(pCmx7262->uMode==CMX7262_ENCODE_MODE)
+	{
+		if( (pCmx7262->uIRQ_STATUS_REG & ODA) == ODA)
+		{
+			// Clear the bit in the shadow register.
+			pCmx7262->uIRQ_STATUS_REG &= (uint16_t)(~ODA);
+			// The control  flag should not be still set, if it is, there is something wrong so set the
+			// error flag. This will be picked up by the SysTick handler.
+			// Set the flag in the control field to request appropriate action by routines
+			// in PendSV.
+			if((pCmx7262->uIRQRequest & CMX7262_ODA) == CMX7262_ODA)
+				pCmx7262->uError |= CMX7262_ODA_ERROR;
+			pCmx7262->uIRQRequest |= CMX7262_ODA;
+		}
+	}
+	
+	// Select IRQ flags to check based on the codec mode.
+	if(pCmx7262->uMode==CMX7262_DECODE_MODE)
+	{
+		if( (pCmx7262->uIRQ_STATUS_REG & IDW) == IDW)
+		{
+			 // Clear the bit in the shadow register.
+			 pCmx7262->uIRQ_STATUS_REG &= (uint16_t)(~IDW);
+			 // The control  flag should not be still set, if it is, there is something wrong so set the
+			 // error flag. This will be picked up by the SysTick handler.
+			 // Set the flag in the control field to request appropriate action by routines
+			 // in PendSV.
+			 if((pCmx7262->uIRQRequest & CMX7262_IDW) == CMX7262_IDW)
+				 pCmx7262->uError |= CMX7262_IDW_ERROR;
+			 pCmx7262->uIRQRequest |= CMX7262_IDW;
+		}
+
+		if( (pCmx7262->uIRQ_STATUS_REG & UF) == UF)
+		{
+			 // Clear the bit in the shadow register.
+			 pCmx7262->uIRQ_STATUS_REG &= (uint16_t)(~UF);
+			 // The control  flag should not be still set, if it is, there is something wrong so set the
+			 // error flag. This will be picked up by the SysTick handler.
+			 // Set the flag in the control field to request appropriate action by routines
+			 // in PendSV.
+			 //if((pCmx7262->uIRQRequest & UF) == UF)
+			 //	 pCmx7262->uError |= CMX7262_UF_ERROR;
+			 pCmx7262->uIRQRequest |= UF;
+		}
+                 
+	}
+
+	// If there are errors, set a bit in the error field which will be picked up by the SysTick.
+	// Catch a data overflow.
+	if( (pCmx7262->uIRQ_STATUS_REG & OV) == OV)
+	{
+		pCmx7262->uIRQ_STATUS_REG &= (uint16_t)(~OV);
+		pCmx7262->uError |= CMX7262_OV_ERROR;
+	}
+	
+	// Catch a data underflow.
+	//if( (pCmx7262->uIRQ_STATUS_REG & UF) == UF)
+	//{
+	//	 pCmx7262->uIRQ_STATUS_REG &= (uint16_t)(~UF);
+	//	 pCmx7262->uError |= CMX7262_UF_ERROR;
+	//}
+}
 
 //-------------------------------------------- CBUS FUNCTIONS --------------------------------------------------------
 
