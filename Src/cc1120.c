@@ -309,6 +309,349 @@ uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr
 	return (1);
 }
 
+/**
+  * @brief  Калибровка PLL трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+
+uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
+{
+	uint8_t original_fs_cal2 = 0;
+	uint8_t original_fs_cal2_new = 0;
+	uint8_t calResult_for_vcdac_start_high[3];
+	uint8_t calResult_for_vcdac_start_mid[3];
+	hspiCC1120 = hspi;
+	
+	// запись значения FS_VCO2 = 0x00
+	CC1120_CSN_LOW();
+	pCC1120TxData[0] = 0x00;
+	if (CC1120_Write (EXT_FS_VCO2, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();		
+	
+	// чтение FS_CAL2 (VCDAC_START)
+	CC1120_CSN_LOW();
+	if (CC1120_Read (EXT_FS_CAL2, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return 0;
+			}
+	original_fs_cal2 = pCC1120RxData [2];
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();	
+			
+	 // запись FS_CAL2 = original_fs_cal2 + 2		
+	original_fs_cal2_new = original_fs_cal2 +2;
+	pCC1120TxData[0] = original_fs_cal2_new;
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_CAL2, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+			
+	// запуск калибровки синтезатора
+	CC1120_CSN_LOW();
+	if (CC1120_Write (S_CAL, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+			
+	// чтение FS_VCO2 и сохранение calResults_for_vcdac_start_high		
+	CC1120_CSN_LOW();
+	if (CC1120_Read (EXT_FS_VCO2, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	calResult_for_vcdac_start_high[0] = pCC1120RxData[2];	
+			
+
+	// чтение FS_VCO4 и сохранение calResults_for_vcdac_start_high	 FS_CHP 
+	CC1120_CSN_LOW();
+	if (CC1120_Read (EXT_FS_VCO4, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	calResult_for_vcdac_start_high[1] = pCC1120RxData[2];			
+			
+	// чтение FS_CHP и сохранение calResults_for_vcdac_start_high
+	CC1120_CSN_LOW();
+	if (CC1120_Read (EXT_FS_CHP, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	calResult_for_vcdac_start_high[2] = pCC1120RxData[2];	
+			
+	// запись значения FS_VCO2 = 0x00
+	CC1120_CSN_LOW();
+	pCC1120TxData[0] = 0x00;
+	if (CC1120_Write (EXT_FS_VCO2, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+
+	// запись FS_CAL2 = original_fs_cal2		
+	pCC1120TxData[0] = original_fs_cal2;
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_CAL2, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	
+	// запуск калибровки синтезатора
+	CC1120_CSN_LOW();
+	if (CC1120_Write (S_CAL, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	
+	// чтение FS_VCO2 и сохранение calResults_for_vcdac_start_mid		
+	CC1120_CSN_LOW();
+	if (CC1120_Read (EXT_FS_VCO2, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	calResult_for_vcdac_start_mid[0] = pCC1120RxData[2];
+
+	// чтение FS_VCO4 и сохранение calResults_for_vcdac_start_mid
+	CC1120_CSN_LOW();
+	if (CC1120_Read (EXT_FS_VCO4, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	calResult_for_vcdac_start_mid[1] = pCC1120RxData[2];			
+	
+	
+	// чтение FS_CHP и сохранение calResults_for_vcdac_start_mid
+	CC1120_CSN_LOW();
+	if (CC1120_Read (EXT_FS_CHP, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return 0;
+			}
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	calResult_for_vcdac_start_mid[2] = pCC1120RxData[2];
+
+	// сравнение calResults_for_vcdac_start_high > calResults_for_vcdac_start_mid?
+			
+	if (calResult_for_vcdac_start_high[0] > calResult_for_vcdac_start_mid [0])
+	{
+		// запись FS_VCO2, FS_VCO4, и FS_CHP сохраненных в calResults_for_vcdac_start_high
+	pCC1120TxData[0] = calResult_for_vcdac_start_high[0];
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_VCO2, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+		
+	pCC1120TxData[0] = calResult_for_vcdac_start_high[1];
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_VCO4, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+			
+	pCC1120TxData[0] = calResult_for_vcdac_start_high[2];
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_CHP, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();		
+	
+	}
+	else
+	{
+		// запись FS_VCO2, FS_VCO4, и FS_CHP сохраненных в calResults_for_vcdac_start_mid
+	pCC1120TxData[0] = calResult_for_vcdac_start_mid[0];
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_VCO2, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+		
+	pCC1120TxData[0] = calResult_for_vcdac_start_mid[1];
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_VCO4, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+			
+	pCC1120TxData[0] = calResult_for_vcdac_start_mid[2];
+	CC1120_CSN_LOW();		
+	if (CC1120_Write (EXT_FS_CHP, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
+			{
+				return 0;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+	}
+	
+	return (1);	
+			
+}
+
+
+/**
+  * @brief  Получение статуса трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*						MARC state:
+	*						0x00 - SLEEP
+	*						0x01 - IDLE
+	*						0x02 - XOFF
+	*						0x03 - BIAS_SETTLE_MC
+	*						0x04 - REG_SETTLE_MC
+	*						0x05 - MANCAL
+	*						0x06 - BIAS_SETTLE
+	*						0x07 - REG_SETTLE
+	*						0x08 - STARTCAL
+	*						0x09 - BWBOOST
+	*						0x0A - FS_LOCK
+	*						0x0B - IFADCON
+	*						0x0C - ENDCAL
+	*						0x0D - RX
+	*						0x0E - RX_END
+	*						0x0F - Reserved
+	*						0x10 - TXRX_SWITCH
+	*						0x11 - RX_FIFO_ERR
+	*						0x12 - FSTXON
+	*						0x13 - TX
+	*						0x14 - TX_END
+	*						0x15 - RXTX_SWITCH
+	*						0x16 - TX_FIFO_ERR
+	*						0x17 - IFADCON_TXRX
+	* 					0x18 - SPI_ERROR
+	*					 - ошибка при выполнении функции (занята шина SPI)
+  */
+
+CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+	CC1120_CSN_LOW();		
+	if (CC1120_Read (EXT_MARCSTATE, EXT_ADDRESS, NO_BURST, pCC1120RxData,0x01))
+			{
+				return MARCSTATE_SPI_ERROR;
+			}		
+	WaitTimeMCS(1e2);
+	CC1120_CSN_HIGH();
+			
+	return ((pCC1120RxData [2]) & 0x1F);		
+}
+
+/**
+  * @brief  Автоматическая калибровка PLL трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+
+ uint8_t CC1120_SFSTXON_set (SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	if (CC1120_Write (S_SFSTXON, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+			{
+				return 0;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (1);
+}	
+
+/**
+  * @brief  чтение количества байтов в FIFO RX трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*					количество байтов в буфере - успешное выполнение;
+	*					0xFF - ошибка при выполнении функции (занята шина SPI)
+  */
+uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	if (CC1120_Read (EXT_NUM_RXBYTES, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01))	// если есть ошибки обмена данными по SPI возвращаем ошибку функции
+			{
+				return RX_FIFO_FAIL;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+		return pCC1120RxData[2];	
+}
+
+/**
+  * @brief  очистка FIFO RX трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi)
+{
+hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	if (CC1120_Write (S_RX_FIFO_FLUSH, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+			{
+				return 0;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (1);
+}
 
 
 

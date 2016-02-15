@@ -114,7 +114,6 @@ int main(void)
 	CMX7262_CSN_HIGH();
 	
 
-	
 	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
 	HAL_TIM_Base_Start(&htim2);
 	HAL_TIM_Base_Start(&htim3);

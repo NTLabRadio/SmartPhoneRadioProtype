@@ -26,8 +26,13 @@
 #define CC1120_RX												0x0F			/* перевод трансивера ——1120 в режим приема */	 
 #define CC1120_RESET										0x06			/* сброс трансивера ——1120 */
 #define CC1120_FIFO_NUM_TXBYTES					0x03			/* чтение количества байтов TX FIFO */
+#define CC1120_FIFO_NUM_RXBYTES					0x04			/* чтение количества байтов TX FIFO */
 #define	CC1120_TX_FIFO_FLUSH						0x07			/* очистка TX FIFO */
+#define	CC1120_RX_FIFO_FLUSH						0x08			/* очистка RX FIFO */
 #define	CC1120_TX_FIFO_WRITE						0x11			/* запись в TX FIFO */
+#define	CC112_MANUAL_CALIBRATION				0x05			/* ручна€ калиброка синтезатора CC1120 */
+#define CC1120_MARCSTATE								0x0C			/* запрос состо€ни€ трансивера CC1120 */
+#define CC1120_SFSTXON									0x0D			/* автоматическа€ калибровка синтезатора CC1120 */
 
 	 
 	 
@@ -63,6 +68,8 @@ void CC1120Reset(void);
 void TxFIFONumBytesRead (void);
 void TxFIFOFlush (void);
 void TxFIFOWrite (uint8_t *data_ptr, uint8_t num_byte);
+void ManualCalibration (void);
+void MARCState (void);
 
 
 

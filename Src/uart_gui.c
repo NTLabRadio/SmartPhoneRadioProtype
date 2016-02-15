@@ -140,9 +140,56 @@ void TxFIFOWrite (uint8_t *data_ptr, uint8_t num_byte)
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
 
+void ManualCalibration (void)
+{
+		UART_Tx_Buff[2] = CC1120_ManualCalibration(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 
+}
 
+void MARCState (void)
+{
+		UART_Tx_Buff[2] = CC1120_MARCState(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
 
+void SFSTXON (void)	
+{
+		UART_Tx_Buff[2] = CC1120_SFSTXON_set(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+void RxFIFONumBytesRead (void) // чтение количества данных в FIFO TX
+{
+		uint8_t Num_RxFIFO_bytes = 0; // количество байтов в FIFO TX
+		Num_RxFIFO_bytes = CC1120_RxFIFONumBytes(&CURRENT_SPI);
+		
+		if (Num_RxFIFO_bytes != RX_FIFO_FAIL) // если ответ от трансивера не 0xFF, 
+			{			
+		UART_Tx_Buff[2] = Num_RxFIFO_bytes; // количество байтов в TX FIFO
+			} 
+	else 
+			{
+				UART_Tx_Buff[2] = RX_FIFO_FAIL; // сообщение об ошибке чтения TX FIFO
+			}	
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+void RxFIFOFlush (void)
+{
+		UART_Tx_Buff[2] = CC1120_RxFIFOFlush(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
 
 
 uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
@@ -206,6 +253,36 @@ uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 		case CC1120_TX_FIFO_WRITE: // чтение количества байтов в TX FIFO
 		
 		TxFIFOWrite (command, Payload_length);
+		
+		break;
+		
+		case CC112_MANUAL_CALIBRATION: // ручная калибровка синтезатора CC1120
+			
+		ManualCalibration ();
+		
+		break;
+		
+		case CC1120_MARCSTATE: // запрос состояния трансивера
+		
+		MARCState ();
+		
+		break;
+		
+		case CC1120_SFSTXON: // автоматическая калибровка синтезатора
+		
+		SFSTXON ();		
+		
+		break;
+		
+		case CC1120_FIFO_NUM_RXBYTES: // чтение количества байтов в RX FIFO
+		
+		RxFIFONumBytesRead();
+		
+		break;
+		
+		case CC1120_RX_FIFO_FLUSH: // чтение количества байтов в TX FIFO
+		
+		RxFIFOFlush();
 		
 		break;
 		

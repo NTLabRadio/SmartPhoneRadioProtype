@@ -44,6 +44,41 @@ typedef enum
 	STATUS_SPI_ERROR 						= 0x08
 } CC1120STATUSTypeDef;	
 
+typedef enum
+{
+	MARCSTATE_SLEEP								= 0x00,
+	MARCSTATE_IDLE								= 0x01,
+	MARCSTATE_XOFF								= 0x02,
+	MARCSTATE_BIAS_SETTLE_MC			= 0x03, 
+	MARCSTATE_REG_SETTLE_MC				= 0x04, 
+	MARCSTATE_MANCAL							= 0x05, 
+	MARCSTATE_BIAS_SETTLE					= 0x06, 
+	MARCSTATE_REG_SETTLE					= 0x07, 
+	MARCSTATE_STARTCAL						= 0x08, 
+	MARCSTATE_BWBOOST							= 0x09, 
+	MARCSTATE_FS_LOCK							= 0x0A, 
+	MARCSTATE_IFADCON							= 0x0B, 
+	MARCSTATE_ENDCAL							= 0x0C,
+	MARCSTATE_RX									= 0x0D,
+	MARCSTATE_RX_END							= 0x0E, 
+	MARCSTATE_Reserved						= 0x0F, 
+	MARCSTATE_TXRX_SWITCH					= 0x10, 
+	MARCSTATE_RX_FIFO_ERR					= 0x11, 
+	MARCSTATE_FSTXON							= 0x12, 
+	MARCSTATE_TX									= 0x13, 
+	MARCSTATE_TX_END							= 0x14, 
+	MARCSTATE_RXTX_SWITCH					= 0x15, 
+	MARCSTATE_TX_FIFO_ERR					= 0x16, 
+	MARCSTATE_IFADCON_TXRX				= 0x17,
+	MARCSTATE_SPI_ERROR 					= 0x18
+} CC1120MARCSTATETypeDef;	
+	
+	
+
+
+
+
+
 
 	 
 #define EXT_ADDRESS						0x2F  			/* EXTENDED ADDRESS fields */			 
@@ -57,18 +92,28 @@ typedef enum
 #define NO_BURST							0x00				/* Single mode */
 
 #define TX_FIFO_FAIL					0xFF				/* Ошибка чтения данных FIFO_TX */
+#define RX_FIFO_FAIL					0xFF				/* Ошибка чтения данных FIFO_RX */
 	 
 	 
 	 
 #define EXT_PARTNUMBER				0x8F  			/* PARTNUMBER */
 #define EXT_PARTVERSION				0x90  			/* PARTVERSION */
 #define EXT_NUM_TXBYTES				0xD6  			/* Количество байтов в FIFO TX */
+#define EXT_NUM_RXBYTES				0xD7				/* Количество байтов в FIFO RX */
+#define EXT_FS_VCO2						0x25				/* FS_VCO2 */
+#define EXT_FS_CAL2						0x15				/* FS_CAL2 */
+#define EXT_FS_VCO4						0x23				/* FS_VCO_4 */
+#define EXT_FS_CHP						0x18				/* FS_CHP */
+#define EXT_MARCSTATE					0x73				/* Опрос состояния трансивера */
 #define S_STATUS							0x3D				/* No operation. May be used to get access to the chip status byte */
 #define S_TX									0x35				/* Enable Tx */	 
 #define S_RX									0x34				/* Enable Rx */
 #define S_IDLE								0x36				/* IDLE */
 #define S_RESET								0x30				/* Сброс трансивера */
 #define	S_TX_FIFO_FLUSH				0x3B				/* Очистка FIFO TX */
+#define	S_RX_FIFO_FLUSH				0x3A				/* Очистка FIFO TX */
+#define S_CAL									0x33				/* Запуск калибровки синтезатора */
+#define S_SFSTXON							0x31				/* запуск автоматической калибровки синтезатора */
 #define R_TX_FIFO_WRITE				0x7F				/* Стандартная запись данных в Tx FIFO */
 
 
@@ -92,6 +137,11 @@ uint8_t CC1120_Reset(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_TxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_TxFIFOFlush(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr, uint8_t tx_num);
+uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi);
+CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_SFSTXON_set (SPI_HandleTypeDef *hspi);
+uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi);
 
 	 
 #ifdef __cplusplus
