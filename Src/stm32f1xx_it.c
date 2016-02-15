@@ -36,7 +36,10 @@
 #include "stm32f1xx_it.h"
 
 /* USER CODE BEGIN 0 */
+#include "cmx7262.h"
 
+extern CMX7262_TypeDef pCmx7262;
+extern uint8_t flCMX7262_IRQ_CHECKED;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -120,11 +123,12 @@ void EXTI0_IRQHandler(void)
 void EXTI1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI1_IRQn 0 */
-
+	
   /* USER CODE END EXTI1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
   /* USER CODE BEGIN EXTI1_IRQn 1 */
-
+	flCMX7262_IRQ_CHECKED = TRUE;
+	//CMX7262_IRQ (&pCmx7262);
   /* USER CODE END EXTI1_IRQn 1 */
 }
 

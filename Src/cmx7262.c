@@ -391,7 +391,6 @@ void CMX7262_EncodeDecode_Audio (CMX7262_TypeDef *pCmx7262)
 		// Set the soft copy of the mode before we enable the IRQ because this is used by the IRQ
 		// to set the appropriate request flags.
 		pCmx7262->uMode = CMX7262_ENCDEC_MODE;
-		CMX7262_EnableIRQ(pCmx7262, IRQ+ODA);	//не знаю, какие прерывания нужны в этом режиме
 	}
 }
 
@@ -413,7 +412,8 @@ void CMX7262_EncodeDecode_Audio2CBUS (CMX7262_TypeDef *pCmx7262)
 		// Set the soft copy of the mode before we enable the IRQ because this is used by the IRQ
 		// to set the appropriate request flags.
 		pCmx7262->uMode = CMX7262_ENCDEC_MODE;
-		CMX7262_EnableIRQ(pCmx7262, IRQ+ODA);	//не знаю, какие прерывания нужны в этом режиме
+
+		CMX7262_EnableIRQ(pCmx7262, IRQ+ODA);		//ожидаем прерываний по событию "Output Data Available"
 	}	
 }
 
@@ -694,7 +694,7 @@ void CMX7262_IRQ (void *pData)
 	pCmx7262->uIRQ_STATUS_REG |= uTemp;
 
 	// Check the appropriate bits in the shadow register based on the codec mode.
-	if(pCmx7262->uMode==CMX7262_ENCODE_MODE)
+	if(pCmx7262->uMode==CMX7262_ENCODE_MODE || pCmx7262->uMode==CMX7262_ENCDEC_MODE)
 	{
 		if( (pCmx7262->uIRQ_STATUS_REG & ODA) == ODA)
 		{
@@ -711,7 +711,7 @@ void CMX7262_IRQ (void *pData)
 	}
 	
 	// Select IRQ flags to check based on the codec mode.
-	if(pCmx7262->uMode==CMX7262_DECODE_MODE)
+	if(pCmx7262->uMode==CMX7262_DECODE_MODE || pCmx7262->uMode==CMX7262_ENCDEC_MODE)
 	{
 		if( (pCmx7262->uIRQ_STATUS_REG & IDW) == IDW)
 		{

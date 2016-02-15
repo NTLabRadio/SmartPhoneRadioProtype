@@ -70,7 +70,9 @@ HAL_StatusTypeDef SPI_TransmitRecieveByte(SPI_HandleTypeDef *hspi, uint8_t nByte
 	
 	if(nRes)
 	{
+		#ifdef DEBUG_PRINTF_SPI_EXCHANGE
 		printf("ERROR In SPI Exchange: HAL_Status=%d\n",nRes);
+		#endif
 		return(nRes);
 	}
 
@@ -100,7 +102,9 @@ HAL_StatusTypeDef SPI_TransmitRecieveByte(SPI_HandleTypeDef *hspi, uint8_t nByte
 
 void SPI_TIMEOUT_UserCallback(SPI_HandleTypeDef *hspi)
 {	
+	#ifdef DEBUG_PRINTF_SPI_EXCHANGE
 	printf("ERROR In SPI Exchange: No Answer From Slave\n");
+	#endif
 }
 
 
@@ -129,7 +133,9 @@ HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData,
 	
 	if(nRes) // если nRes отличен от нуля (HAL не OK)
 	{
+		#ifdef DEBUG_PRINTF_SPI_EXCHANGE
 		printf("ERROR In SPI Exchange: HAL_Status=%d\n",nRes);
+		#endif
 		return(nRes);
 	}
 

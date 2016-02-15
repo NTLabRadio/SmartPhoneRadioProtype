@@ -56,7 +56,16 @@ DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+extern enUARTstateTypeDef UARTstate;
 
+extern uint8_t pUARTRxSLIPPack[];
+extern uint16_t nSizeSLIPPack;
+
+CMX7262_TypeDef  pCmx7262;
+
+uint8_t flCMX7262_IRQ_CHECKED = FALSE;
+
+uint8_t pDataFromCMX7262[1024];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,7 +81,7 @@ static void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-CMX7262_TypeDef  pCmx7262;
+void ProcessDataFromExtDev();
 
 /* USER CODE END PFP */
 
@@ -155,6 +164,35 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		//Если из UART приняты данные
+		if(UARTstate==UART_DATA_RX_NEED_TO_PROCESS)
+		{
+			//Обрабатываем их
+			ProcessDataFromExtDev();
+			
+			//Указываем, что данные обработаны
+			UARTstate = UART_IDLE;
+		}
+		
+		//Если было прерывание от CMX7262
+		if(flCMX7262_IRQ_CHECKED)
+		{
+			//Обрабатываем прерывание: проверяем, что хочет CMX7262
+			CMX7262_IRQ(&pCmx7262);
+			//Сбрасываем флаг, чтобы обнаружить следующее прерывание
+			flCMX7262_IRQ_CHECKED = FALSE;
+		}
+		
+		#ifdef TEST_CMX7262_ENC_MODE
+		if((pCmx7262.uIRQRequest & CMX7262_ODA) == CMX7262_ODA)
+		{
+			//Сбрасываем флаг CMX7262_ODA
+			pCmx7262.uIRQRequest = pCmx7262.uIRQRequest & ~CMX7262_ODA;
+			
+			//Читаем данные
+			CMX7262_RxFIFO(&pCmx7262,(uint8_t *)&pDataFromCMX7262[0]);
+		}
+		#endif
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -379,8 +417,8 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PA0 PA1 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA2 PA4 */
@@ -399,6 +437,11 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void ProcessDataFromExtDev()
+{
+	//Очищаем буфер с обработанными данными SLIP-пакета
+	memset(pUARTRxSLIPPack,0,MAX_SIZE_OF_SLIP_PACK_PAYLOAD);
+}
 
 /* USER CODE END 4 */
 

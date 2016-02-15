@@ -26,9 +26,25 @@
 #include "DebugLog.h"
 	 
 	 
+//Возможные состояния механизма обработки UART-сообщений
+typedef enum 
+{
+	UART_IDLE,
+	UART_DATA_RX_NEED_TO_PROCESS
+} enUARTstateTypeDef;	 
+	 
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 	 
 void UART_InitInterface(UART_HandleTypeDef *huart);
+void UART_DeInitInterface(UART_HandleTypeDef *huart);
+
+void InitSerialProtocol(void);
+void DeinitSerialProtocol(void);
+
+void WaitNextByteFromUART(UART_HandleTypeDef *huart);
+
+uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePackData);
 	 
 #ifdef __cplusplus
 }
