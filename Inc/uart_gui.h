@@ -9,8 +9,8 @@
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_uart.h"
 
-#define TXBUFFERSIZE 					255 
-#define RXBUFFERSIZE 					255
+#define TXBUFFERSIZE 					0xFF
+#define RXBUFFERSIZE 					0xFF
 	 
 #define CURRENT_UART 					huart1
 #define CURRENT_SPI	 					hspi1	
@@ -18,14 +18,17 @@
 #define STM32F103_SELECT 			0x01
 #define CC1120_SELECT 				0x02	 
 	 
-#define CHIP_ID_CC1120				0x01			/* запрос Chip ID трансивера */
-#define CHIP_FW_VER	 					0x02			/* запрос версии firmware трансивера */
-#define STATUS_CC1120	 				0x0A			/* запрос статусного байта трансивера */
-#define CC1120_TX							0x07			/* перевод трансивера ——1120 в режим передачи */
-#define	CC1120_IDLE						0x0B			/* перевод трансивера в режим IDLE */
-#define CC1120_RX							0x0F			/* перевод трансивера ——1120 в режим приема */	 
+#define CHIP_ID_CC1120									0x01			/* запрос Chip ID трансивера */
+#define CHIP_FW_VER	 										0x02			/* запрос версии firmware трансивера */
+#define STATUS_CC1120	 									0x0A			/* запрос статусного байта трансивера */
+#define CC1120_TX												0x09			/* перевод трансивера ——1120 в режим передачи */
+#define	CC1120_IDLE											0x0B			/* перевод трансивера в режим IDLE */
+#define CC1120_RX												0x0F			/* перевод трансивера ——1120 в режим приема */	 
+#define CC1120_RESET										0x06			/* сброс трансивера ——1120 */
+#define CC1120_FIFO_NUM_TXBYTES					0x03			/* чтение количества байтов TX FIFO */
+#define	CC1120_TX_FIFO_FLUSH						0x07			/* очистка TX FIFO */
+#define	CC1120_TX_FIFO_WRITE						0x11			/* запись в TX FIFO */
 
-	 
 	 
 	 
 	 
@@ -37,17 +40,29 @@
 
 
 
-void GUI_rx (UART_HandleTypeDef *huart);	 
+void GUI_rx (UART_HandleTypeDef *huart);
+
+
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 void Device_Select (uint8_t select);
+
+
 void GUI_Tx (UART_HandleTypeDef *huart, uint8_t *tx_buffer);
+
+
+
 uint8_t CC1120_CheckCommand (uint8_t *command);	
-void ChipIDCC1120Read ();
-void ChipFWVersionRead ();
-void STATUSCC1120Read ();
-void CC1120RxSet();
-void CC1120TxSet();
-void CC1120IDLESet();
+void ChipIDCC1120Read (void);
+void ChipFWVersionRead (void);
+void STATUSCC1120Read (void);
+void CC1120RxSet(void);
+void CC1120TxSet(void);
+void CC1120IDLESet(void);
+void CC1120Reset(void);
+void TxFIFONumBytesRead (void);
+void TxFIFOFlush (void);
+void TxFIFOWrite (uint8_t *data_ptr, uint8_t num_byte);
 
 
 

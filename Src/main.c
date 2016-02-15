@@ -37,6 +37,8 @@
 #include "cmx7262.h"
 #include "uart_gui.h"
 
+#include <stdio.h>
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -125,23 +127,23 @@ int main(void)
 	//CMX7262_CheckModule(&hspi1);
 	
 		GUI_rx (&huart1);
-	
+
 	#endif
 
 	//Инициализация CMX7262: загрузка образа в память, начальная настройка
-	CMX7262_Init(&pCmx7262, &hspi1);
+//	CMX7262_Init(&pCmx7262, &hspi1);
 
 	//Перевод CMX7262 в режим Idle
-	CMX7262_Idle(&pCmx7262);
+//	CMX7262_Idle(&pCmx7262);
 
 	//Перевод CMX7262 в рабочий режим
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
-	CMX7262_EncodeDecode_Audio(&pCmx7262);	
+//	CMX7262_EncodeDecode_Audio(&pCmx7262);	
 	#else
 	#ifdef TEST_CMX7262_AUDIO_TESTMODE
-	CMX7262_Test_AudioOut(&pCmx7262);
+//	CMX7262_Test_AudioOut(&pCmx7262);
 	#else
-	CMX7262_Encode(&pCmx7262);
+//	CMX7262_Encode(&pCmx7262);
 	#endif
 	#endif	
 
@@ -155,6 +157,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		
+		GUI_rx (&huart1);
+		
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */

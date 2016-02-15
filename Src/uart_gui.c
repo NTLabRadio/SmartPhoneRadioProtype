@@ -6,11 +6,11 @@ uint8_t UART_Rx_Buff [RXBUFFERSIZE];
 
 uint8_t ARM_command = 0;
 uint8_t Payload_length = 0;
-uint8_t Num_fw_ver = 0; // возвращаемый номер верии програмного обеспечения трансивера
+uint8_t	Counter_lines = 0;
+
 
 extern SPI_HandleTypeDef CURRENT_SPI;
 extern UART_HandleTypeDef CURRENT_UART;
-extern uint8_t pCC1120RxData [255];
 
 
 void Device_Select (uint8_t select) // выбор устройства
@@ -27,7 +27,10 @@ void Device_Select (uint8_t select) // выбор устройства
 	}
 }
 
-void ChipIDCC1120Read () // запрос на верификацию трансивера
+
+
+
+void ChipIDCC1120Read (void) // запрос на верификацию трансивера
 {
 		if (CC1120_CheckModule (&CURRENT_SPI)) // если ответ от трансивера 1, 
 			{			
@@ -40,11 +43,12 @@ void ChipIDCC1120Read () // запрос на верификацию трансивера
 			
 		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
 		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
-		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);		
 }
 
-void ChipFWVersionRead () // запрос версии firmware трансивера
+void ChipFWVersionRead (void) // запрос версии firmware трансивера
 {
+		uint8_t Num_fw_ver = 0; // возвращаемый номер верии програмного обеспечения трансивера
 		Num_fw_ver = CC1120_CheckVersion (&CURRENT_SPI);
 		
 		if (Num_fw_ver) // если ответ от трансивера отличный от нуля, 
@@ -60,7 +64,7 @@ void ChipFWVersionRead () // запрос версии firmware трансивера
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
 
-void STATUSCC1120Read () // запрос статуса трансивера
+void STATUSCC1120Read (void) // запрос статуса трансивера
 {
 		UART_Tx_Buff[2] = CC1120_Status (&CURRENT_SPI);
 		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
@@ -68,7 +72,7 @@ void STATUSCC1120Read () // запрос статуса трансивера
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
 
-void CC1120TxSet() // перевод трансивера в режим передачи
+void CC1120TxSet(void) // перевод трансивера в режим передачи
 {
 		UART_Tx_Buff[2] = CC1120_Tx(&CURRENT_SPI);
 		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
@@ -76,7 +80,7 @@ void CC1120TxSet() // перевод трансивера в режим передачи
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
 
-void CC1120IDLESet() // перевод трансивера в режим IDLE
+void CC1120IDLESet(void) // перевод трансивера в режим IDLE
 {
 		UART_Tx_Buff[2] = CC1120_IDLE_set(&CURRENT_SPI);
 		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
@@ -84,13 +88,60 @@ void CC1120IDLESet() // перевод трансивера в режим IDLE
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
 
-void CC1120RxSet() // перевод трансивера в режим приема
+void CC1120RxSet(void) // перевод трансивера в режим приема
 {
 		UART_Tx_Buff[2] = CC1120_Rx(&CURRENT_SPI);
 		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
 		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
+
+void CC1120Reset(void) // сброс трансивера
+{
+		UART_Tx_Buff[2] = CC1120_Reset(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+void TxFIFONumBytesRead (void) // чтение количества данных в FIFO TX
+{
+		uint8_t Num_TxFIFO_bytes = 0; // количество байтов в FIFO TX
+		Num_TxFIFO_bytes = CC1120_TxFIFONumBytes(&CURRENT_SPI);
+		
+		if (Num_TxFIFO_bytes != TX_FIFO_FAIL) // если ответ от трансивера не 0xFF, 
+			{			
+		UART_Tx_Buff[2] = Num_TxFIFO_bytes; // количество байтов в TX FIFO
+			} 
+	else 
+			{
+				UART_Tx_Buff[2] = TX_FIFO_FAIL; // сообщение об ошибке чтения TX FIFO
+			}	
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+
+void TxFIFOFlush (void)
+{
+		UART_Tx_Buff[2] = CC1120_TxFIFOFlush(&CURRENT_SPI);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+
+void TxFIFOWrite (uint8_t *data_ptr, uint8_t num_byte)
+{
+		UART_Tx_Buff[2] = CC1120_TxFIFOWrite(&CURRENT_SPI, data_ptr, num_byte);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}
+
+
+
 
 
 
@@ -133,42 +184,75 @@ uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 		CC1120RxSet();
 		
 		break;
+		
+		case CC1120_RESET: // сброс трансивера
+		
+		CC1120Reset();
+		
+		break;
+		
+		case CC1120_FIFO_NUM_TXBYTES: // чтение количества байтов в TX FIFO
+		
+		TxFIFONumBytesRead();
+		
+		break;
+		
+		case CC1120_TX_FIFO_FLUSH: // чтение количества байтов в TX FIFO
+		
+		TxFIFOFlush();
+		
+		break;
+		
+		case CC1120_TX_FIFO_WRITE: // чтение количества байтов в TX FIFO
+		
+		TxFIFOWrite (command, Payload_length);
+		
+		break;
+		
 	}
 	
 	return 0;
 }
 
 
-void GUI_rx (UART_HandleTypeDef *huart) // прием данных по UART
+
+	void GUI_rx (UART_HandleTypeDef *huart) // прием данных по UART
 {
-  HAL_UART_Receive_DMA(huart, UART_Rx_Buff,2); // принимаем 2 байта данных из UART. Команда контроллеру и количество байтов данных
+ 
+	 if ( HAL_UART_GetState(huart)== HAL_UART_STATE_READY) 
+	 {	
+					HAL_UART_Receive_DMA(huart, UART_Rx_Buff,0x02);
+					while (HAL_UART_GetState(huart) != HAL_UART_STATE_READY) // ожидаем окончания приема
+					{
+					}
+					ARM_command = UART_Rx_Buff [0]; // команда микроконтроллру (выбор устройства)
+					Payload_length = UART_Rx_Buff [1]; // количество байтов данных нагрузки
+	 }
+
 	
-	while (HAL_UART_GetState(huart) != HAL_UART_STATE_READY) // ожидаем окончания приема
-	{
-	}
-	
-	ARM_command = UART_Rx_Buff [0]; // команда микроконтроллру (выбор устройства)
-	
-	Payload_length = UART_Rx_Buff [1]; // количество байтов данных нагрузки
-	
-	HAL_UART_Receive_DMA(huart, UART_Rx_Buff,Payload_length); // принимаем данные
-	
-	while (HAL_UART_GetState(huart) != HAL_UART_STATE_READY) // ожидаем окончания приема
-	{
-	}
-	
-	Device_Select (ARM_command);
+	if ( HAL_UART_GetState(huart)== HAL_UART_STATE_READY) 
+	 {
+					HAL_UART_Receive_DMA(huart, UART_Rx_Buff,Payload_length); // принимаем данные		
+					while (HAL_UART_GetState(huart) != HAL_UART_STATE_READY) // ожидаем окончания приема
+					{
+					}	
+					Device_Select (ARM_command);
+	 }
 	
 }
 
 
-void GUI_Tx (UART_HandleTypeDef *huart, uint8_t *tx_buffer) // передача данных по UART
+	void GUI_Tx (UART_HandleTypeDef *huart, uint8_t *tx_buffer) // передача данных по UART
 {
-	HAL_UART_Transmit_DMA(huart, tx_buffer, tx_buffer[1]);
-	while (HAL_UART_GetState(huart) != HAL_UART_STATE_READY) // ожидаем окончания передачи
+	
+	if ( HAL_UART_GetState(huart)== HAL_UART_STATE_READY) 
 	{
+						HAL_UART_Transmit_DMA(huart, tx_buffer, tx_buffer[1]);
+						
+						while (HAL_UART_GetState(huart) != HAL_UART_STATE_READY) // ожидаем окончания передачи
+						{
+						}
 	}
-	GUI_rx (huart); // переходим в режим ожидания приема данных
 }
 
 

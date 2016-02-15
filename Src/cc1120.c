@@ -194,11 +194,120 @@ hspiCC1120 = hspi;
 }
 
 
+/**
+  * @brief  сброс трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+uint8_t CC1120_Reset(SPI_HandleTypeDef *hspi)
+{
+hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	if (CC1120_Write (S_RESET, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+			{
+				return 0;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (1);
+}
 
 
+/**
+  * @brief  чтение количества байтов в FIFO TX трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*					количество байтов в буфере - успешное выполнение;
+	*					0xFF - ошибка при выполнении функции (занята шина SPI)
+  */
+uint8_t CC1120_TxFIFONumBytes(SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	if (CC1120_Read (EXT_NUM_TXBYTES, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01))	// если есть ошибки обмена данными по SPI возвращаем ошибку функции
+			{
+				return TX_FIFO_FAIL;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+		return pCC1120RxData[2];	
+}
 
+/**
+  * @brief  очистка FIFO TX трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+uint8_t CC1120_TxFIFOFlush(SPI_HandleTypeDef *hspi)
+{
+hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	if (CC1120_Write (S_TX_FIFO_FLUSH, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+			{
+				return 0;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (1);
+}
 
+/**
+  * @brief  запись данных в FIFO TX трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+	*					fifo_write_data_ptr - указатель на данные для записи в TX FIFO;
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
 
+uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr, uint8_t tx_num)
+{
+		hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	//fifo_write_data_ptr 0 байт - команда трансиверу, 1 байт и далее - данные FIFO TX
+	// убираем 0 элемент и сдвигаем все данные на байт влево
+
+	for (uint8_t i = 0; i<(tx_num); i++)
+	{
+		fifo_write_data_ptr[i] = fifo_write_data_ptr[i+1];
+	}
+	
+	if (CC1120_Write (R_TX_FIFO_WRITE, REG_ADDRESS, NO_BURST, fifo_write_data_ptr,tx_num-1))
+			{
+				return 0;
+			}
+	
+	WaitTimeMCS(10e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (1);
+}
 
 
 
@@ -258,9 +367,6 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
     default:
 			
 			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
-		
-		break;		
-	
 	}
 	
 	pCC1120TxData[0] = pCC1120TxData[0] | (WRITE_CC1120 << 7); // установка признака записи (знаю, что он 0. Это для единообразия)
@@ -270,7 +376,7 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 		pCC1120TxData[0] = pCC1120TxData[0] |  (BURST << 6); // установка режима поточной записи 
 	}		
 	
-	for (buff_count = buff_index; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные поля.
+	for (buff_count = buff_index; buff_count < uAccesses+1; buff_count++) // запись данных со смещением на адресные поля.
 		{
 				pCC1120TxData[buff_count] = data_ptr[buff_count-buff_index];
 		}
@@ -332,12 +438,11 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
     default:
 			
 			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
-		
-		break;		
+			
 	
 	}
 	
-	pCC1120TxData[0] = pCC1120TxData[0] | (READ_CC1120 << 7); // установка признака записи (знаю, что он 0. Это для единообразия)
+	pCC1120TxData[0] = pCC1120TxData[0] | (READ_CC1120 << 7); // установка признака чтения
 	
 	if (bBurst) 	
 		{	
@@ -349,7 +454,7 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 				pCC1120TxData[buff_count] = data_ptr[buff_count-buff_index];
 		}
 	//Передаем данные и одновременно принимаем ответ
-	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, uAccesses+buff_index)) 
+	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, data_ptr, uAccesses+buff_index)) 
 	{
 			return (SPIBusy);
 	} else {

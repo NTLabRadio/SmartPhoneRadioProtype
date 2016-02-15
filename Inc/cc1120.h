@@ -55,15 +55,21 @@ typedef enum
 
 #define BURST									0x01				/* Burst mode */
 #define NO_BURST							0x00				/* Single mode */
+
+#define TX_FIFO_FAIL					0xFF				/* Ошибка чтения данных FIFO_TX */
 	 
 	 
 	 
 #define EXT_PARTNUMBER				0x8F  			/* PARTNUMBER */
 #define EXT_PARTVERSION				0x90  			/* PARTVERSION */
+#define EXT_NUM_TXBYTES				0xD6  			/* Количество байтов в FIFO TX */
 #define S_STATUS							0x3D				/* No operation. May be used to get access to the chip status byte */
 #define S_TX									0x35				/* Enable Tx */	 
 #define S_RX									0x34				/* Enable Rx */
 #define S_IDLE								0x36				/* IDLE */
+#define S_RESET								0x30				/* Сброс трансивера */
+#define	S_TX_FIFO_FLUSH				0x3B				/* Очистка FIFO TX */
+#define R_TX_FIFO_WRITE				0x7F				/* Стандартная запись данных в Tx FIFO */
 
 
 #define CC1120_ID							0x48				/* Chip ID CC1120 */ 
@@ -82,6 +88,10 @@ uint8_t CC1120_Status(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_Tx(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_IDLE_set(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_Rx(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_Reset(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_TxFIFONumBytes(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_TxFIFOFlush(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr, uint8_t tx_num);
 
 	 
 #ifdef __cplusplus
