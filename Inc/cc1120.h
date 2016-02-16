@@ -72,8 +72,13 @@ typedef enum
 	MARCSTATE_IFADCON_TXRX				= 0x17,
 	MARCSTATE_SPI_ERROR 					= 0x18
 } CC1120MARCSTATETypeDef;	
-	
-	
+
+
+typedef struct
+{
+  uint16_t  addr; // поле адреса
+  uint8_t   data; // поле данных
+}registerSetting_t;	// шаблон структуры конфигурации
 
 
 
@@ -120,7 +125,27 @@ typedef enum
 #define CC1120_ID							0x48				/* Chip ID CC1120 */ 
 
 
-	 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
 	 
 
