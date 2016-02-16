@@ -66,6 +66,7 @@ CMX7262_TypeDef  pCmx7262;
 uint8_t flCMX7262_IRQ_CHECKED = FALSE;
 
 uint8_t pDataFromCMX7262[1024];
+uint8_t pDataToCMX7262[1024];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -82,6 +83,7 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void ProcessDataFromExtDev();
+void ProcessRadioState();
 
 /* USER CODE END PFP */
 
@@ -93,7 +95,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -153,6 +154,13 @@ int main(void)
 	CMX7262_EncodeDecode_Audio2CBUS(&pCmx7262);
 	#endif
 	
+	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE
+	CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
+	for(uint16_t cntSamples=0; cntSamples<CMX7262_AUDIOFRAME_SIZE_SAMPLES; cntSamples++)
+		pDataToCMX7262[cntSamples] = 0;
+	CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+	#endif
+	
 	#ifdef TEST_CMX7262_ENC_MODE
 	CMX7262_Encode(&pCmx7262);
 	#endif
@@ -183,15 +191,14 @@ int main(void)
 			flCMX7262_IRQ_CHECKED = FALSE;
 		}
 		
-		#ifdef TEST_CMX7262_ENC_MODE
-		if((pCmx7262.uIRQRequest & CMX7262_ODA) == CMX7262_ODA)
-		{
-			//Сбрасываем флаг CMX7262_ODA
-			pCmx7262.uIRQRequest = pCmx7262.uIRQRequest & ~CMX7262_ODA;
-			
-			//Читаем данные
-			CMX7262_RxFIFO(&pCmx7262,(uint8_t *)&pDataFromCMX7262[0]);
-		}
+		//Обработка состояния радиомодуля: передача/прием/тест
+		ProcessRadioState();
+		
+		#ifdef DEBUG_PERIODICALLY_READ_CMX7262_STATUS
+		uint16_t uStatusRegValue = 0;
+		// Read the status register into a shadow register.
+		CBUS_Read16 (IRQ_STATUS_REG,&uStatusRegValue,1,pCmx7262.uInterface);
+		printf("CMX7262 Status Reg=%x\n",uStatusRegValue);
 		#endif
   /* USER CODE END WHILE */
 
@@ -443,6 +450,38 @@ void ProcessDataFromExtDev()
 	memset(pUARTRxSLIPPack,0,MAX_SIZE_OF_SLIP_PACK_PAYLOAD);
 }
 
+
+void ProcessRadioState()
+{
+
+	if((pCmx7262.uIRQRequest & CMX7262_ODA) == CMX7262_ODA)
+	{
+		//Сбрасываем флаг CMX7262_ODA
+		pCmx7262.uIRQRequest = pCmx7262.uIRQRequest & ~CMX7262_ODA;
+		
+		//Читаем данные
+		#ifdef TEST_CMX7262_ENC_MODE
+		CMX7262_RxFIFO(&pCmx7262,(uint8_t *)&pDataFromCMX7262[0]);
+		#endif
+		#ifdef TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE
+		CMX7262_RxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataFromCMX7262[0]);			
+		#endif
+	}
+
+	if((pCmx7262.uIRQRequest & CMX7262_IDW) == CMX7262_IDW)
+	{
+		//Сбрасываем флаг CMX7262_IDW
+		pCmx7262.uIRQRequest = pCmx7262.uIRQRequest & ~CMX7262_IDW;
+
+		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE			
+		for(uint16_t cntSamples=0; cntSamples<CMX7262_AUDIOFRAME_SIZE_SAMPLES; cntSamples++)
+			pDataToCMX7262[cntSamples] = 0;
+		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+		#endif
+	}
+
+}
+		
 /* USER CODE END 4 */
 
 #ifdef USE_FULL_ASSERT

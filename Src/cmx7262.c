@@ -276,7 +276,7 @@ uint16_t  CMX7262_Init(CMX7262_TypeDef *pCmx7262, SPI_HandleTypeDef *hspi)
 		pCmx7262->uError |= CMX7262_CONFIG_CLK_ERROR;
 		return 0;
 	}
-	#ifndef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
+	#if !defined(TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE) && !defined(TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE)	&& !defined(TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE)	
 	// Set up packet length, hard decision decoding, FEC disabled.
 	CMX7262_Config(pCmx7262, THREE_FRAME | HDD | FEC);
 	#else
@@ -404,6 +404,9 @@ void CMX7262_EncodeDecode_Audio2CBUS (CMX7262_TypeDef *pCmx7262)
 	CBUS_Write16(NOISE_GATE_REG,&uData,1,pCmx7262->uInterface);
 	#endif
 	
+	//Включение звукового усилителя
+	CMX7262_AudioPA(pCmx7262,ENABLE);	
+	
 	// The encoder+decoder is started, there will be a delay before we are requested to service it..
 	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCDEC))
 		pCmx7262->uError |= CMX7262_ENCODE_ERROR;
@@ -413,11 +416,38 @@ void CMX7262_EncodeDecode_Audio2CBUS (CMX7262_TypeDef *pCmx7262)
 		// to set the appropriate request flags.
 		pCmx7262->uMode = CMX7262_ENCDEC_MODE;
 
-		CMX7262_EnableIRQ(pCmx7262, IRQ+ODA);		//ожидаем прерываний по событию "Output Data Available"
+		CMX7262_EnableIRQ(pCmx7262, IRQ+ODA+OV);		// ожидаем прерываний по следующим событиям:
+																								// "Output Data Available" (доступны новые выходные данные)
+																								// "Overflow" (переполнение выходного буфера ввиду того, что хост не успел вычитать данные)
 	}	
 }
 
 
+void CMX7262_EncodeDecode_CBUS2Audio (CMX7262_TypeDef *pCmx7262)
+{
+	// PCM samples in through cbus port, encode, decode and out through audio port - in relation to the CMX7262
+	CMX7262_Routing(pCmx7262, SRC_CBUS | DEST_AUDIO);
+
+	#ifdef TEST_CMX7262_NOISE_GATE_IN_ENCDEC_MODE
+	uData = (CMX7262_NOISEGATE_FRAMEDELAY_DEFAULT<<12) | CMX7262_NOISEGATE_THRESHOLD_DEFAULT;
+	CBUS_Write16(NOISE_GATE_REG,&uData,1,pCmx7262->uInterface);
+	#endif
+	
+	// The encoder+decoder is started, there will be a delay before we are requested to service it..
+	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCDEC))
+		pCmx7262->uError |= CMX7262_ENCODE_ERROR;
+	else
+	{
+		// Set the soft copy of the mode before we enable the IRQ because this is used by the IRQ
+		// to set the appropriate request flags.
+		pCmx7262->uMode = CMX7262_ENCDEC_MODE;
+		CMX7262_EnableIRQ(pCmx7262, IRQ+IDW+UF);    // ожидаем прерываний по следующим событиям:
+																								// "Input Data Wanted" (устройство готово принять новые данные)
+																								// "Underflow" (устройству не хватает данных для работы в непрерывном режиме)
+		
+		//enable underflow irq so we know when the call is over.
+	}	
+}
 
 /* Тестовый режим формирования гармонического сигнала на звуковом выходе*/
 void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
@@ -673,10 +703,20 @@ void CMX7262_RxFIFO (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
 	CBUS_Read8(CBUS_VOCODER_OUT,pData,pCmx7262->uPacketSize,pCmx7262->uInterface);
 }
 
-
 void CMX7262_TxFIFO (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
 {
 	CBUS_Write8(CBUS_VOCODER_IN,pData,pCmx7262->uPacketSize,pCmx7262->uInterface);
+}
+
+
+void CMX7262_RxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
+{
+	CBUS_Read8(CBUS_AUDIO_OUT,pData,2*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
+}
+
+void CMX7262_TxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
+{
+	CBUS_Write8(CBUS_AUDIO_IN,pData,2*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
 }
 
 
@@ -689,7 +729,7 @@ void CMX7262_IRQ (void *pData)
 
 	pCmx7262 = (CMX7262_TypeDef*)pData;
 
-	// Read the status register into a shaoow register.
+	// Read the status register into a shadow register.
 	CBUS_Read16 (IRQ_STATUS_REG,&uTemp,1,pCmx7262->uInterface);
 	pCmx7262->uIRQ_STATUS_REG |= uTemp;
 

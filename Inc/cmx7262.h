@@ -36,8 +36,16 @@
 //      Settings     0x0803f800        2kbytes   Set to a page size to allow an erase. Currently 32 bytes are used, but will
 // grow if we decide to add more settings to flash	 (см. ADDR_FLASH_PAGE)	 
 
+//Частота дискретизации входного/выходного аудиосигнала, Гц
+#define CMX7262_FREQ_SAMPLING						(8000)
 	 
-#define CMX7262_FREQ_SIGNAL_IN_TESTMODE	(1000)	//Частота формируемого колебания в тестовом режиме, Гц
+//Частота формируемого колебания в тестовом режиме, Гц	 
+#define CMX7262_FREQ_SIGNAL_IN_TESTMODE	(1000)	
+
+//Длительность вокодерного кадра, мс
+#define CMX7262_FRAME_DURATION_MS				(20)
+//Размер кадра звукового сигнала, отсчетов
+#define CMX7262_AUDIOFRAME_SIZE_SAMPLES	(160)	 
 	 
 // Default gains
 #define CMX7262_INPUT_GAIN_DEFAULT		0x0000
@@ -95,12 +103,12 @@
 
 
 // Bit references in Status (0x7E) and IRQ Enable Register (0x6C)
-#define	ODA									(1<<3)
-#define	IDW									(1<<8)
+#define	ODA									(1<<3)			// Output Data Available
+#define	IDW									(1<<8)			// Input Data Wanted
 #define	OV									(1<<10)			// Overflow
 #define	UF									(1<<11)			// Underflow
-#define	REGDONE							(1<<13)
-#define	PRG									(1<<14)
+#define	REGDONE							(1<<13)			// Refister access Done
+#define	PRG									(1<<14)			// Programming register ready
 #define	IRQ									(1<<15)
 
 // Bit references for configuration of vocoder (VCFG - $55)
@@ -251,6 +259,7 @@ void CMX7262_Encode(CMX7262_TypeDef *pCmx7262);
 void CMX7262_Decode(CMX7262_TypeDef *pCmx7262);
 void CMX7262_EncodeDecode_Audio(CMX7262_TypeDef *pCmx7262);
 void CMX7262_EncodeDecode_Audio2CBUS(CMX7262_TypeDef *pCmx7262);
+void CMX7262_EncodeDecode_CBUS2Audio(CMX7262_TypeDef *pCmx7262);
 void CMX7262_Test_AudioOut(CMX7262_TypeDef *pCmx7262);
 
 void CMX7262_EnableIRQ(CMX7262_TypeDef *pCmx7262, uint16_t uIRQ);
@@ -259,6 +268,9 @@ void CMX7262_IRQ(void *pData);
 
 void CMX7262_RxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 void CMX7262_TxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
+
+void CMX7262_RxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
+void CMX7262_TxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 
 //-------------------------------------- CBUS DEFINES AND FUNCTIONS ----------------------------------------------
 

@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F103xE,DEBUG_PRINTF_SLIP_DATA,TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE</Define>
+              <Define>USE_HAL_DRIVER,STM32F103xE,TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE</Define>
               <Undefine></Undefine>
               <IncludePath>../Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F1xx/Include</IncludePath>
             </VariousControls>
@@ -877,6 +877,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+            </File>
+            <File>
+              <FileName>queue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\queue.c</FilePath>
             </File>
           </Files>
         </Group>

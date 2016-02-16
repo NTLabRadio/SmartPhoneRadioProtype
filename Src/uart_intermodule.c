@@ -151,7 +151,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		HAL_UART_Transmit_DMA(huart, pUARTTxBuf, nSizeTxBuf);
 		#endif
 		
-		
 		//”казываем, что прин€тые данные необходимо обработать
 		UARTstate = UART_DATA_RX_NEED_TO_PROCESS;
 		
