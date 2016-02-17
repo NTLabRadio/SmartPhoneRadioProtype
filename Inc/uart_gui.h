@@ -33,7 +33,8 @@
 #define	CC112_MANUAL_CALIBRATION				0x05			/* ручная калиброка синтезатора CC1120 */
 #define CC1120_MARCSTATE								0x0C			/* запрос состояния трансивера CC1120 */
 #define CC1120_SFSTXON									0x0D			/* автоматическая калибровка синтезатора CC1120 */
-
+#define CC1120_CONFIG_WRITE							0x12			/* выбор и запись конфигурации в трансивер */
+#define CC1120_CONFIG_READ							0x13			/* чтение конфигурации трансивера и сравнение с записанной */
 	 
 	 
 	 
@@ -70,6 +71,7 @@ void TxFIFOFlush (void);
 void TxFIFOWrite (uint8_t *data_ptr, uint8_t num_byte);
 void ManualCalibration (void);
 void MARCState (void);
+void ConfigWrite(uint8_t *data_ptr);
 
 
 

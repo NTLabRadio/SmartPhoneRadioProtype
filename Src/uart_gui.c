@@ -191,6 +191,81 @@ void RxFIFOFlush (void)
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }
 
+void ConfigWrite(uint8_t *data_ptr)
+{
+		// в data_ptr[1] содержится номер конфигурации
+		switch (data_ptr [1])
+		{
+			case    0x01:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
+			
+			break;
+			
+			case    0x02:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_9600, sizeof (CC1120_Config_9600)/sizeof(registerSetting_t));
+				
+			break;
+			
+			case    0x03:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_19200, sizeof (CC1120_Config_19200)/sizeof(registerSetting_t));
+				
+			break;
+			
+			case    0x04:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_48000, sizeof (CC1120_Config_48000)/sizeof(registerSetting_t));
+				
+			break;
+		}
+		
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+
+}
+
+void ConfigReadCompare(uint8_t *data_ptr)
+{
+		// в data_ptr[1] содержится номер конфигурации
+		switch (data_ptr [1])
+		{
+			case    0x01:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
+			
+			break;
+			
+			case    0x02:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_9600, sizeof (CC1120_Config_9600)/sizeof(registerSetting_t));
+				
+			break;
+			
+			case    0x03:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_19200, sizeof (CC1120_Config_19200)/sizeof(registerSetting_t));
+				
+			break;
+			
+			case    0x04:
+				
+			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_48000, sizeof (CC1120_Config_48000)/sizeof(registerSetting_t));
+				
+			break;
+		}
+		
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+
+}
+
+
+
+
 
 uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 {
@@ -285,6 +360,20 @@ uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 		RxFIFOFlush();
 		
 		break;
+		
+		case CC1120_CONFIG_WRITE: // чтение количества байтов в TX FIFO
+		
+		ConfigWrite(command);
+		
+		break;
+		
+		case CC1120_CONFIG_READ: // чтение количества байтов в TX FIFO
+		
+		ConfigReadCompare(command);
+		
+		break;
+		
+		
 		
 	}
 	

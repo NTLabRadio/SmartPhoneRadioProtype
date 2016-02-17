@@ -128,6 +128,268 @@ typedef struct
 
 
 
+/* TX power = 15 */
+/* Whitening = true */
+/* Device address = 0 */
+/* Packet length mode = Fixed */
+/* Deviation = 1.197815 */
+/* Modulation format = 2-GFSK */
+/* Address config = Address check, 0x00 and 0xFF broadcast */
+/* Bit rate = 4.8 */
+/* RX filter BW = 10.000000 */
+/* PA ramping = true */
+/* Packet bit length = 0 */
+/* Performance mode = High Performance */
+/* Carrier frequency = 434.000000 */
+/* Manchester enable = false */
+/* Packet length = 90 */
+/* Symbol rate = 4.8 */
+/* RF settings for CC1120 */
+
+static const registerSetting_t CC1120_Config_4800[]= {
+{0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
+{0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
+{0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
+{0x0003,     0x40},     //IOCFG0             GPIO0 IO PIN CONFIGURATION
+{0x0008,     0x0B},     //SYNC_CFG1          SYNC WORD DETECTION CONFIGURATION REG. 1
+{0x000A,     0x3A},     //DEVIATION_M        FREQUENCY DEVIATION CONFIGURATION
+{0x000B,     0x09},     //MODCFG_DEV_E       MODULATION FORMAT AND FREQUENCY DEVIATION CONFIGUR..
+{0x000C,     0x1C},     //DCFILT_CFG         DIGITAL DC REMOVAL CONFIGURATION
+{0x000D,     0x2C},     //PREAMBLE_CFG1      PREAMBLE LENGTH CONFIGURATION REG. 1
+{0x0010,     0xC6},     //IQIC               DIGITAL IMAGE CHANNEL COMPENSATION CONFIGURATION
+{0x0013,     0x05},     //MDMCFG0            GENERAL MODEM PARAMETER CONFIGURATION REG. 0
+{0x0014,     0x63},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
+{0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
+{0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
+{0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
+{0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
+{0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
+{0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
+{0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
+{0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+{0x002D,     0x7E},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
+{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
+{0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
+{0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
+{0x2F0D,     0x80},     //FREQ1              FREQUENCY CONFIGURATION [15:8]
+{0x2F12,     0x00},     //FS_DIG1            FREQUENCY SYNTHESIZER DIGITAL REG. 1
+{0x2F13,     0x5F},     //FS_DIG0            FREQUENCY SYNTHESIZER DIGITAL REG. 0
+{0x2F16,     0x40},     //FS_CAL1            FREQUENCY SYNTHESIZER CALIBRATION REG. 1
+{0x2F17,     0x0E},     //FS_CAL0            FREQUENCY SYNTHESIZER CALIBRATION REG. 0
+{0x2F19,     0x03},     //FS_DIVTWO          FREQUENCY SYNTHESIZER DIVIDE BY 2
+{0x2F1B,     0x33},     //FS_DSM0            FS DIGITAL SYNTHESIZER MODULE CONFIGURATION REG. 0
+{0x2F1D,     0x17},     //FS_DVC0            FREQUENCY SYNTHESIZER DIVIDER CHAIN CONFIGURATION ..
+{0x2F1F,     0x50},     //FS_PFD             FREQUENCY SYNTHESIZER PHASE FREQUENCY DETECTOR CON..
+{0x2F20,     0x6E},     //FS_PRE             FREQUENCY SYNTHESIZER PRESCALER CONFIGURATION
+{0x2F21,     0x14},     //FS_REG_DIV_CML     FREQUENCY SYNTHESIZER DIVIDER REGULATOR CONFIGURAT..
+{0x2F22,     0xAC},     //FS_SPARE           FREQUENCY SYNTHESIZER SPARE
+{0x2F27,     0xB4},     //FS_VCO0            FS VOLTAGE CONTROLLED OSCILLATOR CONFIGURATION REG..
+{0x2F32,     0x0E},     //XOSC5              CRYSTAL OSCILLATOR CONFIGURATION REG. 5
+{0x2F36,     0x03},     //XOSC1              CRYSTAL OSCILLATOR CONFIGURATION REG. 1
+{0x2F8F,     0x48},     //PARTNUMBER         PART NUMBER
+{0x2F90,     0x21},     //PARTVERSION        PART REVISION
+{0x2F92,     0x10},     //MODEM_STATUS1      MODEM STATUS REG. 1
+};
+
+
+/* TX power = 15 */
+/* Whitening = true */
+/* Device address = 0 */
+/* Packet length mode = Fixed */
+/* Deviation = 2.395630 */
+/* Modulation format = 2-GFSK */
+/* Address config = Address check, 0x00 and 0xFF broadcast */
+/* Bit rate = 9.6 */
+/* RX filter BW = 20.000000 */
+/* PA ramping = true */
+/* Packet bit length = 0 */
+/* Performance mode = High Performance */
+/* Carrier frequency = 434.000000 */
+/* Manchester enable = false */
+/* Packet length = 90 */
+/* Symbol rate = 9.6 */
+/* RF settings for CC1120 */
+
+static const registerSetting_t CC1120_Config_9600[]= {
+{0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
+{0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
+{0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
+{0x0003,     0x40},     //IOCFG0             GPIO0 IO PIN CONFIGURATION
+{0x0008,     0x0B},     //SYNC_CFG1          SYNC WORD DETECTION CONFIGURATION REG. 1
+{0x000A,     0x3A},     //DEVIATION_M        FREQUENCY DEVIATION CONFIGURATION
+{0x000B,     0x0A},     //MODCFG_DEV_E       MODULATION FORMAT AND FREQUENCY DEVIATION CONFIGUR..
+{0x000C,     0x1C},     //DCFILT_CFG         DIGITAL DC REMOVAL CONFIGURATION
+{0x000D,     0x2C},     //PREAMBLE_CFG1      PREAMBLE LENGTH CONFIGURATION REG. 1
+{0x0010,     0xC6},     //IQIC               DIGITAL IMAGE CHANNEL COMPENSATION CONFIGURATION
+{0x0011,     0x0A},     //CHAN_BW            CHANNEL FILTER CONFIGURATION
+{0x0013,     0x05},     //MDMCFG0            GENERAL MODEM PARAMETER CONFIGURATION REG. 0
+{0x0014,     0x73},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
+{0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
+{0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
+{0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
+{0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
+{0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
+{0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
+{0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
+{0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+{0x002D,     0x7D},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
+{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
+{0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
+{0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
+{0x2F0D,     0x80},     //FREQ1              FREQUENCY CONFIGURATION [15:8]
+{0x2F12,     0x00},     //FS_DIG1            FREQUENCY SYNTHESIZER DIGITAL REG. 1
+{0x2F13,     0x5F},     //FS_DIG0            FREQUENCY SYNTHESIZER DIGITAL REG. 0
+{0x2F16,     0x40},     //FS_CAL1            FREQUENCY SYNTHESIZER CALIBRATION REG. 1
+{0x2F17,     0x0E},     //FS_CAL0            FREQUENCY SYNTHESIZER CALIBRATION REG. 0
+{0x2F19,     0x03},     //FS_DIVTWO          FREQUENCY SYNTHESIZER DIVIDE BY 2
+{0x2F1B,     0x33},     //FS_DSM0            FS DIGITAL SYNTHESIZER MODULE CONFIGURATION REG. 0
+{0x2F1D,     0x17},     //FS_DVC0            FREQUENCY SYNTHESIZER DIVIDER CHAIN CONFIGURATION ..
+{0x2F1F,     0x50},     //FS_PFD             FREQUENCY SYNTHESIZER PHASE FREQUENCY DETECTOR CON..
+{0x2F20,     0x6E},     //FS_PRE             FREQUENCY SYNTHESIZER PRESCALER CONFIGURATION
+{0x2F21,     0x14},     //FS_REG_DIV_CML     FREQUENCY SYNTHESIZER DIVIDER REGULATOR CONFIGURAT..
+{0x2F22,     0xAC},     //FS_SPARE           FREQUENCY SYNTHESIZER SPARE
+{0x2F27,     0xB4},     //FS_VCO0            FS VOLTAGE CONTROLLED OSCILLATOR CONFIGURATION REG..
+{0x2F32,     0x0E},     //XOSC5              CRYSTAL OSCILLATOR CONFIGURATION REG. 5
+{0x2F36,     0x03},     //XOSC1              CRYSTAL OSCILLATOR CONFIGURATION REG. 1
+{0x2F8F,     0x48},     //PARTNUMBER         PART NUMBER
+{0x2F90,     0x21},     //PARTVERSION        PART REVISION
+{0x2F92,     0x10},     //MODEM_STATUS1      MODEM STATUS REG. 1
+};
+
+
+
+/* TX power = 15 */
+/* Whitening = true */
+/* Device address = 0 */
+/* Packet length mode = Fixed */
+/* Deviation = 4.791260 */
+/* Modulation format = 2-GFSK */
+/* Address config = Address check, 0x00 and 0xFF broadcast */
+/* Bit rate = 19.2 */
+/* RX filter BW = 40.000000 */
+/* PA ramping = true */
+/* Packet bit length = 0 */
+/* Performance mode = High Performance */
+/* Carrier frequency = 434.000000 */
+/* Manchester enable = false */
+/* Packet length = 90 */
+/* Symbol rate = 19.2 */
+/* RF settings for CC1120 */
+
+static const registerSetting_t CC1120_Config_19200[]= {
+{0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
+{0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
+{0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
+{0x0003,     0x40},     //IOCFG0             GPIO0 IO PIN CONFIGURATION
+{0x0008,     0x0B},     //SYNC_CFG1          SYNC WORD DETECTION CONFIGURATION REG. 1
+{0x000A,     0x3A},     //DEVIATION_M        FREQUENCY DEVIATION CONFIGURATION
+{0x000B,     0x0B},     //MODCFG_DEV_E       MODULATION FORMAT AND FREQUENCY DEVIATION CONFIGUR..
+{0x000C,     0x1C},     //DCFILT_CFG         DIGITAL DC REMOVAL CONFIGURATION
+{0x000D,     0x2C},     //PREAMBLE_CFG1      PREAMBLE LENGTH CONFIGURATION REG. 1
+{0x0010,     0x46},     //IQIC               DIGITAL IMAGE CHANNEL COMPENSATION CONFIGURATION
+{0x0011,     0x05},     //CHAN_BW            CHANNEL FILTER CONFIGURATION
+{0x0013,     0x05},     //MDMCFG0            GENERAL MODEM PARAMETER CONFIGURATION REG. 0
+{0x0014,     0x83},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
+{0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
+{0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
+{0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
+{0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
+{0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
+{0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
+{0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
+{0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
+{0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
+{0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
+{0x2F0D,     0x80},     //FREQ1              FREQUENCY CONFIGURATION [15:8]
+{0x2F12,     0x00},     //FS_DIG1            FREQUENCY SYNTHESIZER DIGITAL REG. 1
+{0x2F13,     0x5F},     //FS_DIG0            FREQUENCY SYNTHESIZER DIGITAL REG. 0
+{0x2F16,     0x40},     //FS_CAL1            FREQUENCY SYNTHESIZER CALIBRATION REG. 1
+{0x2F17,     0x0E},     //FS_CAL0            FREQUENCY SYNTHESIZER CALIBRATION REG. 0
+{0x2F19,     0x03},     //FS_DIVTWO          FREQUENCY SYNTHESIZER DIVIDE BY 2
+{0x2F1B,     0x33},     //FS_DSM0            FS DIGITAL SYNTHESIZER MODULE CONFIGURATION REG. 0
+{0x2F1D,     0x17},     //FS_DVC0            FREQUENCY SYNTHESIZER DIVIDER CHAIN CONFIGURATION ..
+{0x2F1F,     0x50},     //FS_PFD             FREQUENCY SYNTHESIZER PHASE FREQUENCY DETECTOR CON..
+{0x2F20,     0x6E},     //FS_PRE             FREQUENCY SYNTHESIZER PRESCALER CONFIGURATION
+{0x2F21,     0x14},     //FS_REG_DIV_CML     FREQUENCY SYNTHESIZER DIVIDER REGULATOR CONFIGURAT..
+{0x2F22,     0xAC},     //FS_SPARE           FREQUENCY SYNTHESIZER SPARE
+{0x2F27,     0xB4},     //FS_VCO0            FS VOLTAGE CONTROLLED OSCILLATOR CONFIGURATION REG..
+{0x2F32,     0x0E},     //XOSC5              CRYSTAL OSCILLATOR CONFIGURATION REG. 5
+{0x2F36,     0x03},     //XOSC1              CRYSTAL OSCILLATOR CONFIGURATION REG. 1
+{0x2F8F,     0x48},     //PARTNUMBER         PART NUMBER
+{0x2F90,     0x21},     //PARTVERSION        PART REVISION
+{0x2F92,     0x10},     //MODEM_STATUS1      MODEM STATUS REG. 1
+};
+
+
+/* TX power = 15 */
+/* Whitening = true */
+/* Device address = 0 */
+/* Packet length mode = Fixed */
+/* Deviation = 11.993408 */
+/* Modulation format = 4-GFSK */
+/* Address config = Address check, 0x00 and 0xFF broadcast */
+/* Bit rate = 48 */
+/* RX filter BW = 50.000000 */
+/* PA ramping = true */
+/* Packet bit length = 0 */
+/* Performance mode = High Performance */
+/* Carrier frequency = 434.000000 */
+/* Manchester enable = false */
+/* Packet length = 90 */
+/* Symbol rate = 24 */
+/* RF settings for CC1120 */
+
+static const registerSetting_t CC1120_Config_48000[]= {
+{0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
+{0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
+{0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
+{0x0003,     0x40},     //IOCFG0             GPIO0 IO PIN CONFIGURATION
+{0x0008,     0x08},     //SYNC_CFG1          SYNC WORD DETECTION CONFIGURATION REG. 1
+{0x000A,     0x89},     //DEVIATION_M        FREQUENCY DEVIATION CONFIGURATION
+{0x000B,     0x2C},     //MODCFG_DEV_E       MODULATION FORMAT AND FREQUENCY DEVIATION CONFIGUR..
+{0x000C,     0x1C},     //DCFILT_CFG         DIGITAL DC REMOVAL CONFIGURATION
+{0x000D,     0x2C},     //PREAMBLE_CFG1      PREAMBLE LENGTH CONFIGURATION REG. 1
+{0x0010,     0x46},     //IQIC               DIGITAL IMAGE CHANNEL COMPENSATION CONFIGURATION
+{0x0011,     0x04},     //CHAN_BW            CHANNEL FILTER CONFIGURATION
+{0x0013,     0x05},     //MDMCFG0            GENERAL MODEM PARAMETER CONFIGURATION REG. 0
+{0x0014,     0x88},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
+{0x0015,     0x93},     //SYMBOL_RATE1       SYMBOL RATE CONFIGURATION MANTISSA [15:8]
+{0x0016,     0x75},     //SYMBOL_RATE0       SYMBOL RATE CONFIGURATION MANTISSA [7:0]
+{0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
+{0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
+{0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
+{0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
+{0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
+{0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
+{0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
+{0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
+{0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
+{0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
+{0x2F0D,     0x80},     //FREQ1              FREQUENCY CONFIGURATION [15:8]
+{0x2F12,     0x00},     //FS_DIG1            FREQUENCY SYNTHESIZER DIGITAL REG. 1
+{0x2F13,     0x5F},     //FS_DIG0            FREQUENCY SYNTHESIZER DIGITAL REG. 0
+{0x2F16,     0x40},     //FS_CAL1            FREQUENCY SYNTHESIZER CALIBRATION REG. 1
+{0x2F17,     0x0E},     //FS_CAL0            FREQUENCY SYNTHESIZER CALIBRATION REG. 0
+{0x2F19,     0x03},     //FS_DIVTWO          FREQUENCY SYNTHESIZER DIVIDE BY 2
+{0x2F1B,     0x33},     //FS_DSM0            FS DIGITAL SYNTHESIZER MODULE CONFIGURATION REG. 0
+{0x2F1D,     0x17},     //FS_DVC0            FREQUENCY SYNTHESIZER DIVIDER CHAIN CONFIGURATION ..
+{0x2F1F,     0x50},     //FS_PFD             FREQUENCY SYNTHESIZER PHASE FREQUENCY DETECTOR CON..
+{0x2F20,     0x6E},     //FS_PRE             FREQUENCY SYNTHESIZER PRESCALER CONFIGURATION
+{0x2F21,     0x14},     //FS_REG_DIV_CML     FREQUENCY SYNTHESIZER DIVIDER REGULATOR CONFIGURAT..
+{0x2F22,     0xAC},     //FS_SPARE           FREQUENCY SYNTHESIZER SPARE
+{0x2F27,     0xB4},     //FS_VCO0            FS VOLTAGE CONTROLLED OSCILLATOR CONFIGURATION REG..
+{0x2F32,     0x0E},     //XOSC5              CRYSTAL OSCILLATOR CONFIGURATION REG. 5
+{0x2F36,     0x03},     //XOSC1              CRYSTAL OSCILLATOR CONFIGURATION REG. 1
+{0x2F8F,     0x48},     //PARTNUMBER         PART NUMBER
+{0x2F90,     0x21},     //PARTVERSION        PART REVISION
+{0x2F92,     0x10},     //MODEM_STATUS1      MODEM STATUS REG. 1
+};
 
 
 
@@ -146,12 +408,14 @@ typedef struct
 
 
 
-uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
-	 
+
+
+
 
 ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint16_t uAccesses);
 ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint8_t uAccesses);
 
+uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_Status (SPI_HandleTypeDef *hspi);
 uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_Status(SPI_HandleTypeDef *hspi);
@@ -167,6 +431,8 @@ CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_SFSTXON_set (SPI_HandleTypeDef *hspi);
 uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi);
+uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
+uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
 
 	 
 #ifdef __cplusplus

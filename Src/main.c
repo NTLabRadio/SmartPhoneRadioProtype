@@ -37,7 +37,6 @@
 #include "cmx7262.h"
 #include "uart_gui.h"
 
-#include <stdio.h>
 
 /* USER CODE BEGIN Includes */
 

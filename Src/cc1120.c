@@ -39,7 +39,7 @@ if (CC1120_Read (EXT_PARTNUMBER, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01))	//
 	CC1120_CSN_HIGH();
 	
 	//Должны принять в байте 2 значение 0x48, соответствующее ChipID микросхемы CC1120
-	if(pCC1120RxData[2]!=CC1120_ID)
+	if(pCC1120RxData[0]!=CC1120_ID)
 		return 0;	
 	
 	return(1);
@@ -70,7 +70,7 @@ uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi)
 	
 	CC1120_CSN_HIGH();
 	
-		return pCC1120RxData[2];	
+		return pCC1120RxData[0];	
 }
 
 
@@ -127,7 +127,7 @@ hspiCC1120 = hspi;
 	//Опускаем CS	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (S_TX, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+	if (CC1120_Write (S_TX, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x00))
 			{
 				return 0;
 			}
@@ -154,7 +154,7 @@ hspiCC1120 = hspi;
 	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (S_IDLE, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+	if (CC1120_Write (S_IDLE, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x00))
 			{
 				return 0;
 			}
@@ -181,7 +181,7 @@ hspiCC1120 = hspi;
 	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (S_RX, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+	if (CC1120_Write (S_RX, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x00))
 			{
 				return 0;
 			}
@@ -208,7 +208,7 @@ hspiCC1120 = hspi;
 	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (S_RESET, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+	if (CC1120_Write (S_RESET, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x00))
 			{
 				return 0;
 			}
@@ -244,7 +244,7 @@ uint8_t CC1120_TxFIFONumBytes(SPI_HandleTypeDef *hspi)
 	
 	CC1120_CSN_HIGH();
 	
-		return pCC1120RxData[2];	
+		return pCC1120RxData[0];	
 }
 
 /**
@@ -261,7 +261,7 @@ hspiCC1120 = hspi;
 	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (S_TX_FIFO_FLUSH, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+	if (CC1120_Write (S_TX_FIFO_FLUSH, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x00))
 			{
 				return 0;
 			}
@@ -342,7 +342,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			{
 				return 0;
 			}
-	original_fs_cal2 = pCC1120RxData [2];
+	original_fs_cal2 = pCC1120RxData [0];
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();	
 			
@@ -374,7 +374,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
-	calResult_for_vcdac_start_high[0] = pCC1120RxData[2];	
+	calResult_for_vcdac_start_high[0] = pCC1120RxData[0];	
 			
 
 	// чтение FS_VCO4 и сохранение calResults_for_vcdac_start_high	 FS_CHP 
@@ -385,7 +385,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
-	calResult_for_vcdac_start_high[1] = pCC1120RxData[2];			
+	calResult_for_vcdac_start_high[1] = pCC1120RxData[0];			
 			
 	// чтение FS_CHP и сохранение calResults_for_vcdac_start_high
 	CC1120_CSN_LOW();
@@ -395,7 +395,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
-	calResult_for_vcdac_start_high[2] = pCC1120RxData[2];	
+	calResult_for_vcdac_start_high[2] = pCC1120RxData[0];	
 			
 	// запись значения FS_VCO2 = 0x00
 	CC1120_CSN_LOW();
@@ -434,7 +434,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
-	calResult_for_vcdac_start_mid[0] = pCC1120RxData[2];
+	calResult_for_vcdac_start_mid[0] = pCC1120RxData[0];
 
 	// чтение FS_VCO4 и сохранение calResults_for_vcdac_start_mid
 	CC1120_CSN_LOW();
@@ -444,7 +444,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
-	calResult_for_vcdac_start_mid[1] = pCC1120RxData[2];			
+	calResult_for_vcdac_start_mid[1] = pCC1120RxData[0];			
 	
 	
 	// чтение FS_CHP и сохранение calResults_for_vcdac_start_mid
@@ -455,7 +455,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
-	calResult_for_vcdac_start_mid[2] = pCC1120RxData[2];
+	calResult_for_vcdac_start_mid[2] = pCC1120RxData[0];
 
 	// сравнение calResults_for_vcdac_start_high > calResults_for_vcdac_start_mid?
 			
@@ -480,7 +480,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
 			
-	pCC1120TxData[0] = calResult_for_vcdac_start_high[2];
+	pCC1120TxData[0] = calResult_for_vcdac_start_high[0];
 	CC1120_CSN_LOW();		
 	if (CC1120_Write (EXT_FS_CHP, EXT_ADDRESS, NO_BURST, pCC1120TxData,0x01))
 			{
@@ -571,7 +571,7 @@ CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi)
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
 			
-	return ((pCC1120RxData [2]) & 0x1F);		
+	return ((pCC1120RxData [0]) & 0x1F);		
 }
 
 /**
@@ -589,7 +589,7 @@ CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi)
 	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (S_SFSTXON, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+	if (CC1120_Write (S_SFSTXON, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x00))
 			{
 				return 0;
 			}
@@ -624,7 +624,7 @@ uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi)
 	
 	CC1120_CSN_HIGH();
 	
-		return pCC1120RxData[2];	
+		return pCC1120RxData[0];	
 }
 
 /**
@@ -641,7 +641,7 @@ hspiCC1120 = hspi;
 	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (S_RX_FIFO_FLUSH, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x00))
+	if (CC1120_Write (S_RX_FIFO_FLUSH, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x00))
 			{
 				return 0;
 			}
@@ -654,10 +654,114 @@ hspiCC1120 = hspi;
 }
 
 
+/**
+  * @brief  Запись конфигурации в трансивер CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+	*	@param	*Config -указатель на массив данных конфигурации
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum)
+{
+	hspiCC1120 = hspi;
 
+	uint8_t	writeExtAddress; // дополнительный адрес регистра
+	uint8_t	writeAddress; // адрес регистра
+	
+	CC1120_CSN_LOW();
+	
+	// цикл записи регистров
+	for (uint16_t i=0; i< configRegNum; i++)
+		{
+			
+				pCC1120TxData[0] = CC1120_Config[i].data; // значение регистра
+				writeExtAddress = ((CC1120_Config[i].addr & 0xFF00)>>8);
+				writeAddress = CC1120_Config[i].addr & 0xFF;
+				
+				
+				
+				if (writeExtAddress) 
+				{
+					if (CC1120_Write (writeAddress, EXT_ADDRESS, NO_BURST, pCC1120TxData, 0x01)) // если расширенный адрес не 0, то пишем в расширенную область
+						{
+							return 0;
+						}
+				}
+				else
+				{
+					if (CC1120_Write (writeAddress, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x01)) // если дополнительный адрес 0, то пишем в основной регистр
+							{
+								return 0;
+							}
+				}
+				
+				
+				
+		}
+		
+		WaitTimeMCS(1e2);
+		CC1120_CSN_HIGH();
+		
+		return (1);
+}
 
+/**
+  * @brief  Прочитать конфигурацию трансивера CC1120 и сравнить с записанной
+	* @param  *hspi - выбор интерфейса SPI для обращения
+	*	@param	*Config -указатель на массив данных конфигурации
+  * @note   
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					2 - ошибка сравнения
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum)
+{
 
+	hspiCC1120 = hspi;
+	uint8_t	readExtAddress; // дополнительный адрес регистра
+	uint8_t	readAddress; // адрес регистра
+	
+	CC1120_CSN_LOW();
+	
+	// цикл записи регистров
+	for (uint16_t i=0; i< configRegNum; i++)
+		{
+			
+			//	pCC1120TxData[0] = CC1120_Config[i].data; // значение регистра
+				readExtAddress = ((CC1120_Config[i].addr & 0xFF00)>>8);
+				readAddress = CC1120_Config[i].addr & 0xFF;
+				
+				
+				
+				if (readExtAddress) 
+				{
+					if (CC1120_Read (readAddress, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01)) // если расширенный адрес не 0, то пишем в расширенную область
+						{
+							return 0;
+						}
+				}
+				else
+				{
+					if (CC1120_Read (readAddress, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x01)) // если дополнительный адрес 0, то пишем в основной регистр
+							{
+								return 0;
+							}
+				}
 
+			
+			if (pCC1120RxData[0] != CC1120_Config[i].data) return (2);				
+				
+		}
+			
+			WaitTimeMCS(1e2);
+			CC1120_CSN_HIGH();
+
+	return (1);
+
+}
 
 
 
@@ -685,25 +789,41 @@ hspiCC1120 = hspi;
   */
 ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint16_t uAccesses)
 {
-	uint8_t buff_index = 1; // индекс буфера записи
 	uint8_t buff_count = 0; // индекс записи данных
+	uint8_t buff_index = 1;
 	
 	
 	switch (uExtAddress) // формирование первого байта адреса или дополнительного адреса
 	{
 		case EXT_ADDRESS:
+				// сдвинуть данные на 2 позиции
+			for (buff_count = 0; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные поля.
+		{
+			pCC1120TxData[buff_count+2] = data_ptr[buff_count];
+		}
+		
 			pCC1120TxData[0] = EXT_ADDRESS;
 			pCC1120TxData[1] = uGenAddress;
-			buff_index++;
+		buff_index++;
 		break;
 
 		case REG_DMA:
+			// сдвинуть данные на 2 позиции
+		for (buff_count = 0; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные поля.
+		{
+			pCC1120TxData[buff_count+2] = data_ptr[buff_count];
+		}
 			pCC1120TxData[0] = REG_DMA;
 			pCC1120TxData[1] = uGenAddress;
-			buff_index++;
+		buff_index++;
 		break;
 
 		case REG_ADDRESS:
+				// сдвинуть данные на 1 позицию
+		for (buff_count = 0; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные поля.
+		{
+			pCC1120TxData[buff_count+1] = data_ptr[buff_count];
+		}
 			pCC1120TxData[0] = uGenAddress;
 		break;
 
@@ -719,10 +839,7 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 		pCC1120TxData[0] = pCC1120TxData[0] |  (BURST << 6); // установка режима поточной записи 
 	}		
 	
-	for (buff_count = buff_index; buff_count < uAccesses+1; buff_count++) // запись данных со смещением на адресные поля.
-		{
-				pCC1120TxData[buff_count] = data_ptr[buff_count-buff_index];
-		}
+	
 	//Передаем данные и одновременно принимаем ответ
 	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, uAccesses+buff_index)) 
 	{
@@ -781,8 +898,6 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
     default:
 			
 			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
-			
-	
 	}
 	
 	pCC1120TxData[0] = pCC1120TxData[0] | (READ_CC1120 << 7); // установка признака чтения
@@ -794,13 +909,21 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 		
 	for (buff_count = buff_index; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные поля.
 		{
-				pCC1120TxData[buff_count] = data_ptr[buff_count-buff_index];
+				//pCC1120TxData[buff_count] = data_ptr[buff_count-buff_index];
+				pCC1120TxData[buff_count] = 0x00;
 		}
 	//Передаем данные и одновременно принимаем ответ
 	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, data_ptr, uAccesses+buff_index)) 
 	{
 			return (SPIBusy);
-	} else {
-			return (ReadWriteOk);
-	}	
+	}
+	
+	// сдвиг результата	
+	for (uint8_t i = 0; i< (uAccesses+buff_index); i++)
+	{
+		data_ptr [i] = 	data_ptr[i+buff_index];
+	}
+	
+	return (ReadWriteOk);
+
 }
