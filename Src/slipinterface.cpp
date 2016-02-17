@@ -156,7 +156,6 @@ uint8_t SLIPInterface::FindPackInData(uint8_t* pData, uint16_t nDataSize, uint8_
                     nPosEndOfPack  = nDataSize - cntBytes;      //определяем позицию конца пакета, чтобы вернуть ее из функции
                     stateFindAutom = PACK_FOUND;
                     cntBytes = 0;   //пакет найден и обработан - можно выходить из цикла и успешно завершать выполнение функции
-                    break;
                 }
                 break;
             case FESC:
@@ -182,7 +181,7 @@ uint8_t SLIPInterface::FindPackInData(uint8_t* pData, uint16_t nDataSize, uint8_
                         *pPayloadPackData++ = FEND;
                         nPayloadPackSize++;
                     }
-                    else if (*pData == TFEND)
+                    else if (*pData == TFESC)
                     {
                         *pPayloadPackData++ = FESC;
                         nPayloadPackSize++;

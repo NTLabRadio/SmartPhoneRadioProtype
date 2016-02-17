@@ -56,6 +56,8 @@ DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+extern UART_InitTypeDef DefaultUARTParams;
+
 extern enUARTstateTypeDef UARTstate;
 
 extern uint8_t pUARTRxSLIPPack[];
@@ -65,8 +67,56 @@ CMX7262_TypeDef  pCmx7262;
 
 uint8_t flCMX7262_IRQ_CHECKED = FALSE;
 
-uint8_t pDataFromCMX7262[1024];
-uint8_t pDataToCMX7262[1024];
+#define MAX_SIZE_OF_DATA_FROM_CMX7262 (512)
+uint8_t pDataFromCMX7262[MAX_SIZE_OF_DATA_FROM_CMX7262];
+
+#define MAX_SIZE_OF_DATA_TO_CMX7262 (4096)
+uint8_t pDataToCMX7262[MAX_SIZE_OF_DATA_TO_CMX7262];
+uint16_t nLengthDataToCMX7262 = 0;
+
+#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
+uint16_t cntCMX7262TxAudioBuf = 0;
+#endif
+
+enum enRadioModuleOpModes
+{
+	OPMODE_IDLE,
+	OPMODE_TEST_CMX7262ENCDEC
+};
+
+enRadioModuleOpModes RadioModuleOpMode = OPMODE_IDLE;
+
+#define SIZE_OF_SIN_TABLE	(256)
+int16_t SinTab[SIZE_OF_SIN_TABLE] = {0, 804, 1608, 2410, 3212, 4011, 4808, 5602, 6393, 
+												7179,	7962, 8739, 9512, 10278, 11039, 11793, 12539, 13279, 14010, 
+												14732, 15446, 16151, 16846, 17530, 18204, 18868, 19519, 20159, 
+												20787, 21403, 22005, 22594, 23170, 23731, 24279, 24811, 25329, 
+												25832, 26319, 26790, 27245, 27683, 28105, 28510, 28898, 29268, 
+												29621, 29956, 30273, 30571, 30852, 31113, 31356, 31580, 31785, 
+												31971, 32137, 32285, 32412, 32521, 32609, 32678, 32728, 32757, 
+												32767, 32757, 32728, 32678, 32609, 32521, 32412, 32285, 32137, 
+												31971, 31785, 31580, 31356, 31113, 30852, 30571, 30273, 29956, 
+												29621, 29268, 28898, 28510, 28105, 27683, 27245, 26790, 26319, 
+												25832, 25329, 24811, 24279, 23731, 23170, 22594, 22005, 21403, 
+												20787, 20159, 19519, 18868, 18204, 17530, 16846, 16151, 15446, 
+												14732, 14010, 13279, 12539, 11793, 11039, 10278, 9512, 8739, 7962, 
+												7179, 6393, 5602, 4808, 4011, 3212, 2410, 1608, 804, 0, -804, 
+												-1608, -2410, -3212, -4011, -4808, -5602, -6393, -7179, -7962, 
+												-8739, -9512, -10278, -11039, -11793, -12539, -13279, -14010, 
+												-14732, -15446, -16151, -16846, -17530, -18204, -18868, -19519, 
+												-20159, -20787, -21403, -22005, -22594, -23170, -23731, -24279, 
+												-24811, -25329, -25832, -26319, -26790, -27245, -27683, -28105, 
+												-28510, -28898, -29268, -29621, -29956, -30273, -30571, -30852, 
+												-31113, -31356, -31580, -31785, -31971, -32137, -32285, -32412, 
+												-32521, -32609, -32678, -32728, -32757, -32767, -32757, -32728, 
+												-32678, -32609, -32521, -32412, -32285, -32137, -31971, -31785, 
+												-31580, -31356, -31113, -30852, -30571, -30273, -29956, -29621, 
+												-29268, -28898, -28510, -28105, -27683, -27245, -26790, -26319, 
+												-25832, -25329, -24811, -24279, -23731, -23170, -22594, -22005, 
+												-21403, -20787, -20159, -19519, -18868, -18204, -17530, -16846, 
+												-16151, -15446, -14732, -14010, -13279, -12539, -11793, -11039, 
+												-10278, -9512, -8739, -7962, -7179, -6393, -5602, -4808, -4011, 
+												-3212, -2410, -1608, -804};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,6 +135,7 @@ static void MX_USART1_UART_Init(void);
 void ProcessDataFromExtDev();
 void ProcessRadioState();
 
+void FillBufByToneSignal(int16_t* pBuf, uint16_t nSizeBuf, uint16_t nFreqSampl, uint16_t nFreqTone);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -119,6 +170,11 @@ int main(void)
 	// Устанавливаем CS периферийных микросхем в высокое состояние
 	CC1120_CSN_HIGH();
 	CMX7262_CSN_HIGH();
+	
+	#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+	#endif
 	
 	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
 	HAL_TIM_Base_Start(&htim2);
@@ -155,16 +211,18 @@ int main(void)
 	#endif
 	
 	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE
-	CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
-	for(uint16_t cntSamples=0; cntSamples<CMX7262_AUDIOFRAME_SIZE_SAMPLES; cntSamples++)
-		pDataToCMX7262[cntSamples] = 0;
-	CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
+		CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
+		
+		//Заполняем буфер тональным сигналом 1кГц
+		FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
+		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+		#endif
 	#endif
 	
 	#ifdef TEST_CMX7262_ENC_MODE
 	CMX7262_Encode(&pCmx7262);
 	#endif
-
 
   /* USER CODE END 2 */
 
@@ -175,6 +233,10 @@ int main(void)
 		//Если из UART приняты данные
 		if(UARTstate==UART_DATA_RX_NEED_TO_PROCESS)
 		{
+			#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
+			HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
+			#endif
+			
 			//Обрабатываем их
 			ProcessDataFromExtDev();
 			
@@ -252,7 +314,7 @@ void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;									// синхронизация по заднему фронту
   hspi1.Init.NSS = SPI_NSS_SOFT;													// программный CS (аппаратный (SPI_NSS_HARD_OUTPUT) не понятно, как задействовать)
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64 ;	//предделитель частоты SPI: 64МГц/8 = 8 МГц
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32 ;	//предделитель частоты SPI: 64МГц/32 = 2 МГц
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;									// старший бит - первый
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;// CRC не вычисляется
@@ -367,15 +429,8 @@ void MX_TIM5_Init(void)
 /* USART1 init function */
 void MX_USART1_UART_Init(void)
 {
-
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 57600;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init = DefaultUARTParams;
   HAL_UART_Init(&huart1);
 
 }
@@ -416,8 +471,8 @@ void MX_GPIO_Init(void)
   __GPIOE_CLK_ENABLE();
   __GPIOA_CLK_ENABLE();
 
-  /*Configure GPIO pins : PE6 PE7 PE0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
+  /*Configure GPIO pins : PE1 PE2 PE6 PE7 PE0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -443,9 +498,52 @@ void MX_GPIO_Init(void)
 
 }
 
+
 /* USER CODE BEGIN 4 */
 void ProcessDataFromExtDev()
 {
+	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
+	if((nSizeSLIPPack!=160)&&(nSizeSLIPPack!=0))
+		printf("Size of Rcvd SLIP Pack isn't 160 bytes: %d\n",nSizeSLIPPack);
+	
+	if(nSizeSLIPPack==0)
+		return;
+	
+	if(nLengthDataToCMX7262+nSizeSLIPPack<MAX_SIZE_OF_DATA_TO_CMX7262)
+	{
+		//Копируем данные в очередь FIFO для передачи на CMX7262
+		memcpy(pDataToCMX7262+nLengthDataToCMX7262,pUARTRxSLIPPack,nSizeSLIPPack);
+		nLengthDataToCMX7262+=nSizeSLIPPack;
+	}
+	else
+		printf("Bufer DataToCMX7262 is full. Data from UART is ignored");
+	
+	if((nLengthDataToCMX7262 >= CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE*sizeof(int16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES) && 
+		 (RadioModuleOpMode!=OPMODE_TEST_CMX7262ENCDEC))
+	{
+		RadioModuleOpMode=OPMODE_TEST_CMX7262ENCDEC;
+		
+		//Переводим CMX7262 в режим EncDec
+		CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
+		//Передаем буфер звуковых данных на CMX7262
+		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+		#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
+		cntCMX7262TxAudioBuf++;
+		#endif
+
+		uint16_t nSizeOfTxBuf = sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES;		
+		if(nLengthDataToCMX7262>=nSizeOfTxBuf)
+		{
+			//TODO Заменить pDataToCMX7262 на кольцевой буфер
+			memmove(pDataToCMX7262,pDataToCMX7262+nSizeOfTxBuf,nLengthDataToCMX7262-nSizeOfTxBuf);
+			nLengthDataToCMX7262-=nSizeOfTxBuf;
+		}
+		else
+			printf("Bufer pDataToCMX7262 is Empty");
+	}
+		
+	#endif
+	
 	//Очищаем буфер с обработанными данными SLIP-пакета
 	memset(pUARTRxSLIPPack,0,MAX_SIZE_OF_SLIP_PACK_PAYLOAD);
 }
@@ -470,18 +568,53 @@ void ProcessRadioState()
 
 	if((pCmx7262.uIRQRequest & CMX7262_IDW) == CMX7262_IDW)
 	{
+		#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
+		HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_2);
+		#endif
+		
 		//Сбрасываем флаг CMX7262_IDW
 		pCmx7262.uIRQRequest = pCmx7262.uIRQRequest & ~CMX7262_IDW;
 
 		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE			
-		for(uint16_t cntSamples=0; cntSamples<CMX7262_AUDIOFRAME_SIZE_SAMPLES; cntSamples++)
-			pDataToCMX7262[cntSamples] = 0;
-		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+			#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
+			//Заполняем буфер тональным сигналом 1кГц
+			FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
+			#endif
+		
+			//Передаем буфер на CMX7262
+			CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+			#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
+			cntCMX7262TxAudioBuf++;
+			#endif
+		
+			uint16_t nSizeOfTxBuf = sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES;		
+			if(nLengthDataToCMX7262>=nSizeOfTxBuf)
+			{
+				//TODO Заменить pDataToCMX7262 на кольцевой буфер
+				memmove(pDataToCMX7262,pDataToCMX7262+nSizeOfTxBuf,nLengthDataToCMX7262-nSizeOfTxBuf);
+				nLengthDataToCMX7262-=nSizeOfTxBuf;
+			}
+			else
+				printf("Bufer pDataToCMX7262 is Empty");
+		
 		#endif
 	}
 
 }
 		
+
+void FillBufByToneSignal(int16_t* pBuf, uint16_t nSizeBuf, uint16_t nFreqSampl, uint16_t nFreqTone)
+{
+	static uint8_t phase = 0;
+	uint16_t cntSamples;
+	
+	for(cntSamples=0; cntSamples<nSizeBuf; cntSamples++)
+	{
+		pBuf[cntSamples] = SinTab[phase];
+		phase += (SIZE_OF_SIN_TABLE * nFreqTone)/nFreqSampl;
+	}
+}
+
 /* USER CODE END 4 */
 
 #ifdef USE_FULL_ASSERT

@@ -404,9 +404,6 @@ void CMX7262_EncodeDecode_Audio2CBUS (CMX7262_TypeDef *pCmx7262)
 	CBUS_Write16(NOISE_GATE_REG,&uData,1,pCmx7262->uInterface);
 	#endif
 	
-	//Включение звукового усилителя
-	CMX7262_AudioPA(pCmx7262,ENABLE);	
-	
 	// The encoder+decoder is started, there will be a delay before we are requested to service it..
 	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCDEC))
 		pCmx7262->uError |= CMX7262_ENCODE_ERROR;
@@ -432,6 +429,9 @@ void CMX7262_EncodeDecode_CBUS2Audio (CMX7262_TypeDef *pCmx7262)
 	uData = (CMX7262_NOISEGATE_FRAMEDELAY_DEFAULT<<12) | CMX7262_NOISEGATE_THRESHOLD_DEFAULT;
 	CBUS_Write16(NOISE_GATE_REG,&uData,1,pCmx7262->uInterface);
 	#endif
+	
+	//Включение звукового усилителя
+	CMX7262_AudioPA(pCmx7262,ENABLE);
 	
 	// The encoder+decoder is started, there will be a delay before we are requested to service it..
 	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCDEC))
@@ -470,7 +470,7 @@ void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
 	
 	//Код частоты NCO
 	//Расчет кода частоты - п.8.1.9 Frequency Control документа D/7262_FI-1.x/4 August 2013 (datasheet)
-	uData = floor((nFreq * UINT16_MAX)/8000);	
+	uData = floor((nFreq * UINT16_MAX)/CMX7262_FREQ_SAMPLING);	
 	CBUS_Write16(FREQ_CONTROL,&uData,1,pCmx7262->uInterface);
 	
 	// The test mode is started, there will be a delay before we are requested to service it..
@@ -711,12 +711,12 @@ void CMX7262_TxFIFO (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
 
 void CMX7262_RxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
 {
-	CBUS_Read8(CBUS_AUDIO_OUT,pData,2*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
+	CBUS_Read8(CBUS_AUDIO_OUT,pData,sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
 }
 
 void CMX7262_TxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
 {
-	CBUS_Write8(CBUS_AUDIO_IN,pData,2*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
+	CBUS_Write8(CBUS_AUDIO_IN,pData,sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
 }
 
 

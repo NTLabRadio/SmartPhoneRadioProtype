@@ -47,9 +47,15 @@
 //Размер кадра звукового сигнала, отсчетов
 #define CMX7262_AUDIOFRAME_SIZE_SAMPLES	(160)	 
 	 
+#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
+//Перед тем, как перервести CMX7262 в режим EncDec, ожидаем накопления некоторого числа звуковых фреймов от UART
+//Число накапливаемых фреймов:
+	#define CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE (10)
+#endif	 
+	 
 // Default gains
 #define CMX7262_INPUT_GAIN_DEFAULT		0x0000
-#define CMX7262_OUPUT_GAIN_DEFAULT		0x8000				
+#define CMX7262_OUPUT_GAIN_DEFAULT		0x1000				
 
 // Default noise gate parameters
 #define CMX7262_NOISEGATE_THRESHOLD_DEFAULT		(70)

@@ -1,15 +1,21 @@
 #include "uart_intermodule.h"
 
+//Параметры UART по умолчанию
+UART_InitTypeDef DefaultUARTParams = {460800,
+																			UART_WORDLENGTH_8B,
+																			UART_STOPBITS_1,
+																			UART_PARITY_NONE,
+																			UART_MODE_TX_RX,
+																			UART_HWCONTROL_NONE,
+																			UART_OVERSAMPLING_16
+																			};
+
 
 //Размер буфера для приема данных от UART
 #define SIZE_OF_UART_RX_BUFFER (32)
 //Буфер для приема данных от UART
 uint8_t pUARTRxBuf[SIZE_OF_UART_RX_BUFFER];
 
-//Максимальный размер полезной нагрузки SLIP-пакетов
-#define MAX_SIZE_OF_SLIP_PACK_PAYLOAD	(128+4)		// В соответствие с межмодульным протоколом SPIM (Smart Phone InterModule) 
-																								// - максимальная длина полезных данных - 128 байт;
-																								// - размер служебных данных в пакете (заголовок, CRC) - 4 байта
 //Буфер, в который копируются полезные данные SLIP-пакета, принятого из UART 
 uint8_t pUARTRxSLIPPack[MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
 //Размер полезных данных SLIP-пакета, принятого из UART
@@ -20,8 +26,13 @@ uint8_t UTF8DataSLIPPack[2*MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
 #endif
 
 
+//Буфер полезных данных для передачи в UART
+uint8_t pUARTTxPayload[MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
+//Размер буфера полезных данных на передачу в UART
+uint16_t nSizeTxPayload;
+																			
 //Буфер для передачи данных в UART
-uint8_t pUARTTxBuf[2*MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
+uint8_t pUARTTxBuf[(MAX_SIZE_OF_SLIP_PACK_PAYLOAD*3)/2];
 //Размер пакета на передачу в UART
 uint16_t nSizeTxBuf;
 
@@ -30,6 +41,8 @@ SLIPInterface* objSLIPinterface;
 
 //Текущее состояние механизма обработки UART-сообщений
 enUARTstateTypeDef UARTstate;
+
+
 
 
 /**
@@ -110,7 +123,7 @@ void DeinitSerialProtocol()
   * @brief  Callback-функция, вызываемая по прерыванию, извещаюшего о том, 
 	*					что приняты данные от интерфейса UART
 	*
-	* @param  hspi - handle UART-интерфейса
+	* @param  huart - handle UART-интерфейса
 	*
   * @note   Функция переадресует принятые данные обработчику внутреннего
 	*					логического интерфейса (SLIP-интерфейс), который в случае 
@@ -135,7 +148,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		#endif
 
 		#ifdef DEBUG_SEND_RCVD_SLIP_PACK
-		objSLIPinterface->FormPack(pDataSLIPPack, nSizeSLIPPack, pUARTTxBuf, nSizeTxBuf);
+		objSLIPinterface->FormPack(pUARTRxSLIPPack, nSizeSLIPPack, pUARTTxBuf, nSizeTxBuf);
 
 			#ifdef DEBUG_PRINTF_SLIP_DATA
 			printf("SLIP Pack Ready for Send\n * Pack Data:");
@@ -199,3 +212,35 @@ uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePac
 	// времени. Поэтому крайне желательно их складировать в очередь
 	return(objSLIPinterface->CheckForSLIPData(*pUARTRxBuf, pPayloadPackData, nSizePackData, nCheckState));
 }
+
+/**
+  * @brief  Функция передачи полезных данных в UART
+	*
+	* @param  huart - handle UART-интерфейса
+	* @param  pData - указатель на полезные данные, которые должны быть переданы в UART
+	* @param  nSizeData - размер полезных данных, байт
+	*
+  * @note   Функция из полезных данных формирует SLIP-пакет и передает его в UART
+	*
+	* @retval нет
+	*/
+void SendDataToUART(UART_HandleTypeDef *huart, uint8_t* pData, uint16_t nSizeData)
+{
+		memcpy(pUARTTxPayload,pData,nSizeData);
+		nSizeTxPayload = nSizeData;
+		objSLIPinterface->FormPack(pUARTTxPayload, nSizeTxPayload, pUARTTxBuf, nSizeTxBuf);
+
+			#ifdef DEBUG_PRINTF_SLIP_DATA
+			printf("SLIP Pack Ready for Send\n * Pack Data:");
+
+			memcpy(UTF8DataSLIPPack,pUARTTxBuf,nSizeTxBuf);
+			
+			ConvertHexIntToUTF8(UTF8DataSLIPPack,nSizeTxBuf);
+			printf((const char*)UTF8DataSLIPPack);
+			
+			printf("\n");
+			#endif
+
+		HAL_UART_Transmit_DMA(huart, pUARTTxBuf, nSizeTxBuf);		
+}
+
