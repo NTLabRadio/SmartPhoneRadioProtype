@@ -134,7 +134,14 @@ void TxFIFOFlush (void)
 
 void TxFIFOWrite (uint8_t *data_ptr, uint8_t num_byte)
 {
-		UART_Tx_Buff[2] = CC1120_TxFIFOWrite(&CURRENT_SPI, data_ptr, num_byte);
+	//fifo_write_data_ptr 0 байт - команда трансиверу, 1 байт и далее - данные FIFO TX
+	// убираем 0 элемент и сдвигаем все данные на байт влево
+
+	for (uint8_t i = 0; i<(num_byte); i++)
+	{
+		data_ptr[i] = data_ptr[i+1];
+	}
+		UART_Tx_Buff[2] = CC1120_TxFIFOWrite(&CURRENT_SPI, data_ptr, num_byte-1);
 		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
 		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
 		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
@@ -264,7 +271,52 @@ void ConfigReadCompare(uint8_t *data_ptr)
 }
 
 
+void FreqWrite(uint8_t *freqSet)
+{
+		//freqSet 0 байт - команда трансиверу, 1, 2, 3 байт - данные FREQ2, FREQ1, FREQ0
+		// убираем 0 элемент и сдвигаем все данные на байт влево
 
+			for (uint8_t i = 0; i<3; i++)
+			{
+				freqSet[i] = freqSet[i+1];
+			}
+	
+		UART_Tx_Buff[2] = CC1120_FreqWrite (&CURRENT_SPI, freqSet);
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x03; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+
+
+}
+
+void FreqRead(void)
+{
+    UART_Tx_Buff[2] = (CC1120_FreqRead (&CURRENT_SPI))[0]; 	// FREQ2
+		UART_Tx_Buff[3] = (CC1120_FreqRead (&CURRENT_SPI))[1]; 	// FREQ1
+		UART_Tx_Buff[4] = (CC1120_FreqRead (&CURRENT_SPI))[2];	// FREQ0
+		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+		UART_Tx_Buff[1] = 0x05; // количество всех байтов в ответе	
+		GUI_Tx (&CURRENT_UART, UART_Tx_Buff);		
+
+}
+
+void RxFIFORead (void)
+{
+	uint8_t buffNumCount = 0;
+	
+	buffNumCount = (CC1120_RxFIFORead(&CURRENT_SPI))[0]; // количество байтов в буфере
+	UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
+	UART_Tx_Buff[1] = buffNumCount + 2; // количество всех байтов в ответе
+	
+			// сдвиг на 2 байта для вставки подтверждения ответа от трансивера и количество байтов в ответе
+			for (uint8_t i=1; i<UART_Tx_Buff[1]; i++) // возможно. потеряется последний байт может надо +1, проверить!!!
+			{
+				UART_Tx_Buff[i+1] = (CC1120_RxFIFORead(&CURRENT_SPI))[i];
+			}
+
+	
+	GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
+}	
 
 
 uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
@@ -355,21 +407,39 @@ uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 		
 		break;
 		
-		case CC1120_RX_FIFO_FLUSH: // чтение количества байтов в TX FIFO
+		case CC1120_RX_FIFO_FLUSH: // очистка в RX FIFO
 		
 		RxFIFOFlush();
 		
 		break;
 		
-		case CC1120_CONFIG_WRITE: // чтение количества байтов в TX FIFO
+		case CC1120_CONFIG_WRITE: // запись конфигурации в трансивер
 		
 		ConfigWrite(command);
 		
 		break;
 		
-		case CC1120_CONFIG_READ: // чтение количества байтов в TX FIFO
+		case CC1120_CONFIG_READ: // чтение и сравнение конфигурации
 		
 		ConfigReadCompare(command);
+		
+		break;
+		
+		case CC1120_FREQ_WRITE: // запись частоты в трансивер
+		
+		FreqWrite(command);
+		
+		break;
+		
+		case CC1120_FREQ_READ: // чтение частоты трансивера
+		
+		FreqRead();
+		
+		break;
+		
+		case CC1120_RX_FIFO_READ: // чтение RX FIFO
+		
+		RxFIFORead ();
 		
 		break;
 		

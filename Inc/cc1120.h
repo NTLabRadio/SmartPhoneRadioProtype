@@ -109,6 +109,7 @@ typedef struct
 #define EXT_FS_CAL2						0x15				/* FS_CAL2 */
 #define EXT_FS_VCO4						0x23				/* FS_VCO_4 */
 #define EXT_FS_CHP						0x18				/* FS_CHP */
+#define	EXT_FREQ2							0x0C				/* Frequency configuration. FREQ2 (23_16), FREQ1 (15_8), FREQ0 (7_0) */
 #define EXT_MARCSTATE					0x73				/* Опрос состояния трансивера */
 #define S_STATUS							0x3D				/* No operation. May be used to get access to the chip status byte */
 #define S_TX									0x35				/* Enable Tx */	 
@@ -119,7 +120,8 @@ typedef struct
 #define	S_RX_FIFO_FLUSH				0x3A				/* Очистка FIFO TX */
 #define S_CAL									0x33				/* Запуск калибровки синтезатора */
 #define S_SFSTXON							0x31				/* запуск автоматической калибровки синтезатора */
-#define R_TX_FIFO_WRITE				0x7F				/* Стандартная запись данных в Tx FIFO */
+#define R_ST_FIFO_ACCESS			0x3F				/* Стандартная доступ к  Tx/Rx FIFO */
+
 
 
 #define CC1120_ID							0x48				/* Chip ID CC1120 */ 
@@ -433,6 +435,9 @@ uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
 uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
+uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq);
+uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi);
+uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
 
 	 
 #ifdef __cplusplus

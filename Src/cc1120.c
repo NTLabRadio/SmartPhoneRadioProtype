@@ -289,15 +289,7 @@ uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr
 	
 	CC1120_CSN_LOW();
 	
-	//fifo_write_data_ptr 0 байт - команда трансиверу, 1 байт и далее - данные FIFO TX
-	// убираем 0 элемент и сдвигаем все данные на байт влево
-
-	for (uint8_t i = 0; i<(tx_num); i++)
-	{
-		fifo_write_data_ptr[i] = fifo_write_data_ptr[i+1];
-	}
-	
-	if (CC1120_Write (R_TX_FIFO_WRITE, REG_ADDRESS, NO_BURST, fifo_write_data_ptr,tx_num-1))
+	if (CC1120_Write (R_ST_FIFO_ACCESS, REG_ADDRESS, BURST, fifo_write_data_ptr,tx_num))
 			{
 				return 0;
 			}
@@ -658,6 +650,7 @@ hspiCC1120 = hspi;
   * @brief  Запись конфигурации в трансивер CC1120
 	* @param  *hspi - выбор интерфейса SPI для обращения
 	*	@param	*Config -указатель на массив данных конфигурации
+	*	@param	*configRegNum -количество данных в массиве
   * @note   
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
@@ -680,8 +673,6 @@ uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1
 				writeExtAddress = ((CC1120_Config[i].addr & 0xFF00)>>8);
 				writeAddress = CC1120_Config[i].addr & 0xFF;
 				
-				
-				
 				if (writeExtAddress) 
 				{
 					if (CC1120_Write (writeAddress, EXT_ADDRESS, NO_BURST, pCC1120TxData, 0x01)) // если расширенный адрес не 0, то пишем в расширенную область
@@ -695,10 +686,7 @@ uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1
 							{
 								return 0;
 							}
-				}
-				
-				
-				
+				}		
 		}
 		
 		WaitTimeMCS(1e2);
@@ -711,6 +699,7 @@ uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1
   * @brief  Прочитать конфигурацию трансивера CC1120 и сравнить с записанной
 	* @param  *hspi - выбор интерфейса SPI для обращения
 	*	@param	*Config -указатель на массив данных конфигурации
+	*	@param	*configRegNum -количество данных в массиве
   * @note   
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
@@ -730,7 +719,7 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 	for (uint16_t i=0; i< configRegNum; i++)
 		{
 			
-			//	pCC1120TxData[0] = CC1120_Config[i].data; // значение регистра
+	
 				readExtAddress = ((CC1120_Config[i].addr & 0xFF00)>>8);
 				readAddress = CC1120_Config[i].addr & 0xFF;
 				
@@ -760,8 +749,194 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 			CC1120_CSN_HIGH();
 
 	return (1);
+}
+
+/**
+  * @brief  Записать значение в регистр трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+	*	@param	addrReg - адрес регистра uint16_t
+	*	@param	dataReg - значение регистра uint8_t
+  * @note   по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)
+  */
+
+uint8_t CC1120_RegWrite (SPI_HandleTypeDef *hspi, uint16_t addrReg, uint8_t dataReg)
+{
+	hspiCC1120 = hspi;
+	uint8_t writeExtAddress;
+	uint8_t writeAddress;
+	
+	pCC1120TxData[0] = dataReg; // значение регистра
+	writeExtAddress = ((addrReg & 0xFF00)>>8);
+	writeAddress = addrReg & 0xFF;
+	CC1120_CSN_LOW();
+	
+	if (writeExtAddress) 
+				{
+					if (CC1120_Write (writeAddress, EXT_ADDRESS, NO_BURST, pCC1120TxData, 0x01)) // если расширенный адрес не 0, то пишем в расширенную область
+						{
+							return 0;
+						}
+				}
+				else
+				{
+					if (CC1120_Write (writeAddress, REG_ADDRESS, NO_BURST, pCC1120TxData, 0x01)) // если дополнительный адрес 0, то пишем в основной регистр
+							{
+								return 0;
+							}
+				}
+	
+			WaitTimeMCS(1e2);
+			CC1120_CSN_HIGH();
+	return (1);
+}
+
+
+
+/**
+  * @brief  Прочитать значение из регистра трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+	*	@param	addrReg - адрес регистра uint16_t
+	*	@param	dataReg - значение регистра uint8_t
+  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @retval Результат выполнения функции:
+	*					данные регистра - успешное выполнение;
+	*					
+  */
+
+uint8_t CC1120_RegRead (SPI_HandleTypeDef *hspi, uint16_t addrReg, uint8_t dataReg)
+{
+	hspiCC1120 = hspi;
+	uint8_t	readExtAddress; // дополнительный адрес регистра
+	uint8_t	readAddress; // адрес регистра
+	
+	CC1120_CSN_LOW();
+	readExtAddress = ((addrReg & 0xFF00)>>8);
+	readAddress = addrReg & 0xFF;
+	if (readExtAddress) 
+				{
+					CC1120_Read (readAddress, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01); // если расширенный адрес не 0, то пишем в расширенную область	
+				}
+				else
+				{
+					CC1120_Read (readAddress, REG_ADDRESS, NO_BURST, pCC1120RxData, 0x01); // если дополнительный адрес 0, то пишем в основной регистр		
+				}
+				return pCC1120RxData[0];
+}
+
+/**
+  * @brief  Записать частоту в трансивер CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+	*	@param	*freq - ссылка на массив со значениями частоты
+  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)		
+  */
+
+uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq)
+
+{
+	hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	/* 	
+	 *	записываем в режиме burst. Начальный адрес EXT_FREQ2 (0x0C).
+	 *	затем FREQ1 (0x0D) и FREQ0 (0x0E)														 
+	*/
+	
+	if (CC1120_Write (EXT_FREQ2, EXT_ADDRESS, BURST, freq, 0x03))
+			{
+				return 0;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (1);
 
 }
+
+/**
+  * @brief  Прочитать частоту из трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+	*	@param	*freq - ссылка на массив со значениями частоты
+  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)		
+  */
+uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+
+	
+	CC1120_CSN_LOW();
+	
+	/* 	
+	 *	считываем в режиме burst. Начальный адрес EXT_FREQ2 (0x0C).
+	 *	затем FREQ1 (0x0D) и FREQ0 (0x0E)														 
+	*/
+	
+	if (CC1120_Read (EXT_FREQ2, EXT_ADDRESS, BURST, pCC1120RxData, 0x03))
+			{
+				return 0;
+			}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (pCC1120RxData);
+
+}
+
+/**
+  * @brief  Прочитать содержимое буфера RX FIFO трансивера CC1120
+	* @param  *hspi - выбор интерфейса SPI для обращения
+  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @retval Результат выполнения функции:
+	*					ссылка на массив со значениями - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)		
+  */
+uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+	uint8_t RxFIFONumBytes = 0;
+	
+	CC1120_CSN_LOW();
+	// запрос количества байтов данных в RxFIFO
+	RxFIFONumBytes = CC1120_RxFIFONumBytes(hspi);
+	 if (!RxFIFONumBytes) 
+	 {
+			pCC1120RxData[0] = 0x00;
+			return (pCC1120RxData);
+	 }
+	
+	
+	if (CC1120_Read (R_ST_FIFO_ACCESS, REG_ADDRESS, BURST, pCC1120RxData, RxFIFONumBytes))
+			{
+				return 0;
+			}
+	// сдвиг данных буфера на 1 индекс и запись в 0 элемент количество байтов Rx FIFO
+	
+	for (uint8_t i = 0; i< RxFIFONumBytes+1; i++)
+			{
+				pCC1120RxData[i] = pCC1120RxData[i+1];
+			}
+			pCC1120RxData[0] = RxFIFONumBytes;
+			
+	WaitTimeMCS(10e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (pCC1120RxData);
+}
+
 
 
 
