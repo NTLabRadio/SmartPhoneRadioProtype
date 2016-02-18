@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F103xE,TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE,TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART,DEBUG_CMX7262_CNT_TX_AUDIO_BUF,DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS</Define>
+              <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
               <IncludePath>../Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F1xx/Include</IncludePath>
             </VariousControls>
@@ -879,9 +879,57 @@
               </FileOption>
             </File>
             <File>
-              <FileName>queue.c</FileName>
+              <FileName>SPIMMessage.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\Src\SPIMMessage.cpp</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>2</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>2</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <useXO>2</useXO>
+                    <VariousControls>
+                      <MiscControls>--cpp</MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
+            </File>
+            <File>
+              <FileName>mathfuncs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\queue.c</FilePath>
+              <FilePath>..\Src\mathfuncs.c</FilePath>
             </File>
           </Files>
         </Group>

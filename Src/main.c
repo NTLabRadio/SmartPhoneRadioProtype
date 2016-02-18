@@ -37,6 +37,8 @@
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
+#include "mathfuncs.h"
+#include "SPIMMessage.h"
 #include "uart_intermodule.h"
 /* USER CODE END Includes */
 
@@ -86,37 +88,11 @@ enum enRadioModuleOpModes
 
 enRadioModuleOpModes RadioModuleOpMode = OPMODE_IDLE;
 
-#define SIZE_OF_SIN_TABLE	(256)
-int16_t SinTab[SIZE_OF_SIN_TABLE] = {0, 804, 1608, 2410, 3212, 4011, 4808, 5602, 6393, 
-												7179,	7962, 8739, 9512, 10278, 11039, 11793, 12539, 13279, 14010, 
-												14732, 15446, 16151, 16846, 17530, 18204, 18868, 19519, 20159, 
-												20787, 21403, 22005, 22594, 23170, 23731, 24279, 24811, 25329, 
-												25832, 26319, 26790, 27245, 27683, 28105, 28510, 28898, 29268, 
-												29621, 29956, 30273, 30571, 30852, 31113, 31356, 31580, 31785, 
-												31971, 32137, 32285, 32412, 32521, 32609, 32678, 32728, 32757, 
-												32767, 32757, 32728, 32678, 32609, 32521, 32412, 32285, 32137, 
-												31971, 31785, 31580, 31356, 31113, 30852, 30571, 30273, 29956, 
-												29621, 29268, 28898, 28510, 28105, 27683, 27245, 26790, 26319, 
-												25832, 25329, 24811, 24279, 23731, 23170, 22594, 22005, 21403, 
-												20787, 20159, 19519, 18868, 18204, 17530, 16846, 16151, 15446, 
-												14732, 14010, 13279, 12539, 11793, 11039, 10278, 9512, 8739, 7962, 
-												7179, 6393, 5602, 4808, 4011, 3212, 2410, 1608, 804, 0, -804, 
-												-1608, -2410, -3212, -4011, -4808, -5602, -6393, -7179, -7962, 
-												-8739, -9512, -10278, -11039, -11793, -12539, -13279, -14010, 
-												-14732, -15446, -16151, -16846, -17530, -18204, -18868, -19519, 
-												-20159, -20787, -21403, -22005, -22594, -23170, -23731, -24279, 
-												-24811, -25329, -25832, -26319, -26790, -27245, -27683, -28105, 
-												-28510, -28898, -29268, -29621, -29956, -30273, -30571, -30852, 
-												-31113, -31356, -31580, -31785, -31971, -32137, -32285, -32412, 
-												-32521, -32609, -32678, -32728, -32757, -32767, -32757, -32728, 
-												-32678, -32609, -32521, -32412, -32285, -32137, -31971, -31785, 
-												-31580, -31356, -31113, -30852, -30571, -30273, -29956, -29621, 
-												-29268, -28898, -28510, -28105, -27683, -27245, -26790, -26319, 
-												-25832, -25329, -24811, -24279, -23731, -23170, -22594, -22005, 
-												-21403, -20787, -20159, -19519, -18868, -18204, -17530, -16846, 
-												-16151, -15446, -14732, -14010, -13279, -12539, -11793, -11039, 
-												-10278, -9512, -8739, -7962, -7179, -6393, -5602, -4808, -4011, 
-												-3212, -2410, -1608, -804};
+//Объект для обработки принятых сообщений SPIM-протокола
+SPIMMessage*	objSPIMmsgRcvd;
+//Объект для формирования сообщений SPIM-протокола для отправки
+SPIMMessage*	objSPIMmsgToSend;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -132,10 +108,16 @@ static void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-void ProcessDataFromExtDev();
-void ProcessRadioState();
+void ProcessDataFromExtDev(void);
+void ProcessRadioState(void);
 
-void FillBufByToneSignal(int16_t* pBuf, uint16_t nSizeBuf, uint16_t nFreqSampl, uint16_t nFreqTone);
+void SPIMInit(void);
+void SPIMDeInit(void);
+
+#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
+void ProcessAudioDataFromUART(void);
+#endif
+												
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -185,6 +167,8 @@ int main(void)
 
 	// Инициализируем работу по UART
 	UART_InitInterface(&huart1);
+	
+	SPIMInit();
 
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
 	CC1120_CheckModule(&hspi1);
@@ -503,46 +487,44 @@ void MX_GPIO_Init(void)
 void ProcessDataFromExtDev()
 {
 	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
-	if((nSizeSLIPPack!=160)&&(nSizeSLIPPack!=0))
-		printf("Size of Rcvd SLIP Pack isn't 160 bytes: %d\n",nSizeSLIPPack);
+	ProcessAudioDataFromUART();
+	#endif
 	
-	if(nSizeSLIPPack==0)
-		return;
+	objSPIMmsgRcvd->setMsg(pUARTRxSLIPPack,nSizeSLIPPack);
 	
-	if(nLengthDataToCMX7262+nSizeSLIPPack<MAX_SIZE_OF_DATA_TO_CMX7262)
+	if(objSPIMmsgRcvd->checkCRC())
 	{
-		//Копируем данные в очередь FIFO для передачи на CMX7262
-		memcpy(pDataToCMX7262+nLengthDataToCMX7262,pUARTRxSLIPPack,nSizeSLIPPack);
-		nLengthDataToCMX7262+=nSizeSLIPPack;
-	}
-	else
-		printf("Bufer DataToCMX7262 is full. Data from UART is ignored");
-	
-	if((nLengthDataToCMX7262 >= CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE*sizeof(int16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES) && 
-		 (RadioModuleOpMode!=OPMODE_TEST_CMX7262ENCDEC))
-	{
-		RadioModuleOpMode=OPMODE_TEST_CMX7262ENCDEC;
-		
-		//Переводим CMX7262 в режим EncDec
-		CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
-		//Передаем буфер звуковых данных на CMX7262
-		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
-		#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
-		cntCMX7262TxAudioBuf++;
+		#ifdef DEBUG_PRINTF_SPIM_DATA
+		printf("Rcvd SPIM Message\n");
+		printf("* Address: %d\n", objSPIMmsgRcvd->getAddress());
+		printf("* Cmd ID: %x\n", objSPIMmsgRcvd->getIDCmd());
+		printf("* No Msg: %d\n", objSPIMmsgRcvd->getNoMsg());
 		#endif
 
-		uint16_t nSizeOfTxBuf = sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES;		
-		if(nLengthDataToCMX7262>=nSizeOfTxBuf)
-		{
-			//TODO Заменить pDataToCMX7262 на кольцевой буфер
-			memmove(pDataToCMX7262,pDataToCMX7262+nSizeOfTxBuf,nLengthDataToCMX7262-nSizeOfTxBuf);
-			nLengthDataToCMX7262-=nSizeOfTxBuf;
-		}
-		else
-			printf("Bufer pDataToCMX7262 is Empty");
-	}
+		//TODO Сформировать и отправить ответ, подтверждающий успешный прием команды
 		
-	#endif
+		//TODO Проверить, не была ли принята ранее эта команда (по порядковому номеру)
+		
+		//TODO Обработку команд вынести в отдельную функцию
+		switch(objSPIMmsgRcvd->getIDCmd())
+		{
+			case SPIM_NOP:
+				break;
+			case SPIM_SET_MODE:
+				break;
+			case SPIM_SEND_DATA_FRAME:
+				break;
+			case SPIM_TAKE_DATA_FRAME:
+				break;	
+			case SPIM_REQ_CURRENT_PARAM:
+				break;
+			case SPIM_SOFT_VER:
+				break;			
+			default:
+				break;
+		}
+		
+	}
 	
 	//Очищаем буфер с обработанными данными SLIP-пакета
 	memset(pUARTRxSLIPPack,0,MAX_SIZE_OF_SLIP_PACK_PAYLOAD);
@@ -603,17 +585,65 @@ void ProcessRadioState()
 }
 		
 
-void FillBufByToneSignal(int16_t* pBuf, uint16_t nSizeBuf, uint16_t nFreqSampl, uint16_t nFreqTone)
+void SPIMInit()
 {
-	static uint8_t phase = 0;
-	uint16_t cntSamples;
+	//Создаем объекты для обработки и формирования сообщений SPIM-протокола
+	objSPIMmsgRcvd = new SPIMMessage;
+	objSPIMmsgToSend  = new SPIMMessage;
+}
+
+void SPIMDeInit()
+{
+	//Удаляем объекты для обработки и формирования сообщений SPIM-протокола
+	delete objSPIMmsgRcvd;
+	delete objSPIMmsgToSend;
+}
+
+
+#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
+void ProcessAudioDataFromUART()
+{
+	if((nSizeSLIPPack!=160)&&(nSizeSLIPPack!=0))
+		printf("Size of Rcvd SLIP Pack isn't 160 bytes: %d\n",nSizeSLIPPack);
 	
-	for(cntSamples=0; cntSamples<nSizeBuf; cntSamples++)
+	if(nSizeSLIPPack==0)
+		return;
+	
+	if(nLengthDataToCMX7262+nSizeSLIPPack<MAX_SIZE_OF_DATA_TO_CMX7262)
 	{
-		pBuf[cntSamples] = SinTab[phase];
-		phase += (SIZE_OF_SIN_TABLE * nFreqTone)/nFreqSampl;
+		//Копируем данные в очередь FIFO для передачи на CMX7262
+		memcpy(pDataToCMX7262+nLengthDataToCMX7262,pUARTRxSLIPPack,nSizeSLIPPack);
+		nLengthDataToCMX7262+=nSizeSLIPPack;
+	}
+	else
+		printf("Bufer DataToCMX7262 is full. Data from UART is ignored");
+	
+	if((nLengthDataToCMX7262 >= CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE*sizeof(int16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES) && 
+		 (RadioModuleOpMode!=OPMODE_TEST_CMX7262ENCDEC))
+	{
+		RadioModuleOpMode=OPMODE_TEST_CMX7262ENCDEC;
+		
+		//Переводим CMX7262 в режим EncDec
+		CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
+		//Передаем буфер звуковых данных на CMX7262
+		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+		#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
+		cntCMX7262TxAudioBuf++;
+		#endif
+
+		uint16_t nSizeOfTxBuf = sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES;		
+		if(nLengthDataToCMX7262>=nSizeOfTxBuf)
+		{
+			//TODO Заменить pDataToCMX7262 на кольцевой буфер
+			memmove(pDataToCMX7262,pDataToCMX7262+nSizeOfTxBuf,nLengthDataToCMX7262-nSizeOfTxBuf);
+			nLengthDataToCMX7262-=nSizeOfTxBuf;
+		}
+		else
+			printf("Bufer pDataToCMX7262 is Empty");
 	}
 }
+#endif
+
 
 /* USER CODE END 4 */
 
