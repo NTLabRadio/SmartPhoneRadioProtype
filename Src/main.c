@@ -40,6 +40,7 @@
 #include "mathfuncs.h"
 #include "SPIMMessage.h"
 #include "uart_intermodule.h"
+#include "version.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -109,6 +110,10 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void ProcessDataFromExtDev(void);
+void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd);
+void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend);
+void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
+
 void ProcessRadioState(void);
 
 void SPIMInit(void);
@@ -117,7 +122,8 @@ void SPIMDeInit(void);
 #ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
 void ProcessAudioDataFromUART(void);
 #endif
-												
+
+uint16_t GetARMSoftVer();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -502,6 +508,7 @@ void ProcessDataFromExtDev()
 		#endif
 
 		//TODO Сформировать и отправить ответ, подтверждающий успешный прием команды
+		FormAndSendAnswerToExtDev(objSPIMmsgRcvd);
 		
 		//TODO Проверить, не была ли принята ранее эта команда (по порядковому номеру)
 		
@@ -528,6 +535,81 @@ void ProcessDataFromExtDev()
 	
 	//Очищаем буфер с обработанными данными SLIP-пакета
 	memset(pUARTRxSLIPPack,0,MAX_SIZE_OF_SLIP_PACK_PAYLOAD);
+}
+
+
+void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd)
+{
+	SPIMMessage* SPIMmsgToSend = new SPIMMessage;
+
+	FormAnswerToExtDev(SPIMmsgRcvd,SPIMmsgToSend);
+	
+	SendDataToUART(&huart1, SPIMmsgToSend->Data, SPIMmsgToSend->Size);
+	
+	delete SPIMmsgToSend;
+}
+
+
+void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend)
+{
+	//Определяем ID ответа по ID исходной команды
+	uint8_t IDanswer = SPIMBackCmdToSend->IDBackCmd(SPIMCmdRcvd->getIDCmd());
+	//Адресат - внешнешнее управляющее устройство
+	uint8_t address = SPIM_ADR_EXTDEV;
+	//Порядковый номер ответа совпадает с номером исходной команды
+	uint8_t noMsg = SPIMCmdRcvd->getNoMsg();
+	
+	//Получим указатель на тело сообщения
+	uint8_t* pBodyData = SPIMBackCmdToSend->Body;
+	uint8_t bodySize = 0;
+
+	FormBodyOfAnswerToExtDev(SPIMCmdRcvd,pBodyData,bodySize);
+	
+	SPIMBackCmdToSend->setHeader(bodySize,address,noMsg,IDanswer);
+	
+	SPIMBackCmdToSend->setBody(pBodyData,bodySize);
+	
+	SPIMBackCmdToSend->setCRC();
+}
+
+
+void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize)
+{
+	bodySize = 0;
+	
+	switch(SPIMCmdRcvd->getIDCmd())
+	{
+		case SPIM_NOP:
+			uint8_t *pBodyCmd;
+			//Если размер команды ненулевой (должен быть равен 1)
+			if(SPIMCmdRcvd->getBody(pBodyCmd))
+			{
+				//Формируем тело ответа, состоящее из первого (и единственного) байта команды
+				bodySize = 1;
+				*pBodyData = *pBodyCmd;
+			}
+			break;
+		case SPIM_SET_MODE:
+			break;
+		case SPIM_SEND_DATA_FRAME:
+			break;
+		case SPIM_TAKE_DATA_FRAME:
+			break;	
+		case SPIM_REQ_CURRENT_PARAM:
+			break;
+		case SPIM_SOFT_VER:
+			bodySize = 2;
+			*pBodyData = GetARMSoftVer();
+			break;
+		default:
+			break;
+	}
+}
+
+
+uint16_t GetARMSoftVer()
+{
+	return(ARM_SOFT_VER);
 }
 
 
@@ -589,14 +671,14 @@ void SPIMInit()
 {
 	//Создаем объекты для обработки и формирования сообщений SPIM-протокола
 	objSPIMmsgRcvd = new SPIMMessage;
-	objSPIMmsgToSend  = new SPIMMessage;
+	//objSPIMmsgToSend  = new SPIMMessage;
 }
 
 void SPIMDeInit()
 {
 	//Удаляем объекты для обработки и формирования сообщений SPIM-протокола
 	delete objSPIMmsgRcvd;
-	delete objSPIMmsgToSend;
+	//delete objSPIMmsgToSend;
 }
 
 

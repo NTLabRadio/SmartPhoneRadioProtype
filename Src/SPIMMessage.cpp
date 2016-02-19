@@ -17,6 +17,7 @@ SPIMMessage::SPIMMessage()
     SPIMCRC = SPIMmsgData + SIZE_OF_HEADER;
 
     Data = SPIMmsgData;
+		Body = SPIMbodyData;
 }
 
 
@@ -44,6 +45,7 @@ SPIMMessage::SPIMMessage(const uint8_t* pMsgData, uint16_t msgSize)
     SPIMCRC = SPIMmsgData + SIZE_OF_HEADER + SPIMbodySize;
 
     Data = SPIMmsgData;
+		Body = SPIMbodyData;
 
     return;
 }
@@ -266,11 +268,11 @@ uint8_t SPIMMessage::getAddress()
 }
 
 /**
-    * @brief  Функция читает значение номера сообщения
-    *           из соответствующего поля заголовка сообщения
-    *           SPIMMessage
-    *
-    * @retval Значение поля номера сообщения
+	* @brief  Функция читает значение номера сообщения
+	*           из соответствующего поля заголовка сообщения
+	*           SPIMMessage
+	*
+	* @retval Значение поля номера сообщения
   */
 uint8_t SPIMMessage::getNoMsg()
 {
@@ -282,11 +284,11 @@ uint8_t SPIMMessage::getNoMsg()
 }
 
 /**
-    * @brief  Функция читает значение длины тела из
-    *           соответствующего поля заголовка сообщения
-    *           SPIMMessage
-    *
-    * @retval Значение поля длины тела
+	* @brief  Функция читает значение длины тела из
+	*           соответствующего поля заголовка сообщения
+	*           SPIMMessage
+	*
+	* @retval Значение поля длины тела
   */
 uint8_t SPIMMessage::getSizeBody()
 {
@@ -298,11 +300,11 @@ uint8_t SPIMMessage::getSizeBody()
 }
 
 /**
-    * @brief  Функция читает значение идентификатора команды
-    *           из соответствующего поля заголовка сообщения
-    *           SPIMMessage
-    *
-    * @retval Значение поля идентификатора команды
+	* @brief  Функция читает значение идентификатора команды
+	*           из соответствующего поля заголовка сообщения
+	*           SPIMMessage
+	*
+	* @retval Значение поля идентификатора команды
   */
 uint8_t SPIMMessage::getIDCmd()
 {
@@ -314,9 +316,9 @@ uint8_t SPIMMessage::getIDCmd()
 }
 
 /**
-    * @brief  Функция вычисления 8-битного CRC на основе XOR
-    *
-    * @retval Значение CRC
+	* @brief  Функция вычисления 8-битного CRC на основе XOR
+	*
+	* @retval Значение CRC
   */
 uint8_t SPIMMessage::CRC_Calc(uint8_t* pData, uint8_t sizeData)
 {
@@ -327,3 +329,16 @@ uint8_t SPIMMessage::CRC_Calc(uint8_t* pData, uint8_t sizeData)
 
     return(nCRC);
 }
+
+/**
+	* @brief  Определение идентификатор команды ответа для 
+	*					исходной команды
+	*
+	* @retval Идентификатор команды ответа
+  */
+uint8_t SPIMMessage::IDBackCmd(uint8_t IDCmd)
+{
+	//Идентифкатор ответа для всех команд имеет значение на 1 больше идентификатора команды
+	return(IDCmd+1);
+}
+

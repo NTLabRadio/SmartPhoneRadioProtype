@@ -31,6 +31,11 @@ enum SPIMcmd
 	SPIM_SOFT_VER_BACK					=0x0B
 };
 
+enum SPIMadr
+{
+	SPIM_ADR_STM32							=0x1,		//контроллер STM32 целевого устройства (радимодуля)
+	SPIM_ADR_EXTDEV							=0x2		//внешнее управляющее устройство (процессор NT1004, ПК или др.)
+};
 
 class SPIMMessage
 {
@@ -41,6 +46,8 @@ public:
 
 	uint8_t* Data;
 	uint8_t Size;
+
+	uint8_t* Body;
 
 	uint8_t setHeader(uint8_t bodySize, uint8_t address, uint8_t noMsg, uint8_t IDcmd);
 	uint8_t setBody(uint8_t* pBodyData, uint8_t bodySize);
@@ -57,6 +64,8 @@ public:
 	uint8_t getNoMsg();
 	uint8_t getSizeBody();
 	uint8_t getIDCmd();
+	
+	uint8_t IDBackCmd(uint8_t IDCmd);
 
 private:
 

@@ -98,7 +98,15 @@ uint8_t SLIPInterface::CheckForSLIPData(uint8_t nStreamDataByte, uint8_t* pPaylo
 				InterfaceState = STATE_IDLE;				
 				
 				//ќбрабатываем накопленные данные, выполн€€ операцию байт-стаффинга
-				FindPackInData(&BufForSLIPData[0], nPackSize, pPayloadPackData, nPayloadPackSize, nPosEndOfPack);				
+				#ifdef DEBUG_NO_CHECK_SLIP_EXCEPTIONS
+				FindPackInData(&BufForSLIPData[0], nPackSize, pPayloadPackData, nPayloadPackSize, nPosEndOfPack);
+				#else
+				if(FindPackInData(&BufForSLIPData[0], nPackSize, pPayloadPackData, nPayloadPackSize, nPosEndOfPack)!=2)
+				{
+					nCheckState = 0xFF;
+					return(0);
+				}
+				#endif
 				
 				nCheckState = InterfaceState;
 				return(1);
