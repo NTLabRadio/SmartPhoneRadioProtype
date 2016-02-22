@@ -138,95 +138,29 @@ int main(void)
 	 
 	 
 	 
-	 if (CC1120_CheckModule(&CURRENT_SPI)) // запрос ID трансивера
-		 {
-				printf("Tranciever OK");
-		 }
-			else
-			{	
-				printf("Tranciever FAIL");
-			}	
-			printf("\n");
+		CC1120_CheckModule(&CURRENT_SPI); // запрос ID трансивера
 			
-		if (CC1120_Reset(&CURRENT_SPI)) // сброс трансивера
-		 {
-				printf("Reset OK");
-		 }
-			else
-			{	
-				printf("Reset FAIL");
-			}	
-			printf("\n");
+		CC1120_Reset(&CURRENT_SPI); // сброс трансивера
+
+		flCC1120_IRQ_CHECKED = FALSE; // обнуление флага прерывания
 			
-			flCC1120_IRQ_CHECKED = FALSE; // обнуление флага прерывания
-			
-			WaitTimeMCS(10e2);
+		WaitTimeMCS(10e2);
 		
-			if (CC1120_IDLE_set(&CURRENT_SPI)) // установка режиа IDLE
-		 {
-				printf("IDLE OK");
-		 }
-			else
-			{	
-				printf("IDLE FAIL");
-			}	
-			printf("\n");
+		CC1120_IDLE_set(&CURRENT_SPI); // перевод в режим IDLE
 			
-			WaitTimeMCS(1e2);
-		
-			if (CC1120_TxFIFOFlush(&CURRENT_SPI)) // Очистка Tx FIFO
-		 {
-				printf("TxFIFO flush OK");
-		 }
-			else
-			{	
-				printf("TxFIFO flush FAIL");
-			}		
-			printf("\n");
+		CC1120_TxFIFOFlush(&CURRENT_SPI); // Очистка Tx FIFO
 			
-			if (CC1120_RxFIFOFlush(&CURRENT_SPI)) // Очистка Rx FIFO
-		 {
-				printf("RxFIFO flush OK");
-		 }
-			else
-			{	
-				printf("RxFIFO flush FAIL");
-			}		
-			printf("\n");
+		CC1120_RxFIFOFlush(&CURRENT_SPI); // Очистка Rx FIFO
+
+		CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
 			
-			if (CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t))) // Загрузка конфигурации
-		 {
-				printf("Config load OK");
-		 }
-			else
-			{	
-				printf("Config load FAIL");
-			}		
-			printf("\n");
+		WaitTimeMCS(1e2);
 			
-			WaitTimeMCS(1e2);
-			
-			if (CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t)) == 1) // Проверка конфигурации
-		 {
-				printf("Config verifity OK");
-		 }
-			else
-			{	
-				printf("Config verifity FAIL");
-			}		
-			printf("\n");
+		CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
 			
 			// здесь должны быть функции установки частоты и проверки уставленной частоты
-			
-			printf("MARCSTATE 0x%X", CC1120_MARCState(&CURRENT_SPI)); // проверка статуса трансивера
-			
-				printf("\n");
-			
-			if (CC1120_MARCState(&CURRENT_SPI) == 0x01)
-				{
-						printf("Tranciever READY TO USE");
-				}
-				printf("\n");
+		
+		CC1120_Status(&CURRENT_SPI);
 				
 	#endif
 	
@@ -250,7 +184,7 @@ int main(void)
 	#endif
 	#endif	
 
-	#ifdef	DEBUG_TX_CC1120 // проверка непрерывной передачи пакетов
+	#ifdef	DEBUG_TX_CC1120 // проверка одиночной передачи пакетов
 		
 		uint8_t testPkt [90]; // инициализация массива тестовых пакетов
 		
@@ -259,91 +193,41 @@ int main(void)
 				testPkt[i] = i;
 			}
 		
-		if (CC1120_ManualCalibration(&CURRENT_SPI)) // Калибровка PLL
-		 {
-				printf("Calibration 1 OK");
-		 }
-			else
-			{	
-				printf("Calibration 1 FAIL");
-			}		
-			printf("\n");
-			
-			WaitTimeMCS(1e2);
-		
-		if (CC1120_ManualCalibration(&CURRENT_SPI)) // Калибровка PLL
-		 {
-				printf("Calibration 2 OK");
-		 }
-			else
-			{	
-				printf("Calibration 2 FAIL");
-			}		
-			printf("\n");	
-			
-			WaitTimeMCS(1e2);
-			
-			
-		if (CC1120_TxFIFOFlush(&CURRENT_SPI)) // Очистка Tx FIFO
-		 {
-				printf("TxFIFO flush OK");
-		 }
-			else
-			{	
-				printf("TxFIFO flush FAIL");
-			}		
-			printf("\n");
-			
-		if (CC1120_TxFIFOWrite(&CURRENT_SPI, testPkt, 90)) // Запись данных в TX FIFO
-		 {
-				printf("TxFIFO write OK");
-		 }
-			else
-			{	
-				printf("TxFIFO write FAIL");
-			}		
-			printf("\n");	
-			
-		
-		if (CC1120_TxFIFONumBytes(&CURRENT_SPI) != 0xFF) // Проверка количества данных в TX FIFO
-		 {
-				printf("TxFIFO num 0x%X", CC1120_TxFIFONumBytes(&CURRENT_SPI));
-		 }
-			else
-			{	
-				printf("TxFIFO WRITE ERROR");
-			}		
-			printf("\n");			
-			
-			printf("MARCSTATE 0x%X", CC1120_MARCState(&CURRENT_SPI)); // проверка статуса трансивера
-			
-				printf("\n");
-		
-			if (CC1120_MARCState(&CURRENT_SPI) == 0x01)
-				{
-						printf("Tranciever READY TO SEND");
-				}
-			printf("\n");
-				
-			if (CC1120_Tx(&CURRENT_SPI) != 0xFF) // Включение передачи
-		 {
-				printf("Transmitting");
-		 }
-			else
-			{	
-				printf("Transmitt ERROR");
-			}		
-			printf("\n");	
-			
-			
+		CC1120_ManualCalibration(&CURRENT_SPI); // Калибровка PLL
 
-			printf("MARCSTATE 0x%X", CC1120_MARCState(&CURRENT_SPI)); // проверка статуса трансивера
-			
-			printf("\n");			
-			
+		WaitTimeMCS(1e2);
+		
+		CC1120_ManualCalibration(&CURRENT_SPI); // Калибровка PLL	
+		
+		WaitTimeMCS(1e2);
+					
+		CC1120_TxFIFOFlush(&CURRENT_SPI); // Очистка Tx FIFO
+		 
+		CC1120_TxFIFOWrite(&CURRENT_SPI, testPkt, 90); // Запись данных в TX FIFO
 				
+		CC1120_TxFIFONumBytes(&CURRENT_SPI); // Проверка количества данных в TX FIFO
+				
+		CC1120_Tx(&CURRENT_SPI); // Включение передачи
+			
+		WaitTimeMCS(1e3);
+			
+		CC1120_MARCState(&CURRENT_SPI);
+			
+//			while (CC1120_Status (&CURRENT_SPI)!= STATUS_TX) // ожидание перевода в режим передачи
+//			{
+//				WaitTimeMCS(1e2);
+//				
+//			}
+	
+			
 		#endif
 
+	#ifdef	DEBUG_TX_CC1120 // проверка  приема одиночного пакета		
+		
+
+	#endif
+			
+			
 
 
 	/* USER CODE END 2 */
@@ -360,32 +244,17 @@ int main(void)
 		#endif
 		
 		
-		#ifdef	DEBUG_TX_CC1120 // проверка непрерывной передачи пакетов
+		#ifdef	DEBUG_TX_CC1120 // проверка передачи одиночного пакета
 		
 		if (flCC1120_IRQ_CHECKED)
 		{
 			flCC1120_IRQ_CHECKED = FALSE;
+			
 			printf("Transmitting complete");
 			printf("\n");
-			if (CC1120_IDLE_set(&CURRENT_SPI)) // установка режиа IDLE
-		 {
-				printf("IDLE OK");
-		 }
-			else
-			{	
-				printf("IDLE FAIL");
-			}	
-			printf("\n");
 			
-			if (CC1120_TxFIFOFlush(&CURRENT_SPI)) // Очистка Tx FIFO
-		 {
-				printf("TxFIFO flush OK");
-		 }
-			else
-			{	
-				printf("TxFIFO flush FAIL");
-			}		
-			printf("\n");
+			CC1120_Status (&CURRENT_SPI);
+			
 		}
 		
 		#endif
@@ -622,7 +491,7 @@ void MX_GPIO_Init(void)
 	/*Configure GPIO pins : PA0 PA1 */
 	GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Pull = GPIO_PULLUP; //***********************************************************************************
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : PA2 PA4 */

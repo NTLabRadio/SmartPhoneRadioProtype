@@ -44,6 +44,9 @@ typedef enum
 	STATUS_SPI_ERROR 						= 0x08
 } CC1120STATUSTypeDef;	
 
+
+
+
 typedef enum
 {
 	MARCSTATE_SLEEP								= 0x00,
@@ -419,9 +422,8 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint8_t uAccesses);
 
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
-uint8_t CC1120_Status (SPI_HandleTypeDef *hspi);
 uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi);
-uint8_t CC1120_Status(SPI_HandleTypeDef *hspi);
+CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_Tx(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_IDLE_set(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_Rx(SPI_HandleTypeDef *hspi);

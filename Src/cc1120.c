@@ -91,7 +91,7 @@ uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi)
 	*					0x07 (TX FIFO ERROR)- успешное выполнение;
 	*					0x08 - ошибка при выполнении функции (занята шина SPI)
 	*/
-uint8_t CC1120_Status(SPI_HandleTypeDef *hspi)
+CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
 	
