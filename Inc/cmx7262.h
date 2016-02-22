@@ -163,7 +163,7 @@ typedef enum {
 	CMX7262_PASSTHRU_MODE = 4,
 	CMX7262_TEST_MODE = 		5,
 	CMX7262_ENCDEC_MODE = 	6
-} cmx7262Mode;
+} en_cmx7262Modes;
 
 
 // References for audio source and destinations in relation to
@@ -223,7 +223,7 @@ typedef struct
 	cmxFI_TypeDef* FI;									// Function image parameters used during loading.
 	DMR_Flash_TypeDef	 *pFlash;					// Pointer to the area of flash for storage of defaults.
 
-	cmx7262Mode uMode;									// Codec mode.
+	en_cmx7262Modes uMode;									// Codec mode.
 	uint8_t	uInterface;									// CBUS interface that the instance maps too.
 	__IO uint16_t uIRQ_STATUS_REG;			// Shadow register for IRQ status reads.
 	uint16_t uIRQ_ENABLE_REG;						// Shadow register for the IRQ enable.

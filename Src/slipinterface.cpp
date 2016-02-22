@@ -147,7 +147,7 @@ uint8_t SLIPInterface::CheckForSLIPData(uint8_t nStreamDataByte, uint8_t* pPaylo
 uint8_t SLIPInterface::FindPackInData(uint8_t* pData, uint16_t nDataSize, uint8_t* pPayloadPackData, uint16_t& nPayloadPackSize, uint16_t& nPosEndOfPack)
 {
     uint16_t cntBytes = nDataSize;
-    enFindPackState stateFindAutom = PACK_NO_FOUND;
+    en_FindPackStates stateFindAutom = PACK_NO_FOUND;
     nPayloadPackSize = 0;
 
     while(cntBytes--)

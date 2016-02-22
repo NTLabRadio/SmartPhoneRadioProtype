@@ -38,6 +38,7 @@
 #include "cc1120.h"
 #include "cmx7262.h"
 #include "mathfuncs.h"
+#include "RadioModuleFuncs.h"
 #include "SPIMMessage.h"
 #include "uart_intermodule.h"
 #include "version.h"
@@ -61,7 +62,7 @@ DMA_HandleTypeDef hdma_usart1_tx;
 /* Private variables ---------------------------------------------------------*/
 extern UART_InitTypeDef DefaultUARTParams;
 
-extern enUARTstateTypeDef UARTstate;
+extern en_UARTstates UARTstate;
 
 extern uint8_t pUARTRxSLIPPack[];
 extern uint16_t nSizeSLIPPack;
@@ -81,13 +82,6 @@ uint16_t nLengthDataToCMX7262 = 0;
 uint16_t cntCMX7262TxAudioBuf = 0;
 #endif
 
-enum enRadioModuleOpModes
-{
-	OPMODE_IDLE,
-	OPMODE_TEST_CMX7262ENCDEC
-};
-
-enRadioModuleOpModes RadioModuleOpMode = OPMODE_IDLE;
 
 //Объект для обработки принятых сообщений SPIM-протокола
 SPIMMessage*	objSPIMmsgRcvd;
@@ -114,7 +108,7 @@ void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd);
 void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend);
 void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
 
-void ProcessRadioState(void);
+void ProcessCMX7262State(void);
 
 void SPIMInit(void);
 void SPIMDeInit(void);
@@ -243,8 +237,8 @@ int main(void)
 			flCMX7262_IRQ_CHECKED = FALSE;
 		}
 		
-		//Обработка состояния радиомодуля: передача/прием/тест
-		ProcessRadioState();
+		//Обработка состояния модуля CMX7262: передача/прием/тест
+		ProcessCMX7262State();
 		
 		#ifdef DEBUG_PERIODICALLY_READ_CMX7262_STATUS
 		uint16_t uStatusRegValue = 0;
@@ -507,7 +501,7 @@ void ProcessDataFromExtDev()
 		printf("* No Msg: %d\n", objSPIMmsgRcvd->getNoMsg());
 		#endif
 
-		//TODO Сформировать и отправить ответ, подтверждающий успешный прием команды
+		//Формируем и отправляем ответ, подтверждающий успешный прием команды
 		FormAndSendAnswerToExtDev(objSPIMmsgRcvd);
 		
 		//TODO Проверить, не была ли принята ранее эта команда (по порядковому номеру)
@@ -515,17 +509,17 @@ void ProcessDataFromExtDev()
 		//TODO Обработку команд вынести в отдельную функцию
 		switch(objSPIMmsgRcvd->getIDCmd())
 		{
-			case SPIM_NOP:
+			case SPIM_CMD_NOP:
 				break;
-			case SPIM_SET_MODE:
+			case SPIM_CMD_SET_MODE:
 				break;
-			case SPIM_SEND_DATA_FRAME:
+			case SPIM_CMD_SEND_DATA_FRAME:
 				break;
-			case SPIM_TAKE_DATA_FRAME:
+			case SPIM_CMD_TAKE_DATA_FRAME:
 				break;	
-			case SPIM_REQ_CURRENT_PARAM:
+			case SPIM_CMD_REQ_CURRENT_PARAM:
 				break;
-			case SPIM_SOFT_VER:
+			case SPIM_CMD_SOFT_VER:
 				break;			
 			default:
 				break;
@@ -555,7 +549,7 @@ void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend
 	//Определяем ID ответа по ID исходной команды
 	uint8_t IDanswer = SPIMBackCmdToSend->IDBackCmd(SPIMCmdRcvd->getIDCmd());
 	//Адресат - внешнешнее управляющее устройство
-	uint8_t address = SPIM_ADR_EXTDEV;
+	uint8_t address = SPIM_ADDR_EXTDEV;
 	//Порядковый номер ответа совпадает с номером исходной команды
 	uint8_t noMsg = SPIMCmdRcvd->getNoMsg();
 	
@@ -579,27 +573,42 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 	
 	switch(SPIMCmdRcvd->getIDCmd())
 	{
-		case SPIM_NOP:
-			uint8_t *pBodyCmd;
+		case SPIM_CMD_NOP:
 			//Если размер команды ненулевой (должен быть равен 1)
-			if(SPIMCmdRcvd->getBody(pBodyCmd))
+			if(SPIMCmdRcvd->getSizeBody())
 			{
 				//Формируем тело ответа, состоящее из первого (и единственного) байта команды
 				bodySize = 1;
-				*pBodyData = *pBodyCmd;
+				*pBodyData = SPIMCmdRcvd->Body[0];
 			}
 			break;
-		case SPIM_SET_MODE:
+		case SPIM_CMD_SET_MODE:
+			//Проверяем на адекватность размер команды
+			//TODO Заменить неименованную константу
+			if(SPIMCmdRcvd->getSizeBody()==4)
+			{
+				//TODO Настройку CMX7262 вынести в отдельную функцию в соответствующий модуль
+				uint8_t nAudioVolume = SPIMCmdRcvd->Body[2]&0x07;
+				CMX7262_AudioOutputGain(&pCmx7262,nAudioVolume);
+			}		
 			break;
-		case SPIM_SEND_DATA_FRAME:
+		case SPIM_CMD_SEND_DATA_FRAME:
 			break;
-		case SPIM_TAKE_DATA_FRAME:
+		case SPIM_CMD_TAKE_DATA_FRAME:
 			break;	
-		case SPIM_REQ_CURRENT_PARAM:
+		case SPIM_CMD_REQ_CURRENT_PARAM:
+			//TODO Сформировать структуру, соответствующую запрашиваемым параметрам
+			//Если запрос асинхронный, то установить режим слежения за соответствующими параметрами
+		
+			uint8_t OpModeCode = SPIMCmdRcvd->OpModeCode(g_RadioChanType,g_RadioSignalPower,g_RadioPowerMode);
+			uint8_t AudioCode = SPIMCmdRcvd->AudioCode(g_AudioOutLevel,g_AudioInLevel);
+	
 			break;
-		case SPIM_SOFT_VER:
-			bodySize = 2;
-			*pBodyData = GetARMSoftVer();
+		case SPIM_CMD_SOFT_VER:
+			uint16_t noSoftVersion;
+			bodySize = sizeof(noSoftVersion);
+			noSoftVersion = GetARMSoftVer();
+			memcpy(pBodyData,&noSoftVersion,sizeof(noSoftVersion));
 			break;
 		default:
 			break;
@@ -613,7 +622,7 @@ uint16_t GetARMSoftVer()
 }
 
 
-void ProcessRadioState()
+void ProcessCMX7262State()
 {
 
 	if((pCmx7262.uIRQRequest & CMX7262_ODA) == CMX7262_ODA)
@@ -700,8 +709,7 @@ void ProcessAudioDataFromUART()
 	else
 		printf("Bufer DataToCMX7262 is full. Data from UART is ignored");
 	
-	if((nLengthDataToCMX7262 >= CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE*sizeof(int16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES) && 
-		 (RadioModuleOpMode!=OPMODE_TEST_CMX7262ENCDEC))
+	if((nLengthDataToCMX7262 >= CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE*sizeof(int16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES))
 	{
 		RadioModuleOpMode=OPMODE_TEST_CMX7262ENCDEC;
 		

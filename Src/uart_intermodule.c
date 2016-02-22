@@ -1,7 +1,7 @@
 #include "uart_intermodule.h"
 
 //ѕараметры UART по умолчанию
-UART_InitTypeDef DefaultUARTParams = {460800,
+UART_InitTypeDef DefaultUARTParams = {115200,
 																			UART_WORDLENGTH_8B,
 																			UART_STOPBITS_1,
 																			UART_PARITY_NONE,
@@ -40,7 +40,7 @@ uint16_t nSizeTxBuf;
 SLIPInterface* objSLIPinterface;
 
 //“екущее состо€ние механизма обработки UART-сообщений
-enUARTstateTypeDef UARTstate;
+en_UARTstates UARTstate;
 
 
 

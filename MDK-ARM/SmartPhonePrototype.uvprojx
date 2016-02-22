@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F103xE</Define>
+              <Define>USE_HAL_DRIVER,STM32F103xE,TEST_CMX7262_AUDIO_TESTMODE</Define>
               <Undefine></Undefine>
               <IncludePath>../Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F1xx/Include</IncludePath>
             </VariousControls>
@@ -930,6 +930,11 @@
               <FileName>mathfuncs.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\mathfuncs.c</FilePath>
+            </File>
+            <File>
+              <FileName>RadioModuleFuncs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\RadioModuleFuncs.c</FilePath>
             </File>
           </Files>
         </Group>

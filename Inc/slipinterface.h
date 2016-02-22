@@ -51,7 +51,7 @@ private:
 	#define SIZE_BUF_FOR_SLIP_DATA	(2*MAX_SIZE_OF_SLIP_PACK_PAYLOAD + 2)	// SLIP операцией байт-стафинга может увеличивать размер данных в 2 раза + 2 символа FEND
 
 	//Возможные состояния автомата поиска SLIP-пакета в массиве данных (используется FindPackInData())
-  enum enFindPackState
+  enum en_FindPackStates
   {
       PACK_NO_FOUND,          //пакет не найден
       PACK_BEGIN_FOUND,       //найден старт-байт пакета
@@ -59,7 +59,7 @@ private:
   };
 	
 	//Возможные состояния интерфейса SLIPс
-	enum enInterfaceState
+	enum en_InterfaceStates
 	{
 		STATE_IDLE,
 		STATE_WAIT_FOR_BEGIN_OF_PACK,
@@ -67,7 +67,7 @@ private:
 	};
 
 	//Состояние интерфейса SLIP, анализирующего поток данных побайтно
-	enInterfaceState InterfaceState;
+	en_InterfaceStates InterfaceState;
 	
 	uint8_t BufForSLIPData[SIZE_BUF_FOR_SLIP_DATA];
 	

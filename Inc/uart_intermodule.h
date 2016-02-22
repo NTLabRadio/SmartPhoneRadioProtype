@@ -31,7 +31,7 @@ typedef enum
 {
 	UART_IDLE,
 	UART_DATA_RX_NEED_TO_PROCESS
-} enUARTstateTypeDef;	 
+} en_UARTstates;
 	 
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);

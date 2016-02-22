@@ -15,27 +15,39 @@
 #include <stdint.h>
 #include <string.h>
 
-enum SPIMcmd
+enum en_SPIMcmds
 {
-	SPIM_NOP										=0x00,
-	SPIM_NOP_BACK								=0x01,
-	SPIM_SET_MODE								=0x02,
-	SPIM_SET_MODE_BACK					=0x03,
-	SPIM_SEND_DATA_FRAME				=0x04,
-	SPIM_SEND_DATA_FRAME_BACK		=0x05,
-	SPIM_TAKE_DATA_FRAME				=0x06,
-	SPIM_TAKE_DATA_FRAME_BACK		=0x07,
-	SPIM_REQ_CURRENT_PARAM 			=0x08,
-	SPIM_REQ_CURRENT_PARAM_BACK =0x09,
-	SPIM_SOFT_VER								=0x0A,
-	SPIM_SOFT_VER_BACK					=0x0B
+	SPIM_CMD_NOP										=0x00,
+	SPIM_CMD_NOP_BACK								=0x01,
+	SPIM_CMD_SET_MODE								=0x02,
+	SPIM_CMD_SET_MODE_BACK					=0x03,
+	SPIM_CMD_SEND_DATA_FRAME				=0x04,
+	SPIM_CMD_SEND_DATA_FRAME_BACK		=0x05,
+	SPIM_CMD_TAKE_DATA_FRAME				=0x06,
+	SPIM_CMD_TAKE_DATA_FRAME_BACK		=0x07,
+	SPIM_CMD_REQ_CURRENT_PARAM 			=0x08,
+	SPIM_CMD_REQ_CURRENT_PARAM_BACK =0x09,
+	SPIM_CMD_SOFT_VER								=0x0A,
+	SPIM_CMD_SOFT_VER_BACK					=0x0B
 };
 
-enum SPIMadr
+enum en_SPIMaddrs
 {
-	SPIM_ADR_STM32							=0x1,		//контроллер STM32 целевого устройства (радимодуля)
-	SPIM_ADR_EXTDEV							=0x2		//внешнее управляющее устройство (процессор NT1004, ПК или др.)
+	SPIM_ADDR_STM32									=0x1,		//контроллер STM32 целевого устройства (радимодуля)
+	SPIM_ADDR_EXTDEV								=0x2		//внешнее управляющее устройство (процессор NT1004, ПК или др.)
 };
+
+enum en_SPIMReqTypes
+{
+	SPIM_REQTYPE_SINGLE							=0,			//одиночный синхронный запрос - запрос, ответ на который должен быть выслан ведомым 
+																					//устройством однократно в момент получения запроса
+	SPIM_REQTYPE_ASYNC							=1			//асинхронный запрос - запрос, в ответ на который параметр (например, RSSI) высылается 
+																					//ведомым устройством в произвольный момент времени, при изменении его значения
+};
+
+
+
+
 
 class SPIMMessage
 {
@@ -66,6 +78,10 @@ public:
 	uint8_t getIDCmd();
 	
 	uint8_t IDBackCmd(uint8_t IDCmd);
+	
+	
+	uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode);
+	uint8_t AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel);
 
 private:
 
@@ -87,7 +103,7 @@ private:
 		uint8_t noMsg          	:4;     // счетчик сообщений (по модулю 4)
 		uint8_t IDCmd;                  // идентификатор команды
 	};
-
+	
 	uint8_t SPIMmsgData[MAX_SIZE_OF_MSG];
 	uint8_t* SPIMHeaderData;
 	uint8_t* SPIMbodyData;
@@ -95,6 +111,26 @@ private:
 	uint8_t* SPIMCRC;
 
 	uint8_t CRC_Calc(uint8_t* pData, uint8_t sizeData);
+	
+	
+	//--------- Код рабочего режима ---------------
+	//Тип радиоканала
+	#define SHIFT_RADIOCHANTYPE_IN_OPMODECODE		(0)
+	#define MASK_RADIOCHANTYPE_IN_OPMODECODE		(3)
+	//Мощность сигнала передатчика
+	#define SHIFT_SIGNALPOWER_IN_OPMODECODE			(3)
+	#define MASK_SIGNALPOWER_IN_OPMODECODE			(1)
+	//Режим энергосбережения ARM
+	#define SHIFT_ARMPOWERMODE_IN_OPMODECODE		(4)
+	#define MASK_ARMPOWERMODE_IN_OPMODECODE			(1)
+
+	//------ Код настроек аудиопараметров ---------
+	//Усиление звукового выхода
+	#define SHIFT_OUTLEVEL_IN_AUDIOCODE					(0)
+	#define MASK_OUTLEVEL_IN_AUDIOCODE					(7)
+	//Усиление звукового входа
+	#define SHIFT_INLEVEL_IN_AUDIOCODE					(3)
+	#define MASK_INLEVEL_IN_AUDIOCODE						(7)
 };
 
 #endif // SPIMMESSAGE_H

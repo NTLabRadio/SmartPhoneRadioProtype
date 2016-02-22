@@ -342,3 +342,19 @@ uint8_t SPIMMessage::IDBackCmd(uint8_t IDCmd)
 	return(IDCmd+1);
 }
 
+
+uint8_t SPIMMessage::OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode) 
+{
+ 	return( ((RadioChanType&MASK_RADIOCHANTYPE_IN_OPMODECODE)<<SHIFT_RADIOCHANTYPE_IN_OPMODECODE) ||
+					((SignalPower&MASK_SIGNALPOWER_IN_OPMODECODE)<<SHIFT_SIGNALPOWER_IN_OPMODECODE)	||
+					((ARMPowerMode&MASK_ARMPOWERMODE_IN_OPMODECODE)<<SHIFT_ARMPOWERMODE_IN_OPMODECODE)	);
+}
+
+
+uint8_t SPIMMessage::AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel)
+{
+ 	return( ((AudioOutLevel&MASK_OUTLEVEL_IN_AUDIOCODE)<<SHIFT_OUTLEVEL_IN_AUDIOCODE) ||
+					((AudioInLevel&MASK_INLEVEL_IN_AUDIOCODE)<<SHIFT_INLEVEL_IN_AUDIOCODE)	);
+}
+
+
