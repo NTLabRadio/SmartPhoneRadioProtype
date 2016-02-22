@@ -203,25 +203,25 @@ void ConfigWrite(uint8_t *data_ptr)
 		// в data_ptr[1] содержится номер конфигурации
 		switch (data_ptr [1])
 		{
-			case    0x01:
+			case		0x01:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
 			
 			break;
 			
-			case    0x02:
+			case		0x02:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_9600, sizeof (CC1120_Config_9600)/sizeof(registerSetting_t));
 				
 			break;
 			
-			case    0x03:
+			case		0x03:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_19200, sizeof (CC1120_Config_19200)/sizeof(registerSetting_t));
 				
 			break;
 			
-			case    0x04:
+			case		0x04:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigWrite(&CURRENT_SPI, CC1120_Config_48000, sizeof (CC1120_Config_48000)/sizeof(registerSetting_t));
 				
@@ -239,25 +239,25 @@ void ConfigReadCompare(uint8_t *data_ptr)
 		// в data_ptr[1] содержится номер конфигурации
 		switch (data_ptr [1])
 		{
-			case    0x01:
+			case		0x01:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
 			
 			break;
 			
-			case    0x02:
+			case		0x02:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_9600, sizeof (CC1120_Config_9600)/sizeof(registerSetting_t));
 				
 			break;
 			
-			case    0x03:
+			case		0x03:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_19200, sizeof (CC1120_Config_19200)/sizeof(registerSetting_t));
 				
 			break;
 			
-			case    0x04:
+			case		0x04:
 				
 			UART_Tx_Buff[2] = CC1120_ConfigReadCompare(&CURRENT_SPI, CC1120_Config_48000, sizeof (CC1120_Config_48000)/sizeof(registerSetting_t));
 				
@@ -291,7 +291,7 @@ void FreqWrite(uint8_t *freqSet)
 
 void FreqRead(void)
 {
-    UART_Tx_Buff[2] = (CC1120_FreqRead (&CURRENT_SPI))[0]; 	// FREQ2
+		UART_Tx_Buff[2] = (CC1120_FreqRead (&CURRENT_SPI))[0]; 	// FREQ2
 		UART_Tx_Buff[3] = (CC1120_FreqRead (&CURRENT_SPI))[1]; 	// FREQ1
 		UART_Tx_Buff[4] = (CC1120_FreqRead (&CURRENT_SPI))[2];	// FREQ0
 		UART_Tx_Buff[0] = CC1120_SELECT; // подтверждение, что ответ от трансивера
@@ -317,6 +317,8 @@ void RxFIFORead (void)
 	
 	GUI_Tx (&CURRENT_UART, UART_Tx_Buff);
 }	
+
+
 
 
 uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
@@ -442,8 +444,7 @@ uint8_t CC1120_CheckCommand (uint8_t *command) // соответствие кода команды
 		RxFIFORead ();
 		
 		break;
-		
-		
+	
 		
 	}
 	

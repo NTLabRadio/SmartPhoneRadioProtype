@@ -224,6 +224,11 @@
           <WinNumber>1</WinNumber>
           <ItemText>CC1120_Config</ItemText>
         </Ww>
+        <Ww>
+          <count>11</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>flCC1120_IRQ_CHECKED</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>

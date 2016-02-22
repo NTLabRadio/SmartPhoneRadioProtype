@@ -38,6 +38,7 @@
 #define	CC1120_FREQ_WRITE								0x14			/* запись частоты в PLL CC1120 */
 #define CC1120_FREQ_READ								0x15			/* чтение частоты PLL CC1120 */
 #define CC1120_RX_FIFO_READ							0x10			/* чтение содержимого RX FIFO */
+
 	 
 	 
 	 
@@ -77,6 +78,7 @@ void MARCState (void);
 void ConfigWrite(uint8_t *data_ptr);
 void FreqWrite(uint8_t *freqSet);
 void FreqRead(void);
+
 
 
 

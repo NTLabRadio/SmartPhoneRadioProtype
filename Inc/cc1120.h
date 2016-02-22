@@ -111,6 +111,7 @@ typedef struct
 #define EXT_FS_CHP						0x18				/* FS_CHP */
 #define	EXT_FREQ2							0x0C				/* Frequency configuration. FREQ2 (23_16), FREQ1 (15_8), FREQ0 (7_0) */
 #define EXT_MARCSTATE					0x73				/* Опрос состояния трансивера */
+#define EXT_FSCAL_CTRL				0x8D				/* запрос Lock detect */
 #define S_STATUS							0x3D				/* No operation. May be used to get access to the chip status byte */
 #define S_TX									0x35				/* Enable Tx */	 
 #define S_RX									0x34				/* Enable Rx */

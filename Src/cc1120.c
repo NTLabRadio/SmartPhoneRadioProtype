@@ -10,13 +10,13 @@ uint8_t pCC1120RxData[255];
 
 
 /**
-  * @brief  запрос ChipID трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	запрос ChipID трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI, ответ от трансивера не тот)
-  */
+	*/
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi) 
 {
 	hspiCC1120 = hspi;
@@ -48,13 +48,13 @@ if (CC1120_Read (EXT_PARTNUMBER, EXT_ADDRESS, NO_BURST, pCC1120RxData, 0x01))	//
 
 
 /**
-  * @brief  запрос версии firmware трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	запрос версии firmware трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					номер версии firmware - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
@@ -77,9 +77,9 @@ uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi)
 
 
 /**
-  * @brief  запрос статусного байта трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	запрос статусного байта трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					0x00 (IDLE)- успешное выполнение;
 	*					0x01 (RX)- успешное выполнение;
@@ -90,7 +90,7 @@ uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi)
 	*					0x06 (RX FIFO ERROR)- успешное выполнение;
 	*					0x07 (TX FIFO ERROR)- успешное выполнение;
 	*					0x08 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_Status(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
@@ -113,13 +113,13 @@ uint8_t CC1120_Status(SPI_HandleTypeDef *hspi)
 
 
 /**
-  * @brief  перевод трансивера CC1120 в режим передачи
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	перевод трансивера CC1120 в режим передачи
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_Tx(SPI_HandleTypeDef *hspi)
 {
 hspiCC1120 = hspi;
@@ -141,13 +141,13 @@ hspiCC1120 = hspi;
 
 
 /**
-  * @brief  перевод трансивера CC1120 в режим бездействия IDLE
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	перевод трансивера CC1120 в режим бездействия IDLE
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_IDLE_set(SPI_HandleTypeDef *hspi)
 {
 hspiCC1120 = hspi;
@@ -168,13 +168,13 @@ hspiCC1120 = hspi;
 
 
 /**
-  * @brief  перевод трансивера CC1120 в режим приема
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	перевод трансивера CC1120 в режим приема
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_Rx(SPI_HandleTypeDef *hspi)
 {
 hspiCC1120 = hspi;
@@ -195,13 +195,13 @@ hspiCC1120 = hspi;
 
 
 /**
-  * @brief  сброс трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	сброс трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_Reset(SPI_HandleTypeDef *hspi)
 {
 hspiCC1120 = hspi;
@@ -222,13 +222,13 @@ hspiCC1120 = hspi;
 
 
 /**
-  * @brief  чтение количества байтов в FIFO TX трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	чтение количества байтов в FIFO TX трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					количество байтов в буфере - успешное выполнение;
 	*					0xFF - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_TxFIFONumBytes(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
@@ -248,13 +248,13 @@ uint8_t CC1120_TxFIFONumBytes(SPI_HandleTypeDef *hspi)
 }
 
 /**
-  * @brief  очистка FIFO TX трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	очистка FIFO TX трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_TxFIFOFlush(SPI_HandleTypeDef *hspi)
 {
 hspiCC1120 = hspi;
@@ -274,14 +274,14 @@ hspiCC1120 = hspi;
 }
 
 /**
-  * @brief  запись данных в FIFO TX трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
+	* @brief	запись данных в FIFO TX трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
 	*					fifo_write_data_ptr - указатель на данные для записи в TX FIFO;
-  * @note   
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 
 uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr, uint8_t tx_num)
 {
@@ -302,13 +302,13 @@ uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr
 }
 
 /**
-  * @brief  Калибровка PLL трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	Калибровка PLL трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 
 uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 {
@@ -357,6 +357,8 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
+			
+			WaitTimeMCS(10e2);
 			
 	// чтение FS_VCO2 и сохранение calResults_for_vcdac_start_high		
 	CC1120_CSN_LOW();
@@ -417,6 +419,8 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 			}
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
+					
+			WaitTimeMCS(10e2);
 	
 	// чтение FS_VCO2 и сохранение calResults_for_vcdac_start_mid		
 	CC1120_CSN_LOW();
@@ -519,9 +523,9 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 
 
 /**
-  * @brief  Получение статуса трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	Получение статуса трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*						MARC state:
 	*						0x00 - SLEEP
@@ -550,7 +554,7 @@ uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi)
 	*						0x17 - IFADCON_TXRX
 	* 					0x18 - SPI_ERROR
 	*					 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 
 CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi)
 {
@@ -567,13 +571,13 @@ CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi)
 }
 
 /**
-  * @brief  Автоматическая калибровка PLL трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	Автоматическая калибровка PLL трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 
  uint8_t CC1120_SFSTXON_set (SPI_HandleTypeDef *hspi)
 {
@@ -594,13 +598,13 @@ CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi)
 }	
 
 /**
-  * @brief  чтение количества байтов в FIFO RX трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	чтение количества байтов в FIFO RX трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					количество байтов в буфере - успешное выполнение;
 	*					0xFF - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
@@ -620,13 +624,13 @@ uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi)
 }
 
 /**
-  * @brief  очистка FIFO RX трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note   
+	* @brief	очистка FIFO RX трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi)
 {
 hspiCC1120 = hspi;
@@ -647,15 +651,15 @@ hspiCC1120 = hspi;
 
 
 /**
-  * @brief  Запись конфигурации в трансивер CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
+	* @brief	Запись конфигурации в трансивер CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
 	*	@param	*Config -указатель на массив данных конфигурации
 	*	@param	*configRegNum -количество данных в массиве
-  * @note   
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum)
 {
 	hspiCC1120 = hspi;
@@ -696,16 +700,16 @@ uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1
 }
 
 /**
-  * @brief  Прочитать конфигурацию трансивера CC1120 и сравнить с записанной
-	* @param  *hspi - выбор интерфейса SPI для обращения
+	* @brief	Прочитать конфигурацию трансивера CC1120 и сравнить с записанной
+	* @param	*hspi - выбор интерфейса SPI для обращения
 	*	@param	*Config -указатель на массив данных конфигурации
 	*	@param	*configRegNum -количество данных в массиве
-  * @note   
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					2 - ошибка сравнения
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum)
 {
 
@@ -752,15 +756,15 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 }
 
 /**
-  * @brief  Записать значение в регистр трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
+	* @brief	Записать значение в регистр трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
 	*	@param	addrReg - адрес регистра uint16_t
 	*	@param	dataReg - значение регистра uint8_t
-  * @note   по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @note	 по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
-  */
+	*/
 
 uint8_t CC1120_RegWrite (SPI_HandleTypeDef *hspi, uint16_t addrReg, uint8_t dataReg)
 {
@@ -796,15 +800,15 @@ uint8_t CC1120_RegWrite (SPI_HandleTypeDef *hspi, uint16_t addrReg, uint8_t data
 
 
 /**
-  * @brief  Прочитать значение из регистра трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
+	* @brief	Прочитать значение из регистра трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
 	*	@param	addrReg - адрес регистра uint16_t
 	*	@param	dataReg - значение регистра uint8_t
-  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @note		по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
 	* @retval Результат выполнения функции:
 	*					данные регистра - успешное выполнение;
 	*					
-  */
+	*/
 
 uint8_t CC1120_RegRead (SPI_HandleTypeDef *hspi, uint16_t addrReg, uint8_t dataReg)
 {
@@ -827,14 +831,14 @@ uint8_t CC1120_RegRead (SPI_HandleTypeDef *hspi, uint16_t addrReg, uint8_t dataR
 }
 
 /**
-  * @brief  Записать частоту в трансивер CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
+	* @brief	Записать частоту в трансивер CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
 	*	@param	*freq - ссылка на массив со значениями частоты
-  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @note		по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)		
-  */
+	*/
 
 uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq)
 
@@ -862,14 +866,14 @@ uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq)
 }
 
 /**
-  * @brief  Прочитать частоту из трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
+	* @brief	Прочитать частоту из трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
 	*	@param	*freq - ссылка на массив со значениями частоты
-  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @note		по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
 	* @retval Результат выполнения функции:
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)		
-  */
+	*/
 uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
@@ -896,13 +900,13 @@ uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi)
 }
 
 /**
-  * @brief  Прочитать содержимое буфера RX FIFO трансивера CC1120
-	* @param  *hspi - выбор интерфейса SPI для обращения
-  * @note    по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
+	* @brief	Прочитать содержимое буфера RX FIFO трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note		по необходимости переделать. Для работы с трансивером в штатном режиме не требуется. Не проверял.
 	* @retval Результат выполнения функции:
 	*					ссылка на массив со значениями - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)		
-  */
+	*/
 uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
@@ -939,13 +943,9 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 
 
 
-
-
-
-
 /**
-  * @brief  Функция записи данных (значений регистров/данных для FIFO-буферов) в CC1120
-	* @param  uGenAddress - адрес основной области (0x00-0x3F):
+	* @brief	Функция записи данных (значений регистров/данных для FIFO-буферов) в CC1120
+	* @param	uGenAddress - адрес основной области (0x00-0x3F):
 	*												0x00-0x2E - конфигурационные регистры, 
 	*												0x2F - общий адрес для регистров расширенного адресного пространства,
 	*												0x30-0x3D - регистры типа Command Strobe,
@@ -957,11 +957,11 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 	*					bBurst - флаг, указывающий на тип операции: одиночная(0)/пакетная(1) (single(0)/burst(1));
 	*					data_ptr - указатель на данные, которые необходимо записать;
 	*					uAccesses - размер данных (число байт), которые необходимо записать
-  * @note   
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					0 - успешное выполнение;
 	*					иначе - ошибка при выполнении функции (занята шина SPI, некорректное значение входных данных)
-  */
+	*/
 ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint16_t uAccesses)
 {
 	uint8_t buff_count = 0; // индекс записи данных
@@ -1002,7 +1002,7 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 			pCC1120TxData[0] = uGenAddress;
 		break;
 
-    default:
+		default:
 			
 			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
 	}
@@ -1011,7 +1011,7 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 	
 	if (bBurst) 
 	{
-		pCC1120TxData[0] = pCC1120TxData[0] |  (BURST << 6); // установка режима поточной записи 
+		pCC1120TxData[0] = pCC1120TxData[0] |	(BURST << 6); // установка режима поточной записи 
 	}		
 	
 	
@@ -1028,8 +1028,8 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 
 
 /**
-  * @brief  Функция чтения данных (значений регистров/данных FIFO-буферов) из CC1120
-	* @param  uGenAddress - адрес основной области (0x00-0x3F):
+	* @brief	Функция чтения данных (значений регистров/данных FIFO-буферов) из CC1120
+	* @param	uGenAddress - адрес основной области (0x00-0x3F):
 	*												0x00-0x2E - конфигурационные регистры, 
 	*												0x2F - общий адрес для регистров расширенного адресного пространства,
 	*												0x30-0x3D - регистры типа Command Strobe,
@@ -1041,11 +1041,11 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 	*					bBurst - флаг, указывающий на тип операции: одиночная(0)/пакетная(1) (single(0)/burst(1));
 	*					data_ptr - указатель на прочитанные данные;
 	*					uAccesses - размер данных (число байт), которые необходимо прочитать
-  * @note   
+	* @note	 
 	* @retval Результат выполнения функции:
 	*					0 - успешное выполнение;
 	*					иначе - ошибка при выполнении функции (занята шина SPI, некорректное значение входных данных)
-  */
+	*/
 ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint8_t uAccesses)
 {
 	uint8_t buff_index = 1; // индекс буфера записи
@@ -1070,7 +1070,7 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 			pCC1120TxData[0] = uGenAddress;
 		break;
 
-    default:
+		default:
 			
 			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
 	}
@@ -1079,7 +1079,7 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 	
 	if (bBurst) 	
 		{	
-			pCC1120TxData[0] = pCC1120TxData[0] |  (BURST << 6); // установка режима поточной записи 
+			pCC1120TxData[0] = pCC1120TxData[0] |	(BURST << 6); // установка режима поточной записи 
 		}
 		
 	for (buff_count = buff_index; buff_count < uAccesses; buff_count++) // запись данных со смещением на адресные поля.
