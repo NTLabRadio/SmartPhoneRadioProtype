@@ -38,7 +38,7 @@
 #include "cc1120.h"
 #include "cmx7262.h"
 #include "mathfuncs.h"
-#include "RadioModuleFuncs.h"
+#include "RadioModule.h"
 #include "SPIMMessage.h"
 #include "uart_intermodule.h"
 #include "version.h"
@@ -67,9 +67,9 @@ extern en_UARTstates UARTstate;
 extern uint8_t pUARTRxSLIPPack[];
 extern uint16_t nSizeSLIPPack;
 
-CMX7262_TypeDef  pCmx7262;
+CMX7262_TypeDef  g_CMX7262Struct;
 
-uint8_t flCMX7262_IRQ_CHECKED = FALSE;
+uint8_t g_flCMX7262_IRQ_CHECKED = FALSE;
 
 #define MAX_SIZE_OF_DATA_FROM_CMX7262 (512)
 uint8_t pDataFromCMX7262[MAX_SIZE_OF_DATA_FROM_CMX7262];
@@ -84,9 +84,12 @@ uint16_t cntCMX7262TxAudioBuf = 0;
 
 
 //Объект для обработки принятых сообщений SPIM-протокола
-SPIMMessage*	objSPIMmsgRcvd;
+SPIMMessage*	pObjSPIMmsgRcvd;
 //Объект для формирования сообщений SPIM-протокола для отправки
-SPIMMessage*	objSPIMmsgToSend;
+//SPIMMessage*	pObjSPIMmsgToSend;
+
+//Через этот объект осуществляется доступ ко всем параметрам и функциям радиомодуля
+RadioModule objRadioModule;
 
 /* USER CODE END PV */
 
@@ -107,6 +110,7 @@ void ProcessDataFromExtDev(void);
 void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd);
 void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend);
 void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
+void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
 
 void ProcessCMX7262State(void);
 
@@ -167,19 +171,23 @@ int main(void)
 
 	// Инициализируем работу по UART
 	UART_InitInterface(&huart1);
-	
+
+	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
 	SPIMInit();
+
 
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
 	CC1120_CheckModule(&hspi1);
 	CMX7262_CheckModule(&hspi1);
 	#endif
+	
 
 	//Инициализация CMX7262: загрузка образа в память, начальная настройка
-	CMX7262_Init(&pCmx7262, &hspi1);
+	CMX7262_Init(&g_CMX7262Struct, &hspi1);
+
 
 	//Перевод CMX7262 в режим Idle
-	CMX7262_Idle(&pCmx7262);
+	CMX7262_Idle(&g_CMX7262Struct);
 
 	//Перевод CMX7262 в рабочий режим
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
@@ -187,25 +195,25 @@ int main(void)
 	#endif
 
 	#ifdef TEST_CMX7262_AUDIO_TESTMODE
-	CMX7262_Test_AudioOut(&pCmx7262);
+	CMX7262_Test_AudioOut(&g_CMX7262Struct);
 	#endif
 	
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE
-	CMX7262_EncodeDecode_Audio2CBUS(&pCmx7262);
+	CMX7262_EncodeDecode_Audio2CBUS(&g_CMX7262Struct);
 	#endif
 	
 	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE
 		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
-		CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
+		CMX7262_EncodeDecode_CBUS2Audio(&g_CMX7262Struct);
 		
 		//Заполняем буфер тональным сигналом 1кГц
 		FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
-		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+		CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
 		#endif
 	#endif
 	
 	#ifdef TEST_CMX7262_ENC_MODE
-	CMX7262_Encode(&pCmx7262);
+	CMX7262_Encode(&g_CMX7262Struct);
 	#endif
 
   /* USER CODE END 2 */
@@ -229,12 +237,12 @@ int main(void)
 		}
 		
 		//Если было прерывание от CMX7262
-		if(flCMX7262_IRQ_CHECKED)
+		if(g_flCMX7262_IRQ_CHECKED)
 		{
 			//Обрабатываем прерывание: проверяем, что хочет CMX7262
-			CMX7262_IRQ(&pCmx7262);
+			CMX7262_IRQ(&g_CMX7262Struct);
 			//Сбрасываем флаг, чтобы обнаружить следующее прерывание
-			flCMX7262_IRQ_CHECKED = FALSE;
+			g_flCMX7262_IRQ_CHECKED = FALSE;
 		}
 		
 		//Обработка состояния модуля CMX7262: передача/прием/тест
@@ -243,7 +251,7 @@ int main(void)
 		#ifdef DEBUG_PERIODICALLY_READ_CMX7262_STATUS
 		uint16_t uStatusRegValue = 0;
 		// Read the status register into a shadow register.
-		CBUS_Read16 (IRQ_STATUS_REG,&uStatusRegValue,1,pCmx7262.uInterface);
+		CBUS_Read16 (IRQ_STATUS_REG,&uStatusRegValue,1,g_CMX7262Struct.uInterface);
 		printf("CMX7262 Status Reg=%x\n",uStatusRegValue);
 		#endif
   /* USER CODE END WHILE */
@@ -490,24 +498,24 @@ void ProcessDataFromExtDev()
 	ProcessAudioDataFromUART();
 	#endif
 	
-	objSPIMmsgRcvd->setMsg(pUARTRxSLIPPack,nSizeSLIPPack);
+	pObjSPIMmsgRcvd->setMsg(pUARTRxSLIPPack,nSizeSLIPPack);
 	
-	if(objSPIMmsgRcvd->checkCRC())
+	if(pObjSPIMmsgRcvd->checkCRC())
 	{
 		#ifdef DEBUG_PRINTF_SPIM_DATA
 		printf("Rcvd SPIM Message\n");
-		printf("* Address: %d\n", objSPIMmsgRcvd->getAddress());
-		printf("* Cmd ID: %x\n", objSPIMmsgRcvd->getIDCmd());
-		printf("* No Msg: %d\n", objSPIMmsgRcvd->getNoMsg());
+		printf("* Address: %d\n", pObjSPIMmsgRcvd->getAddress());
+		printf("* Cmd ID: %x\n", pObjSPIMmsgRcvd->getIDCmd());
+		printf("* No Msg: %d\n", pObjSPIMmsgRcvd->getNoMsg());
 		#endif
 
 		//Формируем и отправляем ответ, подтверждающий успешный прием команды
-		FormAndSendAnswerToExtDev(objSPIMmsgRcvd);
+		FormAndSendAnswerToExtDev(pObjSPIMmsgRcvd);
 		
 		//TODO Проверить, не была ли принята ранее эта команда (по порядковому номеру)
 		
 		//TODO Обработку команд вынести в отдельную функцию
-		switch(objSPIMmsgRcvd->getIDCmd())
+		switch(pObjSPIMmsgRcvd->getIDCmd())
 		{
 			case SPIM_CMD_NOP:
 				break;
@@ -589,21 +597,21 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			{
 				//TODO Настройку CMX7262 вынести в отдельную функцию в соответствующий модуль
 				uint8_t nAudioVolume = SPIMCmdRcvd->Body[2]&0x07;
-				CMX7262_AudioOutputGain(&pCmx7262,nAudioVolume);
-			}		
+				CMX7262_AudioOutputGain(&g_CMX7262Struct,nAudioVolume);
+			}			
 			break;
 		case SPIM_CMD_SEND_DATA_FRAME:
 			break;
 		case SPIM_CMD_TAKE_DATA_FRAME:
 			break;	
 		case SPIM_CMD_REQ_CURRENT_PARAM:
+		{
 			//TODO Сформировать структуру, соответствующую запрашиваемым параметрам
 			//Если запрос асинхронный, то установить режим слежения за соответствующими параметрами
-		
-			uint8_t OpModeCode = SPIMCmdRcvd->OpModeCode(g_RadioChanType,g_RadioSignalPower,g_RadioPowerMode);
-			uint8_t AudioCode = SPIMCmdRcvd->AudioCode(g_AudioOutLevel,g_AudioInLevel);
-	
+			SPIMCmdRcvd->cmdReqParam.SetPointerToMessage(SPIMCmdRcvd);
+			FormCurrentParamAnswer(SPIMCmdRcvd, pBodyData, bodySize);
 			break;
+		}
 		case SPIM_CMD_SOFT_VER:
 			uint16_t noSoftVersion;
 			bodySize = sizeof(noSoftVersion);
@@ -616,6 +624,64 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 }
 
 
+void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize)
+{
+	pBodyData[0] = SPIMCmdRcvd->cmdReqParam.MaskReqParam();
+	bodySize=1;
+	
+	if(SPIMCmdRcvd->cmdReqParam.isOpModeReq())
+	{
+		//Определяем параметры рабочего режима радиомодуля
+		uint8_t radioChanType = objRadioModule.GetRadioChanType();
+		uint8_t radioSignalPower = objRadioModule.GetRadioSignalPower();
+		uint8_t powerMode = objRadioModule.GetARMPowerMode();
+
+		//Формируем код рабочего режима
+		uint8_t OpModeCode = SPIMCmdRcvd->cmdReqParam.OpModeCode(radioChanType,radioSignalPower,powerMode);
+		
+		pBodyData[bodySize] = OpModeCode;
+		bodySize++;		
+	}
+	
+	if(SPIMCmdRcvd->cmdReqParam.isAudioReq())
+	{
+		//Определеяем аудионастройки радиомодуля
+		uint8_t audioInLevel = objRadioModule.GetAudioInLevel();
+		uint8_t audioOutLevel = objRadioModule.GetAudioOutLevel();
+		
+		//Формируем код аудионастроек
+		uint8_t AudioCode = SPIMCmdRcvd->cmdReqParam.AudioCode(audioOutLevel,audioInLevel);
+		
+		pBodyData[bodySize] = AudioCode;
+		bodySize++;
+	}
+	
+	if(SPIMCmdRcvd->cmdReqParam.isRxFreqReq())
+	{
+		pBodyData[bodySize] = objRadioModule.GetRxFreqChan();
+		bodySize++;
+	}
+
+	if(SPIMCmdRcvd->cmdReqParam.isTxFreqReq())
+	{
+		pBodyData[bodySize] = objRadioModule.GetTxFreqChan();
+		bodySize++;
+	}	
+	
+	if(SPIMCmdRcvd->cmdReqParam.isRSSIReq())
+	{
+		pBodyData[bodySize] = objRadioModule.GetRSSILevel();
+		bodySize++;
+	}		
+	
+	if(SPIMCmdRcvd->cmdReqParam.isChanStateReq())
+	{
+		pBodyData[bodySize] = objRadioModule.GetRadioChanState();
+		bodySize++;
+	}		
+}
+
+
 uint16_t GetARMSoftVer()
 {
 	return(ARM_SOFT_VER);
@@ -625,28 +691,28 @@ uint16_t GetARMSoftVer()
 void ProcessCMX7262State()
 {
 
-	if((pCmx7262.uIRQRequest & CMX7262_ODA) == CMX7262_ODA)
+	if((g_CMX7262Struct.uIRQRequest & CMX7262_ODA) == CMX7262_ODA)
 	{
 		//Сбрасываем флаг CMX7262_ODA
-		pCmx7262.uIRQRequest = pCmx7262.uIRQRequest & ~CMX7262_ODA;
+		g_CMX7262Struct.uIRQRequest = g_CMX7262Struct.uIRQRequest & ~CMX7262_ODA;
 		
 		//Читаем данные
 		#ifdef TEST_CMX7262_ENC_MODE
 		CMX7262_RxFIFO(&pCmx7262,(uint8_t *)&pDataFromCMX7262[0]);
 		#endif
 		#ifdef TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE
-		CMX7262_RxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataFromCMX7262[0]);			
+		CMX7262_RxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataFromCMX7262[0]);			
 		#endif
 	}
 
-	if((pCmx7262.uIRQRequest & CMX7262_IDW) == CMX7262_IDW)
+	if((g_CMX7262Struct.uIRQRequest & CMX7262_IDW) == CMX7262_IDW)
 	{
 		#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
 		HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_2);
 		#endif
 		
 		//Сбрасываем флаг CMX7262_IDW
-		pCmx7262.uIRQRequest = pCmx7262.uIRQRequest & ~CMX7262_IDW;
+		g_CMX7262Struct.uIRQRequest = g_CMX7262Struct.uIRQRequest & ~CMX7262_IDW;
 
 		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE			
 			#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
@@ -655,7 +721,7 @@ void ProcessCMX7262State()
 			#endif
 		
 			//Передаем буфер на CMX7262
-			CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+			CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
 			#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
 			cntCMX7262TxAudioBuf++;
 			#endif
@@ -679,15 +745,15 @@ void ProcessCMX7262State()
 void SPIMInit()
 {
 	//Создаем объекты для обработки и формирования сообщений SPIM-протокола
-	objSPIMmsgRcvd = new SPIMMessage;
-	//objSPIMmsgToSend  = new SPIMMessage;
+	pObjSPIMmsgRcvd = new SPIMMessage;
+	//pObjSPIMmsgToSend  = new SPIMMessage;
 }
 
 void SPIMDeInit()
 {
 	//Удаляем объекты для обработки и формирования сообщений SPIM-протокола
-	delete objSPIMmsgRcvd;
-	//delete objSPIMmsgToSend;
+	delete pObjSPIMmsgRcvd;
+	//delete pObjSPIMmsgToSend;
 }
 
 
@@ -714,9 +780,9 @@ void ProcessAudioDataFromUART()
 		RadioModuleOpMode=OPMODE_TEST_CMX7262ENCDEC;
 		
 		//Переводим CMX7262 в режим EncDec
-		CMX7262_EncodeDecode_CBUS2Audio(&pCmx7262);
+		CMX7262_EncodeDecode_CBUS2Audio(&g_CMX7262Struct);
 		//Передаем буфер звуковых данных на CMX7262
-		CMX7262_TxFIFO_Audio(&pCmx7262,(uint8_t *)&pDataToCMX7262[0]);
+		CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
 		#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
 		cntCMX7262TxAudioBuf++;
 		#endif

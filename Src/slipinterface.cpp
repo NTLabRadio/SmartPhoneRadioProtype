@@ -1,4 +1,4 @@
-#include "slipinterface.h"
+#include "SLIPinterface.h"
 
 SLIPInterface::SLIPInterface()
 {

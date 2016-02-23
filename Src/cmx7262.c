@@ -235,7 +235,7 @@ uint16_t  CMX7262_Init(CMX7262_TypeDef *pCmx7262, SPI_HandleTypeDef *hspi)
 {
 	hspi_CMX7262 = hspi;	
 	
-	pCmx7262->FI = (cmxFI_TypeDef*)START_7262;								// Initialise to the FI load definitions above.
+	pCmx7262->FI = (cmxFI_TypeDef*)START_7262;								// Initialise to the FI load definitions above
 	pCmx7262->pFlash = (DMR_Flash_TypeDef *)ADDR_FLASH_PAGE;
 	pCmx7262->uInterface = CBUS_INTERFACE_CMX7262;
 	pCmx7262->uMode = CMX7262_INIT_MODE;

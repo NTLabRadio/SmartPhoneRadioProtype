@@ -46,12 +46,10 @@ enum en_SPIMReqTypes
 };
 
 
-
-
-
 class SPIMMessage
 {
 public:
+	
 	SPIMMessage();
 	SPIMMessage(const uint8_t* pMsgData, uint16_t msgSize);
 	~SPIMMessage();
@@ -79,9 +77,53 @@ public:
 	
 	uint8_t IDBackCmd(uint8_t IDCmd);
 	
-	
-	uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode);
-	uint8_t AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel);
+	class CmdReqParam
+	{
+		public:
+			static uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode);
+			static uint8_t AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel);
+			
+			void SetPointerToMessage(SPIMMessage* mes);
+		
+			uint8_t MaskReqParam();
+		
+			uint8_t isOpModeReq();
+			uint8_t isAudioReq();
+			uint8_t isRxFreqReq();
+			uint8_t isTxFreqReq();
+			uint8_t isRSSIReq();
+			uint8_t isChanStateReq();
+		
+		private:
+			SPIMMessage* objSPIMMessage;			
+		
+			//--------- Код рабочего режима ---------------
+			//Тип радиоканала
+			#define SHIFT_RADIOCHANTYPE_IN_OPMODECODE		(0)
+			#define MASK_RADIOCHANTYPE_IN_OPMODECODE		(3)
+			//Мощность сигнала передатчика
+			#define SHIFT_SIGNALPOWER_IN_OPMODECODE			(3)
+			#define MASK_SIGNALPOWER_IN_OPMODECODE			(1)
+			//Режим энергосбережения ARM
+			#define SHIFT_ARMPOWERMODE_IN_OPMODECODE		(4)
+			#define MASK_ARMPOWERMODE_IN_OPMODECODE			(1)
+
+			//------ Код настроек аудиопараметров ---------
+			//Усиление звукового выхода
+			#define SHIFT_OUTLEVEL_IN_AUDIOCODE					(0)
+			#define MASK_OUTLEVEL_IN_AUDIOCODE					(7)
+			//Усиление звукового входа
+			#define SHIFT_INLEVEL_IN_AUDIOCODE					(3)
+			#define MASK_INLEVEL_IN_AUDIOCODE						(7)
+		
+			//Маски запрашиваемых параметров
+			#define OPMODE_MASK_IN_REQ						(1<<1)
+			#define AUDIO_MASK_IN_REQ							(1<<2)
+			#define TXFREQ_MASK_IN_REQ						(1<<3)
+			#define RXFREQ_MASK_IN_REQ						(1<<4)
+			#define RSSI_MASK_IN_REQ							(1<<5)
+			#define CHANSTATE_MASK_IN_REQ					(1<<5)			
+	} cmdReqParam;	
 
 private:
 
@@ -111,26 +153,7 @@ private:
 	uint8_t* SPIMCRC;
 
 	uint8_t CRC_Calc(uint8_t* pData, uint8_t sizeData);
-	
-	
-	//--------- Код рабочего режима ---------------
-	//Тип радиоканала
-	#define SHIFT_RADIOCHANTYPE_IN_OPMODECODE		(0)
-	#define MASK_RADIOCHANTYPE_IN_OPMODECODE		(3)
-	//Мощность сигнала передатчика
-	#define SHIFT_SIGNALPOWER_IN_OPMODECODE			(3)
-	#define MASK_SIGNALPOWER_IN_OPMODECODE			(1)
-	//Режим энергосбережения ARM
-	#define SHIFT_ARMPOWERMODE_IN_OPMODECODE		(4)
-	#define MASK_ARMPOWERMODE_IN_OPMODECODE			(1)
 
-	//------ Код настроек аудиопараметров ---------
-	//Усиление звукового выхода
-	#define SHIFT_OUTLEVEL_IN_AUDIOCODE					(0)
-	#define MASK_OUTLEVEL_IN_AUDIOCODE					(7)
-	//Усиление звукового входа
-	#define SHIFT_INLEVEL_IN_AUDIOCODE					(3)
-	#define MASK_INLEVEL_IN_AUDIOCODE						(7)
 };
 
 #endif // SPIMMESSAGE_H

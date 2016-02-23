@@ -343,18 +343,84 @@ uint8_t SPIMMessage::IDBackCmd(uint8_t IDCmd)
 }
 
 
-uint8_t SPIMMessage::OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode) 
+void SPIMMessage::CmdReqParam::SetPointerToMessage(SPIMMessage* mes)
 {
- 	return( ((RadioChanType&MASK_RADIOCHANTYPE_IN_OPMODECODE)<<SHIFT_RADIOCHANTYPE_IN_OPMODECODE) ||
-					((SignalPower&MASK_SIGNALPOWER_IN_OPMODECODE)<<SHIFT_SIGNALPOWER_IN_OPMODECODE)	||
+	objSPIMMessage = mes;
+}
+
+uint8_t SPIMMessage::CmdReqParam::OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode) 
+{
+ 	return( ((RadioChanType&MASK_RADIOCHANTYPE_IN_OPMODECODE)<<SHIFT_RADIOCHANTYPE_IN_OPMODECODE) |
+					((SignalPower&MASK_SIGNALPOWER_IN_OPMODECODE)<<SHIFT_SIGNALPOWER_IN_OPMODECODE)	|
 					((ARMPowerMode&MASK_ARMPOWERMODE_IN_OPMODECODE)<<SHIFT_ARMPOWERMODE_IN_OPMODECODE)	);
 }
 
 
-uint8_t SPIMMessage::AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel)
+uint8_t SPIMMessage::CmdReqParam::AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel)
 {
- 	return( ((AudioOutLevel&MASK_OUTLEVEL_IN_AUDIOCODE)<<SHIFT_OUTLEVEL_IN_AUDIOCODE) ||
+ 	return( ((AudioOutLevel&MASK_OUTLEVEL_IN_AUDIOCODE)<<SHIFT_OUTLEVEL_IN_AUDIOCODE) |
 					((AudioInLevel&MASK_INLEVEL_IN_AUDIOCODE)<<SHIFT_INLEVEL_IN_AUDIOCODE)	);
 }
 
+
+uint8_t SPIMMessage::CmdReqParam::MaskReqParam()
+{
+	#ifdef DEBUG_SPIMMESSAGE_DEFINE_INNER_CLASS_WO_POINTER_TO_OUTTER
+	//Тут была сделана попытка доступиться к члену внешнего класса без хранения указателя на объект внешнего класса
+	//(т.е. без метода SetPointerToMessage() и добавления objSPIMMessage в члены внутреннего класса CmdReqParam),
+	//но ничего не получилось. Код компилится, но результат не тот, который должен быть. Разбираться было некогда,
+	//поэтому сделано в лоб. См. обсуждение проблемы: http://rsdn.ru/forum/cpp/2230679.all
+	return(((SPIMMessage*)this)->Body[0]);
+	#endif
+	return(objSPIMMessage->Body[0]);
+}
+
+
+uint8_t SPIMMessage::CmdReqParam::isOpModeReq()
+{
+	if(MaskReqParam() & OPMODE_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);
+}
+
+uint8_t SPIMMessage::CmdReqParam::isAudioReq()
+{
+	if(MaskReqParam() & AUDIO_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);	
+}
+
+uint8_t SPIMMessage::CmdReqParam::isRxFreqReq()
+{
+	if(MaskReqParam() & RXFREQ_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);	
+}
+
+uint8_t SPIMMessage::CmdReqParam::isTxFreqReq()
+{
+	if(MaskReqParam() & TXFREQ_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);		
+}
+
+uint8_t SPIMMessage::CmdReqParam::isRSSIReq()
+{
+	if(MaskReqParam() & RSSI_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);		
+}
+
+uint8_t SPIMMessage::CmdReqParam::isChanStateReq()
+{
+	if(MaskReqParam() & CHANSTATE_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);		
+}
 
