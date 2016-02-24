@@ -42,6 +42,8 @@ SLIPInterface* objSLIPinterface;
 //Текущее состояние механизма обработки UART-сообщений
 en_UARTstates UARTstate;
 
+//Handle UART-интерфейса внешнего управляющего модуля
+UART_HandleTypeDef *huartExtDev;
 
 
 
@@ -59,6 +61,8 @@ en_UARTstates UARTstate;
   */
 void UART_InitInterface(UART_HandleTypeDef *huart)
 {
+	huartExtDev = huart;
+	
 	//Инициализируем объекты и переменные логического протокола 
 	//последовательного порта
 	InitSerialProtocol();
@@ -83,6 +87,8 @@ void UART_InitInterface(UART_HandleTypeDef *huart)
   */
 void UART_DeInitInterface(UART_HandleTypeDef *huart)
 {
+	huartExtDev = NULL;
+	
 	delete objSLIPinterface;
 }
 
@@ -133,6 +139,9 @@ void DeinitSerialProtocol()
   */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	if(huart!=huartExtDev)
+		return;
+	
 	//Передаем принятые данные обработчику внутреннего логического интерфейса
 	if(CheckForSerialProtocolData(pUARTRxSLIPPack,nSizeSLIPPack))
 	{//Если найдены полезные данные
@@ -170,7 +179,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		//Ожидаем следующий пакет
 		//memset(pUARTRxSLIPPack,0,MAX_SIZE_OF_SLIP_PACK_PAYLOAD);
 		objSLIPinterface->WaitForPack();
-		
 	}
 	
 	//Ожидаем следующий символ
@@ -214,9 +222,8 @@ uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePac
 }
 
 /**
-  * @brief  Функция передачи полезных данных в UART
+  * @brief  Функция передачи полезных данных внешнему устройству управления
 	*
-	* @param  huart - handle UART-интерфейса
 	* @param  pData - указатель на полезные данные, которые должны быть переданы в UART
 	* @param  nSizeData - размер полезных данных, байт
 	*
@@ -224,7 +231,7 @@ uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePac
 	*
 	* @retval нет
 	*/
-void SendDataToUART(UART_HandleTypeDef *huart, uint8_t* pData, uint16_t nSizeData)
+void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData)
 {
 		memcpy(pUARTTxPayload,pData,nSizeData);
 		nSizeTxPayload = nSizeData;
@@ -241,6 +248,6 @@ void SendDataToUART(UART_HandleTypeDef *huart, uint8_t* pData, uint16_t nSizeDat
 			printf("\n");
 			#endif
 
-		HAL_UART_Transmit_DMA(huart, pUARTTxBuf, nSizeTxBuf);		
+		HAL_UART_Transmit_DMA(huartExtDev, pUARTTxBuf, nSizeTxBuf);		
 }
 

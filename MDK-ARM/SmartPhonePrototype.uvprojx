@@ -1022,6 +1022,11 @@
                 </FileArmAds>
               </FileOption>
             </File>
+            <File>
+              <FileName>SPIMLogic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\SPIMLogic.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -134,16 +134,9 @@ uint8_t RadioModule::GetRadioChanState()
 	return(RadioChanState);
 }
 
-/*
-uint8_t RadioModule::SetOpMode(uint8_t ChanType, uint8_t SignalPower, uint8_t PowerMode)
+
+uint16_t RadioModule::GetARMSoftVer()
 {
-	SetRadioChanType(ChanType);
-	SetRadioSignalPower(SignalPower);
-	SetARMPowerMode(PowerMode);	
+	return(ARM_SOFT_VER);
 }
 
-uint8_t RadioModule::GetOpMode()
-{
-
-}
-*/

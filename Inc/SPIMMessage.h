@@ -31,19 +31,6 @@ enum en_SPIMcmds
 	SPIM_CMD_SOFT_VER_BACK					=0x0B
 };
 
-enum en_SPIMaddrs
-{
-	SPIM_ADDR_STM32									=0x1,		//контроллер STM32 целевого устройства (радимодуля)
-	SPIM_ADDR_EXTDEV								=0x2		//внешнее управляющее устройство (процессор NT1004, ПК или др.)
-};
-
-enum en_SPIMReqTypes
-{
-	SPIM_REQTYPE_SINGLE							=0,			//одиночный синхронный запрос - запрос, ответ на который должен быть выслан ведомым 
-																					//устройством однократно в момент получения запроса
-	SPIM_REQTYPE_ASYNC							=1			//асинхронный запрос - запрос, в ответ на который параметр (например, RSSI) высылается 
-																					//ведомым устройством в произвольный момент времени, при изменении его значения
-};
 
 
 class SPIMMessage
@@ -97,25 +84,6 @@ public:
 		private:
 			SPIMMessage* objSPIMMessage;			
 		
-			//--------- Код рабочего режима ---------------
-			//Тип радиоканала
-			#define SHIFT_RADIOCHANTYPE_IN_OPMODECODE		(0)
-			#define MASK_RADIOCHANTYPE_IN_OPMODECODE		(3)
-			//Мощность сигнала передатчика
-			#define SHIFT_SIGNALPOWER_IN_OPMODECODE			(3)
-			#define MASK_SIGNALPOWER_IN_OPMODECODE			(1)
-			//Режим энергосбережения ARM
-			#define SHIFT_ARMPOWERMODE_IN_OPMODECODE		(4)
-			#define MASK_ARMPOWERMODE_IN_OPMODECODE			(1)
-
-			//------ Код настроек аудиопараметров ---------
-			//Усиление звукового выхода
-			#define SHIFT_OUTLEVEL_IN_AUDIOCODE					(0)
-			#define MASK_OUTLEVEL_IN_AUDIOCODE					(7)
-			//Усиление звукового входа
-			#define SHIFT_INLEVEL_IN_AUDIOCODE					(3)
-			#define MASK_INLEVEL_IN_AUDIOCODE						(7)
-		
 			//Маски запрашиваемых параметров
 			#define OPMODE_MASK_IN_REQ						(1<<1)
 			#define AUDIO_MASK_IN_REQ							(1<<2)
@@ -154,6 +122,28 @@ private:
 
 	uint8_t CRC_Calc(uint8_t* pData, uint8_t sizeData);
 
+	//Коды параметров, используемые в командах SET_MODE и REQ_CURRENT_PARAM_BACK
+	
+	//--------- Код рабочего режима ---------------
+	//Тип радиоканала
+	#define SHIFT_RADIOCHANTYPE_IN_OPMODECODE		(0)
+	#define MASK_RADIOCHANTYPE_IN_OPMODECODE		(3)
+	//Мощность сигнала передатчика
+	#define SHIFT_SIGNALPOWER_IN_OPMODECODE			(3)
+	#define MASK_SIGNALPOWER_IN_OPMODECODE			(1)
+	//Режим энергосбережения ARM
+	#define SHIFT_ARMPOWERMODE_IN_OPMODECODE		(4)
+	#define MASK_ARMPOWERMODE_IN_OPMODECODE			(1)
+
+	//------ Код настроек аудиопараметров ---------
+	//Усиление звукового выхода
+	#define SHIFT_OUTLEVEL_IN_AUDIOCODE					(0)
+	#define MASK_OUTLEVEL_IN_AUDIOCODE					(7)
+	//Усиление звукового входа
+	#define SHIFT_INLEVEL_IN_AUDIOCODE					(3)
+	#define MASK_INLEVEL_IN_AUDIOCODE						(7)
+
+	
 };
 
 #endif // SPIMMESSAGE_H

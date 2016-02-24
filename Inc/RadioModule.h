@@ -14,6 +14,7 @@
 #define __RADIOMODULE_H
 
 #include <stdint.h>
+#include <version.h>
  
 enum en_RadioChanTypes
 {
@@ -76,6 +77,8 @@ public:
 	uint8_t GetRSSILevel();
 	
 	uint8_t GetRadioChanState();
+	
+	uint16_t GetARMSoftVer();
 
 private:
 	

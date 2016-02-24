@@ -46,7 +46,7 @@ void WaitNextByteFromUART(UART_HandleTypeDef *huart);
 
 uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePackData);
 
-void SendDataToUART(UART_HandleTypeDef *huart, uint8_t* pData, uint16_t nSizeData);
+void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData);
 	 
 #ifdef __cplusplus
 }

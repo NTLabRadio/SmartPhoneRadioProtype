@@ -1,0 +1,206 @@
+#include "SPIMLogic.h"
+
+//Объект для обработки принятых сообщений SPIM-протокола
+SPIMMessage*	pSPIMmsgRcvd;
+//Объект для формирования сообщений SPIM-протокола для отправки
+SPIMMessage*	pSPIMmsgToSend;
+
+void SPIMInit()
+{
+	//Создаем объекты для обработки и формирования сообщений SPIM-протокола
+	pSPIMmsgRcvd = new SPIMMessage;
+	//pSPIMmsgToSend  = new SPIMMessage;
+}
+
+void SPIMDeInit()
+{
+	//Удаляем объекты для обработки и формирования сообщений SPIM-протокола
+	delete pSPIMmsgRcvd;
+	//delete pSPIMmsgToSend;
+}
+
+void ProcessDataFromExtDev()
+{
+	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
+	ProcessAudioDataFromUART();
+	#endif
+	
+	pSPIMmsgRcvd->setMsg(pUARTRxSLIPPack,nSizeSLIPPack);
+	
+	if(pSPIMmsgRcvd->checkCRC())
+	{
+		#ifdef DEBUG_PRINTF_SPIM_DATA
+		printf("Rcvd SPIM Message\n");
+		printf("* Address: %d\n", pObjSPIMmsgRcvd->getAddress());
+		printf("* Cmd ID: %x\n", pObjSPIMmsgRcvd->getIDCmd());
+		printf("* No Msg: %d\n", pObjSPIMmsgRcvd->getNoMsg());
+		#endif
+
+		//TODO Проверить, не была ли принята ранее эта команда (по порядковому номеру)
+		//Если ранее принимали, то отвечаем сохраненной копией отправленного ранее сообшения
+		
+		//Формируем и отправляем ответ, подтверждающий успешный прием команды
+		FormAndSendAnswerToExtDev(pSPIMmsgRcvd);
+		
+		//TODO Функция FormAndSendAnswerToExtDev() только обрабатывает сообщение и отвечает, 
+		//но не изменяет состояние радиомодуля. Сделать отдельную функцию для обработки команд
+		//управления радимодулем		
+	}
+	
+	//Очищаем буфер с обработанными данными SLIP-пакета
+	memset(pUARTRxSLIPPack,0,MAX_SIZE_OF_SLIP_PACK_PAYLOAD);
+}
+
+
+void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd)
+{
+	SPIMMessage SPIMmsgToSend;
+
+	//Формируем ответ для управляющего устройства
+	FormAnswerToExtDev(SPIMmsgRcvd,&SPIMmsgToSend);
+	
+	//Отправляем сформированный ответ
+	SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
+}
+
+
+void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend)
+{
+	//Определяем ID ответа по ID исходной команды
+	uint8_t IDanswer = SPIMBackCmdToSend->IDBackCmd(SPIMCmdRcvd->getIDCmd());
+	//Адресат - внешнешнее управляющее устройство
+	uint8_t address = SPIM_ADDR_EXTDEV;
+	//Порядковый номер ответа совпадает с номером исходной команды
+	uint8_t noMsg = SPIMCmdRcvd->getNoMsg();
+	
+	//Получим указатель на тело сообщения
+	uint8_t* pBodyData = SPIMBackCmdToSend->Body;
+	uint8_t bodySize = 0;
+
+	FormBodyOfAnswerToExtDev(SPIMCmdRcvd,pBodyData,bodySize);
+	
+	SPIMBackCmdToSend->setHeader(bodySize,address,noMsg,IDanswer);
+	
+	SPIMBackCmdToSend->setBody(pBodyData,bodySize);
+	
+	SPIMBackCmdToSend->setCRC();
+}
+
+
+void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize)
+{
+	bodySize = 0;
+	
+	switch(SPIMCmdRcvd->getIDCmd())
+	{
+		case SPIM_CMD_NOP:
+			//Если размер команды ненулевой (должен быть равен 1)
+			if(SPIMCmdRcvd->getSizeBody())
+			{
+				//Формируем тело ответа, состоящее из первого (и единственного) байта команды
+				bodySize = 1;
+				*pBodyData = SPIMCmdRcvd->Body[0];
+			}
+			break;
+		case SPIM_CMD_SET_MODE:
+		/*
+			//Проверяем на адекватность размер команды
+			//TODO Заменить неименованную константу		
+			if(SPIMCmdRcvd->getSizeBody()==4)
+			{
+				//TODO Настройку CMX7262 вынести в отдельную функцию в соответствующий модуль
+				uint8_t nAudioVolume = SPIMCmdRcvd->Body[2]&0x07;
+				CMX7262_AudioOutputGain(&g_CMX7262Struct,nAudioVolume);
+			}			
+		*/
+			break;
+		case SPIM_CMD_SEND_DATA_FRAME:
+			break;
+		case SPIM_CMD_TAKE_DATA_FRAME:
+			break;	
+		case SPIM_CMD_REQ_CURRENT_PARAM:
+		{
+			//TODO Если запрос асинхронный, то установить режим слежения за соответствующими параметрами
+
+			//Для обработки сообщения типа REQ_CURRENT_PARAM будем использовать специальный вложенный класс cmdReqParam
+			//Передадим ему указатель на сообщение
+			SPIMCmdRcvd->cmdReqParam.SetPointerToMessage(SPIMCmdRcvd);
+			//В соответствии с запрашиваемыми параметрами сформируем тело сообщения ответа
+			FormCurrentParamAnswer(SPIMCmdRcvd, pBodyData, bodySize);
+			break;
+		}
+		case SPIM_CMD_SOFT_VER:
+			uint16_t noSoftVersion;
+			bodySize = sizeof(noSoftVersion);
+			noSoftVersion = g_RadioModule.GetARMSoftVer();
+			memcpy(pBodyData,&noSoftVersion,sizeof(noSoftVersion));
+			break;
+		default:
+			break;
+	}
+}
+
+
+void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize)
+{
+	//В первом байте ответа содержится маска параметров, такая же как и в запросе
+	pBodyData[0] = SPIMCmdRcvd->cmdReqParam.MaskReqParam();
+	bodySize=1;
+	
+	//Если запрашивается рабочий режим радиомодуля
+	if(SPIMCmdRcvd->cmdReqParam.isOpModeReq())
+	{
+		//Определяем параметры рабочего режима радиомодуля
+		uint8_t radioChanType = g_RadioModule.GetRadioChanType();
+		uint8_t radioSignalPower = g_RadioModule.GetRadioSignalPower();
+		uint8_t powerMode = g_RadioModule.GetARMPowerMode();
+
+		//Формируем код рабочего режима
+		uint8_t OpModeCode = SPIMCmdRcvd->cmdReqParam.OpModeCode(radioChanType,radioSignalPower,powerMode);
+		
+		pBodyData[bodySize] = OpModeCode;
+		bodySize++;		
+	}
+	
+	//Если запрашиваются аудиопараметры радиомодуля
+	if(SPIMCmdRcvd->cmdReqParam.isAudioReq())
+	{
+		//Определеяем аудионастройки радиомодуля
+		uint8_t audioInLevel = g_RadioModule.GetAudioInLevel();
+		uint8_t audioOutLevel = g_RadioModule.GetAudioOutLevel();
+		
+		//Формируем код аудионастроек
+		uint8_t AudioCode = SPIMCmdRcvd->cmdReqParam.AudioCode(audioOutLevel,audioInLevel);
+		
+		pBodyData[bodySize] = AudioCode;
+		bodySize++;
+	}
+	
+	//Если запрашивается частота приема радиомодуля
+	if(SPIMCmdRcvd->cmdReqParam.isRxFreqReq())
+	{
+		pBodyData[bodySize] = g_RadioModule.GetRxFreqChan();
+		bodySize++;
+	}
+
+	//Если запрашивается частота передачи радиомодуля
+	if(SPIMCmdRcvd->cmdReqParam.isTxFreqReq())
+	{
+		pBodyData[bodySize] = g_RadioModule.GetTxFreqChan();
+		bodySize++;
+	}	
+	
+	//Если запрашивается текущий уровень приема сигнала
+	if(SPIMCmdRcvd->cmdReqParam.isRSSIReq())
+	{
+		pBodyData[bodySize] = g_RadioModule.GetRSSILevel();
+		bodySize++;
+	}		
+	
+	//Если запрашивается текущее состояние радиоканала
+	if(SPIMCmdRcvd->cmdReqParam.isChanStateReq())
+	{
+		pBodyData[bodySize] = g_RadioModule.GetRadioChanState();
+		bodySize++;
+	}		
+}
