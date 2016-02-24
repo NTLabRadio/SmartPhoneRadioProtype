@@ -623,6 +623,7 @@ uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi)
 		return pCC1120RxData[0];	
 }
 
+
 /**
 	* @brief	очистка FIFO RX трансивера CC1120
 	* @param	*hspi - выбор интерфейса SPI для обращения
@@ -912,7 +913,6 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 	hspiCC1120 = hspi;
 	uint8_t RxFIFONumBytes = 0;
 	
-	CC1120_CSN_LOW();
 	// запрос количества байтов данных в RxFIFO
 	RxFIFONumBytes = CC1120_RxFIFONumBytes(hspi);
 	 if (!RxFIFONumBytes) 
@@ -920,7 +920,7 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 			pCC1120RxData[0] = 0x00;
 			return (pCC1120RxData);
 	 }
-	
+	CC1120_CSN_LOW();
 	
 	if (CC1120_Read (R_ST_FIFO_ACCESS, REG_ADDRESS, BURST, pCC1120RxData, RxFIFONumBytes))
 			{
@@ -928,9 +928,9 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 			}
 	// сдвиг данных буфера на 1 индекс и запись в 0 элемент количество байтов Rx FIFO
 	
-	for (uint8_t i = 0; i< RxFIFONumBytes+1; i++)
+	for (uint8_t i = (RxFIFONumBytes+1); i<0; i--)
 			{
-				pCC1120RxData[i] = pCC1120RxData[i+1];
+				pCC1120RxData[i+1] = pCC1120RxData[i];
 			}
 			pCC1120RxData[0] = RxFIFONumBytes;
 			

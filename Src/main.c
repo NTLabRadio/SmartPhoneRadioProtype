@@ -161,6 +161,14 @@ int main(void)
 			// здесь должны быть функции установки частоты и проверки уставленной частоты
 		
 		CC1120_Status(&CURRENT_SPI);
+		
+		CC1120_ManualCalibration(&CURRENT_SPI); // Калибровка PLL
+
+		WaitTimeMCS(1e2);
+		
+		CC1120_ManualCalibration(&CURRENT_SPI); // Калибровка PLL	
+		
+		WaitTimeMCS(1e2);
 				
 	#endif
 	
@@ -193,13 +201,6 @@ int main(void)
 				testPkt[i] = i;
 			}
 		
-		CC1120_ManualCalibration(&CURRENT_SPI); // Калибровка PLL
-
-		WaitTimeMCS(1e2);
-		
-		CC1120_ManualCalibration(&CURRENT_SPI); // Калибровка PLL	
-		
-		WaitTimeMCS(1e2);
 					
 		CC1120_TxFIFOFlush(&CURRENT_SPI); // Очистка Tx FIFO
 		 
@@ -222,9 +223,15 @@ int main(void)
 			
 		#endif
 
-	#ifdef	DEBUG_TX_CC1120 // проверка  приема одиночного пакета		
+	#ifdef	DEBUG_RX_CC1120 // проверка  приема одиночного пакета		
 		
-
+		uint8_t RxFIFONumBytes = 0;
+		
+		CC1120_RxFIFOFlush(&CURRENT_SPI); // Очистка Rx FIFO
+		CC1120_Rx(&CURRENT_SPI); // Перевод трасивера в режим Rx
+		
+		
+		
 	#endif
 			
 			
@@ -260,6 +267,27 @@ int main(void)
 		#endif
 		
 		
+		
+		
+		#ifdef	DEBUG_RX_CC1120 // проверка  приема одиночного пакета		
+		 
+		if (flCC1120_IRQ_CHECKED)
+		{
+			
+			printf ("Marc 0x%X", CC1120_MARCState(&CURRENT_SPI));
+			
+			printf("\n");
+			
+			printf ("FIFO RX Num 0x%X", CC1120_RxFIFONumBytes(&CURRENT_SPI));
+			
+			CC1120_RxFIFORead (&CURRENT_SPI);
+			
+			flCC1120_IRQ_CHECKED = FALSE; // очистка флага приема
+		
+		}	
+		
+		
+		#endif
 		
 		
 		

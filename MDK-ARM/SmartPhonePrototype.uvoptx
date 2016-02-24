@@ -229,6 +229,11 @@
           <WinNumber>1</WinNumber>
           <ItemText>flCC1120_IRQ_CHECKED</ItemText>
         </Ww>
+        <Ww>
+          <count>12</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>RxFIFONumBytes</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>
