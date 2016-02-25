@@ -63,8 +63,10 @@ extern UART_InitTypeDef DefaultUARTParams;
 extern en_UARTstates UARTstate;
 
 CMX7262_TypeDef  g_CMX7262Struct;
+CС1120_TypeDef  g_CC1120Struct;
 
 uint8_t g_flCMX7262_IRQ_CHECKED = FALSE;
+uint8_t g_flCC1120_IRQ_CHECKED = FALSE;
 
 #define MAX_SIZE_OF_DATA_FROM_CMX7262 (512)
 uint8_t pDataFromCMX7262[MAX_SIZE_OF_DATA_FROM_CMX7262];
@@ -99,6 +101,7 @@ static void MX_USART1_UART_Init(void);
 void RadioModuleInit(void);
 void RadioModuleDeInit(void);
 
+void CMX7262_TestMode(void);
 void ProcessCMX7262State(void);
 
 #ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
@@ -154,40 +157,17 @@ int main(void)
 	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
 	SPIMInit();
 
-	//Делаем инициализацию радиомодуля для вохзможности управления его режимами и параметрами
-	RadioModuleInit();
-
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
 	CC1120_CheckModule(&hspi1);
 	CMX7262_CheckModule(&hspi1);
 	#endif
-	
 
-	//Перевод CMX7262 в рабочий режим
-	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
-	CMX7262_EncodeDecode_Audio(&pCmx7262);	
-	#endif
 
-	#ifdef TEST_CMX7262_AUDIO_TESTMODE
-	CMX7262_Test_AudioOut(&g_CMX7262Struct);
-	#endif
-	
-	#ifdef TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE
-	CMX7262_EncodeDecode_Audio2CBUS(&g_CMX7262Struct);
-	#endif
-	
-	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE
-		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
-		CMX7262_EncodeDecode_CBUS2Audio(&g_CMX7262Struct);
-		
-		//Заполняем буфер тональным сигналом 1кГц
-		FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
-		CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
-		#endif
-	#endif
-	
-	#ifdef TEST_CMX7262_ENC_MODE
-	CMX7262_Encode(&g_CMX7262Struct);
+	//Делаем инициализацию радиомодуля для вохзможности управления его режимами и параметрами
+	RadioModuleInit();
+
+	#ifdef TEST_CMX7262
+	CMX7262_TestMode();
 	#endif
 
   /* USER CODE END 2 */
@@ -222,12 +202,12 @@ int main(void)
 		//Обработка состояния модуля CMX7262: передача/прием/тест
 		ProcessCMX7262State();
 		
-		#ifdef DEBUG_PERIODICALLY_READ_CMX7262_STATUS
-		uint16_t uStatusRegValue = 0;
-		// Read the status register into a shadow register.
-		CBUS_Read16 (IRQ_STATUS_REG,&uStatusRegValue,1,g_CMX7262Struct.uInterface);
-		printf("CMX7262 Status Reg=%x\n",uStatusRegValue);
-		#endif
+		if(HAL_GPIO_ReadPin(PTT_GPIO_Port, PTT_Pin))
+			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
+		else
+			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_SET);
+
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -280,7 +260,8 @@ void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;									// синхронизация по заднему фронту
   hspi1.Init.NSS = SPI_NSS_SOFT;													// программный CS (аппаратный (SPI_NSS_HARD_OUTPUT) не понятно, как задействовать)
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32 ;	//предделитель частоты SPI: 64МГц/32 = 2 МГц
+  //hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32 ;	//предделитель частоты SPI: 64МГц/32 = 2 МГц
+	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64 ;	//предделитель частоты SPI: 64МГц/64 = 1 МГц
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;									// старший бит - первый
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;// CRC не вычисляется
@@ -436,6 +417,7 @@ void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __GPIOE_CLK_ENABLE();
   __GPIOA_CLK_ENABLE();
+  __GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pins : PE1 PE2 PE6 PE7 PE0 */
   GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
@@ -455,6 +437,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PTT_Pin */
+  GPIO_InitStruct.Pin = PTT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(PTT_GPIO_Port, &GPIO_InitStruct);
+  
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
@@ -475,6 +463,9 @@ void RadioModuleInit()
 	//Перевод CMX7262 в режим Idle
 	CMX7262_Idle(&g_CMX7262Struct);	
 	
+	//Инициализация СС1120
+	CC1120_Init(&g_CC1120Struct, &hspi1);
+	
 	//После того, как все периферийные микросхемы радимодуля настроены, создаем объект
 	//для управления общими параметрами радиомодуля
 	pobjRadioModule = new RadioModule;	
@@ -485,6 +476,35 @@ void RadioModuleDeInit()
 	delete pobjRadioModule;
 }
 
+
+void CMX7262_TestMode()
+{
+	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
+	CMX7262_EncodeDecode_Audio(&pCmx7262);	
+	#endif
+
+	#ifdef TEST_CMX7262_AUDIO_TESTMODE
+	CMX7262_Test_AudioOut(&g_CMX7262Struct);
+	#endif
+	
+	#ifdef TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE
+	CMX7262_EncodeDecode_Audio2CBUS(&g_CMX7262Struct);
+	#endif
+	
+	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE
+		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
+		CMX7262_EncodeDecode_CBUS2Audio(&g_CMX7262Struct);
+		
+		//Заполняем буфер тональным сигналом 1кГц
+		FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
+		CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+		#endif
+	#endif
+	
+	#ifdef TEST_CMX7262_ENC_MODE
+	CMX7262_Encode(&g_CMX7262Struct);
+	#endif
+}
 
 void ProcessCMX7262State()
 {

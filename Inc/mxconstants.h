@@ -38,6 +38,8 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define PTT_Pin GPIO_PIN_8
+#define PTT_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
