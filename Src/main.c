@@ -69,7 +69,7 @@ uint8_t g_flCMX7262_IRQ_CHECKED = FALSE;
 #define MAX_SIZE_OF_DATA_FROM_CMX7262 (512)
 uint8_t pDataFromCMX7262[MAX_SIZE_OF_DATA_FROM_CMX7262];
 
-#define MAX_SIZE_OF_DATA_TO_CMX7262 (4096)
+#define MAX_SIZE_OF_DATA_TO_CMX7262 (1024)
 uint8_t pDataToCMX7262[MAX_SIZE_OF_DATA_TO_CMX7262];
 uint16_t nLengthDataToCMX7262 = 0;
 
@@ -78,7 +78,7 @@ uint16_t cntCMX7262TxAudioBuf = 0;
 #endif
 
 //Через этот объект осуществляется доступ ко всем параметрам и функциям радиомодуля
-RadioModule g_RadioModule;
+RadioModule *pobjRadioModule;
 
 /* USER CODE END PV */
 
@@ -95,8 +95,11 @@ static void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-void ProcessCMX7262State(void);
 
+void RadioModuleInit(void);
+void RadioModuleDeInit(void);
+
+void ProcessCMX7262State(void);
 
 #ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
 void ProcessAudioDataFromUART(void);
@@ -142,12 +145,8 @@ int main(void)
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
 	#endif
 	
-	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
-	HAL_TIM_Base_Start(&htim2);
-	HAL_TIM_Base_Start(&htim3);
-	
-	/* Стартуем таймер для контроля процессов управления микросхемой CMX7262 */
-	HAL_TIM_Base_Start(&htim5);
+	//Запускаем таймеры для работы с периферией
+	StartPeriphTimers();
 
 	// Инициализируем работу по UART
 	UART_InitInterface(&huart1);
@@ -155,19 +154,14 @@ int main(void)
 	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
 	SPIMInit();
 
+	//Делаем инициализацию радиомодуля для вохзможности управления его режимами и параметрами
+	RadioModuleInit();
 
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
 	CC1120_CheckModule(&hspi1);
 	CMX7262_CheckModule(&hspi1);
 	#endif
 	
-
-	//Инициализация CMX7262: загрузка образа в память, начальная настройка
-	CMX7262_Init(&g_CMX7262Struct, &hspi1);
-
-
-	//Перевод CMX7262 в режим Idle
-	CMX7262_Idle(&g_CMX7262Struct);
 
 	//Перевод CMX7262 в рабочий режим
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
@@ -472,6 +466,25 @@ void MX_GPIO_Init(void)
 
 
 /* USER CODE BEGIN 4 */
+
+void RadioModuleInit()
+{
+	//Инициализация CMX7262: загрузка образа в память, начальная настройка
+	CMX7262_Init(&g_CMX7262Struct, &hspi1);
+
+	//Перевод CMX7262 в режим Idle
+	CMX7262_Idle(&g_CMX7262Struct);	
+	
+	//После того, как все периферийные микросхемы радимодуля настроены, создаем объект
+	//для управления общими параметрами радиомодуля
+	pobjRadioModule = new RadioModule;	
+}
+
+void RadioModuleDeInit()
+{
+	delete pobjRadioModule;
+}
+
 
 void ProcessCMX7262State()
 {

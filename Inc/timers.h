@@ -25,6 +25,8 @@ void WaitTimeMCS(uint32_t lTimeMS);
 	 
 uint32_t ReadCMX7262TimerCounter(void);
 	 
+void StartPeriphTimers(void);
+	 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

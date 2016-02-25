@@ -343,6 +343,23 @@ uint8_t SPIMMessage::IDBackCmd(uint8_t IDCmd)
 }
 
 
+void SPIMMessage::ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& SignalPower, uint8_t& ARMPowerMode) 
+{
+	RadioChanType	= (opModeCode>>SHIFT_RADIOCHANTYPE_IN_OPMODECODE)&MASK_RADIOCHANTYPE_IN_OPMODECODE;
+	
+	SignalPower = (opModeCode>>SHIFT_SIGNALPOWER_IN_OPMODECODE)&MASK_SIGNALPOWER_IN_OPMODECODE;
+	
+	ARMPowerMode = (opModeCode>>SHIFT_ARMPOWERMODE_IN_OPMODECODE)&MASK_ARMPOWERMODE_IN_OPMODECODE;
+}
+
+
+void SPIMMessage::ParseAudioCode(uint8_t audioCode, uint8_t& AudioOutLevel, uint8_t& AudioInLevel)
+{
+	AudioOutLevel = (audioCode>>SHIFT_OUTLEVEL_IN_AUDIOCODE)&MASK_OUTLEVEL_IN_AUDIOCODE;
+	
+	AudioInLevel = (audioCode>>SHIFT_INLEVEL_IN_AUDIOCODE)&MASK_INLEVEL_IN_AUDIOCODE;
+}
+
 void SPIMMessage::CmdReqParam::SetPointerToMessage(SPIMMessage* mes)
 {
 	objSPIMMessage = mes;

@@ -1,5 +1,8 @@
 #include "RadioModule.h"
 
+extern CMX7262_TypeDef  g_CMX7262Struct;
+
+
 
 RadioModule::RadioModule()
 {
@@ -15,8 +18,9 @@ RadioModule::RadioModule()
 	RxRadioFreq = 0;
 
 	//Настройки аудио
-	AudioInLevel = 3;
-	AudioOutLevel = 3;
+	AudioInLevel = DEFAULT_AUDIO_IN_GAIN;
+	AudioOutLevel = DEFAULT_AUDIO_OUT_GAIN;
+	ApplyAudioSettings();
 	
 	//Уровень приема
 	RSSILevel = 0;
@@ -24,8 +28,6 @@ RadioModule::RadioModule()
 	//Текущее состояние радиоканала
 	RadioChanState = RADIOCHAN_STATE_IDLE;
 }
-
-
 
 
 uint8_t RadioModule::SetRadioChanType(uint8_t chanType)
@@ -103,6 +105,7 @@ uint16_t RadioModule::GetRxFreqChan()
 uint8_t RadioModule::SetAudioInLevel(uint8_t audioLevel)
 {
 	AudioInLevel = audioLevel;
+	ApplyAudioSettings();
 	
 	return(0);	
 }
@@ -115,6 +118,7 @@ uint8_t RadioModule::GetAudioInLevel()
 uint8_t RadioModule::SetAudioOutLevel(uint8_t audioLevel)
 {
 	AudioOutLevel = audioLevel;
+	ApplyAudioSettings();
 	
 	return(0);	
 }
@@ -138,5 +142,36 @@ uint8_t RadioModule::GetRadioChanState()
 uint16_t RadioModule::GetARMSoftVer()
 {
 	return(ARM_SOFT_VER);
+}
+
+
+void RadioModule::ApplyAudioSettings()
+{
+	uint16_t CMX7262AudioGainIn=0, CMX7262AudioGainOut=0;
+
+	//По 3-битному значению кода определяем значение соответствуюшего регистра CMX7262
+	CMX7262AudioGainOut = AudioOutGainCodeToCMX7262ValueReg(AudioOutLevel);
+	
+	//Записываем вычисленные значения регистров в CMX7262
+	SetCMX7262AudioGains(CMX7262AudioGainIn, CMX7262AudioGainOut);
+}
+
+
+uint16_t RadioModule::AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel)
+{
+	uint16_t regValue;
+	
+	if(audioOutLevel!=MAX_AUDIO_OUT_GAIN_CODE)
+		regValue = CMX7262_MAX_AUDIO_OUT_GAIN_VALUE - CMX7262_STEP_AUDIO_OUT_GAIN_VALUE*audioOutLevel;
+	else
+		regValue = CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE;
+	
+	return(regValue);
+}
+
+void RadioModule::SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut)
+{
+	CMX7262_AudioOutputGain(&g_CMX7262Struct, CMX7262AudioGainOut);
+	CMX7262_AudioInputGain(&g_CMX7262Struct);
 }
 

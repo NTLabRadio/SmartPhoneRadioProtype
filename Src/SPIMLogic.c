@@ -113,6 +113,12 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 				CMX7262_AudioOutputGain(&g_CMX7262Struct,nAudioVolume);
 			}			
 		*/
+			ProcessCmdSetMode(SPIMCmdRcvd);
+			
+			//‘ормируем тело ответа, указывающего, что команда выполнена успешно
+			bodySize = 1;
+			*pBodyData = 1;
+		
 			break;
 		case SPIM_CMD_SEND_DATA_FRAME:
 			break;
@@ -132,13 +138,60 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 		case SPIM_CMD_SOFT_VER:
 			uint16_t noSoftVersion;
 			bodySize = sizeof(noSoftVersion);
-			noSoftVersion = g_RadioModule.GetARMSoftVer();
+			noSoftVersion = pobjRadioModule->GetARMSoftVer();
 			memcpy(pBodyData,&noSoftVersion,sizeof(noSoftVersion));
 			break;
 		default:
 			break;
 	}
 }
+
+
+void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
+{
+	//„итаем код рабочего режима
+	uint8_t opModeCode = SPIMCmdRcvd->Body[0];
+	
+	//–азбираем код на отдельные параметры
+	uint8_t radioChanType, signalPower, ARMPowerMode;
+	SPIMCmdRcvd->ParseOpModeCode(opModeCode, radioChanType, signalPower, ARMPowerMode);
+	
+	//ѕримен€ем прин€тые значени€ параметров рабочего режима
+	pobjRadioModule->SetRadioChanType(radioChanType);
+	pobjRadioModule->SetRadioSignalPower(signalPower);
+	//TODO ProcessCmdSetMode() вызываетс€ пока в функции FormBodyOfAnswerToExtDev()
+	//«асыпать тут нельз€. »наче ничего не ответим ведущему устройству и не применим остальные параметры,
+	//указанные в команде. ¬ызов ProcessCmdSetMode() должен быть перенесен за проверку и формирование ответа
+	//ведущего устройства
+	#ifdef ENABLE_SET_ARM_STANDBY_MODE
+	pobjRadioModule->SetARMPowerMode(ARMPowerMode);
+	#endif
+	
+	
+	//„итаем код аудиопараметров
+	uint8_t audioCode = SPIMCmdRcvd->Body[1];
+	//–азбираем код на отдельные параметры
+	uint8_t audioOutLevel, audioInLevel;
+	SPIMCmdRcvd->ParseAudioCode(audioCode, audioOutLevel, audioInLevel);
+
+	//ѕримен€ем прин€тые значени€ аудиопараметров
+	pobjRadioModule->SetAudioOutLevel(audioOutLevel);	
+	pobjRadioModule->SetAudioInLevel(audioInLevel);
+	
+	
+	//„итаем код рабочей частоты передачи
+	uint16_t* pTXFreqCode = (uint16_t*)(SPIMCmdRcvd->Body+2);
+	uint16_t TXFreqCode = *pTXFreqCode;
+	//ѕримен€ем код рабочей частоты передачи
+	pobjRadioModule->SetTxFreqChan(TXFreqCode);
+	
+	//„итаем код рабочей частоты приема
+	uint16_t* pRXFreqCode = (uint16_t*)(SPIMCmdRcvd->Body+4);
+	uint16_t RXFreqCode = *pRXFreqCode;
+	//ѕримен€ем код рабочей частоты приемачи
+	pobjRadioModule->SetRxFreqChan(RXFreqCode);
+}
+
 
 
 void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize)
@@ -151,9 +204,9 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 	if(SPIMCmdRcvd->cmdReqParam.isOpModeReq())
 	{
 		//ќпредел€ем параметры рабочего режима радиомодул€
-		uint8_t radioChanType = g_RadioModule.GetRadioChanType();
-		uint8_t radioSignalPower = g_RadioModule.GetRadioSignalPower();
-		uint8_t powerMode = g_RadioModule.GetARMPowerMode();
+		uint8_t radioChanType = pobjRadioModule->GetRadioChanType();
+		uint8_t radioSignalPower = pobjRadioModule->GetRadioSignalPower();
+		uint8_t powerMode = pobjRadioModule->GetARMPowerMode();
 
 		//‘ормируем код рабочего режима
 		uint8_t OpModeCode = SPIMCmdRcvd->cmdReqParam.OpModeCode(radioChanType,radioSignalPower,powerMode);
@@ -166,8 +219,8 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 	if(SPIMCmdRcvd->cmdReqParam.isAudioReq())
 	{
 		//ќпределе€ем аудионастройки радиомодул€
-		uint8_t audioInLevel = g_RadioModule.GetAudioInLevel();
-		uint8_t audioOutLevel = g_RadioModule.GetAudioOutLevel();
+		uint8_t audioInLevel = pobjRadioModule->GetAudioInLevel();
+		uint8_t audioOutLevel = pobjRadioModule->GetAudioOutLevel();
 		
 		//‘ормируем код аудионастроек
 		uint8_t AudioCode = SPIMCmdRcvd->cmdReqParam.AudioCode(audioOutLevel,audioInLevel);
@@ -179,28 +232,28 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 	//≈сли запрашиваетс€ частота приема радиомодул€
 	if(SPIMCmdRcvd->cmdReqParam.isRxFreqReq())
 	{
-		pBodyData[bodySize] = g_RadioModule.GetRxFreqChan();
+		pBodyData[bodySize] = pobjRadioModule->GetRxFreqChan();
 		bodySize++;
 	}
 
 	//≈сли запрашиваетс€ частота передачи радиомодул€
 	if(SPIMCmdRcvd->cmdReqParam.isTxFreqReq())
 	{
-		pBodyData[bodySize] = g_RadioModule.GetTxFreqChan();
+		pBodyData[bodySize] = pobjRadioModule->GetTxFreqChan();
 		bodySize++;
 	}	
 	
 	//≈сли запрашиваетс€ текущий уровень приема сигнала
 	if(SPIMCmdRcvd->cmdReqParam.isRSSIReq())
 	{
-		pBodyData[bodySize] = g_RadioModule.GetRSSILevel();
+		pBodyData[bodySize] = pobjRadioModule->GetRSSILevel();
 		bodySize++;
 	}		
 	
 	//≈сли запрашиваетс€ текущее состо€ние радиоканала
 	if(SPIMCmdRcvd->cmdReqParam.isChanStateReq())
 	{
-		pBodyData[bodySize] = g_RadioModule.GetRadioChanState();
+		pBodyData[bodySize] = pobjRadioModule->GetRadioChanState();
 		bodySize++;
 	}		
 }

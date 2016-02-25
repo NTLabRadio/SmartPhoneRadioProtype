@@ -40,3 +40,14 @@ uint32_t ReadCMX7262TimerCounter(void)
 {
 	return __HAL_TIM_GetCounter(&htim5);
 }
+
+
+void StartPeriphTimers()
+{
+	/* Стартуем высокоточный таймер (TIM2+TIM3) для контроля временных задержек низкоуровневых функций */
+	HAL_TIM_Base_Start(&htim2);
+	HAL_TIM_Base_Start(&htim3);
+	
+	/* Стартуем таймер для контроля процессов управления микросхемой CMX7262 */
+	HAL_TIM_Base_Start(&htim5);
+}

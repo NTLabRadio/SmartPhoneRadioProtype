@@ -64,6 +64,9 @@ public:
 	
 	uint8_t IDBackCmd(uint8_t IDCmd);
 	
+	static void ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& SignalPower, uint8_t& ARMPowerMode);
+	static void ParseAudioCode(uint8_t audioCode, uint8_t& AudioOutLevel, uint8_t& AudioInLevel);
+	
 	class CmdReqParam
 	{
 		public:

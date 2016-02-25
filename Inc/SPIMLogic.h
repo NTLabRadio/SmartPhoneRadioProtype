@@ -18,7 +18,7 @@
 
 extern uint8_t pUARTRxSLIPPack[];
 extern uint16_t nSizeSLIPPack;
-extern RadioModule g_RadioModule;
+extern RadioModule* pobjRadioModule;
 
 enum en_SPIMaddrs
 {
@@ -42,6 +42,7 @@ void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd);
 void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend);
 void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
 void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
+void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd);
 
 
 #endif // SPIMLOGIC_H
