@@ -84,10 +84,17 @@ typedef struct
 }registerSetting_t;	// шаблон структуры конфигурации
 
 
+typedef enum
+{
+	CC1120_TX_STATE_STANDBY,
+	CC1120_TX_STATE_ACTIVE
+} CC1120TxStates_TypeDef;
+
 typedef struct
 {
-	SPI_HandleTypeDef *hSPIinterface;
-} CС1120_TypeDef;	
+	SPI_HandleTypeDef *hSPI;
+	CC1120TxStates_TypeDef TxState;
+} CC1120_TypeDef;	
 
 
 	 
@@ -403,27 +410,41 @@ static const registerSetting_t CC1120_Config_48000[]= {
 ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint16_t uAccesses);
 ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8_t bBurst, uint8_t *data_ptr, uint8_t uAccesses);
 
-uint16_t  CC1120_Init(CС1120_TypeDef *pСС1120, SPI_HandleTypeDef *hspi);
+uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi);
+
+uint16_t CC1120_TxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t sizeBuf);
+uint16_t CC1120_RxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t* sizeBuf);
+
 uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi);
+
 CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi);
+
 uint8_t CC1120_Tx(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_IDLE_set(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_Rx(SPI_HandleTypeDef *hspi);
+
 uint8_t CC1120_Reset(SPI_HandleTypeDef *hspi);
+
 uint8_t CC1120_TxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_TxFIFOFlush(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr, uint8_t tx_num);
+
 uint8_t CC1120_ManualCalibration(SPI_HandleTypeDef *hspi);
+
 CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi);
+
 uint8_t CC1120_SFSTXON_set (SPI_HandleTypeDef *hspi);
+
 uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi);
+uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
+
 uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
 uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
+
 uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq);
 uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi);
-uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
 
 	 
 #ifdef __cplusplus

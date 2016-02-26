@@ -49,11 +49,22 @@ enum en_RadioChanStates
 	RADIOCHAN_STATE_TRANSMIT
 };
 
+enum en_RadioModuleStates
+{
+	RADIOMODULE_STATE_IDLE,
+	RADIOMODULE_STATE_TX_WAITING,
+	RADIOMODULE_STATE_TX_RUNNING,
+	RADIOMODULE_STATE_RX_WAITING,
+	RADIOMODULE_STATE_RX_RUNNING
+};
+
 class RadioModule
 {
 public:
 	
   RadioModule();
+
+	en_RadioModuleStates RadioModuleState;
 
 	uint8_t SetRadioChanType(uint8_t chanType);
 	uint8_t GetRadioChanType();
@@ -78,6 +89,7 @@ public:
 
 	uint8_t GetRSSILevel();
 	
+	uint8_t SetRadioChanState(uint8_t radioChanState);
 	uint8_t GetRadioChanState();
 	
 	void ApplyAudioSettings();

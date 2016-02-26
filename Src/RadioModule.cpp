@@ -6,6 +6,8 @@ extern CMX7262_TypeDef  g_CMX7262Struct;
 
 RadioModule::RadioModule()
 {
+	RadioModuleState = RADIOMODULE_STATE_IDLE;
+	
 	//Тип радиоканала
 	RadioChanType = RADIOCHAN_TYPE_IDLE;
 	//Режим мощности ВЧ сигнала
@@ -136,6 +138,13 @@ uint8_t RadioModule::GetRSSILevel()
 uint8_t RadioModule::GetRadioChanState()
 {
 	return(RadioChanState);
+}
+
+uint8_t RadioModule::SetRadioChanState(uint8_t radioChanState)
+{
+	RadioChanState = (en_RadioChanStates)radioChanState;
+	
+	return(0);
 }
 
 

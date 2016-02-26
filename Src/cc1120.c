@@ -3,8 +3,8 @@
 
 SPI_HandleTypeDef *hspiCC1120 = NULL;
 
-uint8_t pCC1120TxData[255];
-uint8_t pCC1120RxData[255];
+uint8_t pCC1120TxData[256];
+uint8_t pCC1120RxData[256];
 
 extern uint8_t g_flCC1120_IRQ_CHECKED;
 
@@ -42,8 +42,10 @@ uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi)
 }
 
 
-uint16_t CC1120_Init(CС1120_TypeDef *pСС1120, SPI_HandleTypeDef *hspi)
+uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi)
 {
+	pCC1120->hSPI = hspi;
+	
 	//1. Reset микросхемы
 	CC1120_Reset(hspi);
 
@@ -84,6 +86,49 @@ uint16_t CC1120_Init(CС1120_TypeDef *pСС1120, SPI_HandleTypeDef *hspi)
 	
 	WaitTimeMCS(1e2);	
 	
+	return(1);
+}
+
+/* 			Порядок действий при отправке пакета:
+			 1. Очистка Tx FIFO CC1120_TxFIFOFlush
+			 2. Загрузка массива данных в Tx FIFO CC1120_TxFIFOWrite
+			 3. Запрос количества байтов в Tx FIFO и сравнение с отправленными CC1120_TxFIFONumBytes или 
+			 4. Запрос статуса MARCSTATE (проверка на ошибки Tx FIFO) CC1120_MARCState
+			 5. Перевод в режим Tx
+			 6. Проверка на ошибки по передаче (таймаут) CC1120_MARCState
+			 7. Получение прерывания о передаче конца пакета flCC1120_IRQ_CHECKED = TRUE
+			 8. Сброс прерывания конца передачи пакета flCC1120_IRQ_CHECKED = FALSE
+			 9. Запрос статуса. Подтверждение перехода в IDLE CC1120_Status
+ */
+uint16_t CC1120_TxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t sizeBuf)
+{
+	//1. Очистка Tx FIFO
+	CC1120_TxFIFOFlush(pCC1120->hSPI);
+		
+	//2. Загрузка массива данных в Tx FIFO
+	CC1120_TxFIFOWrite(pCC1120->hSPI, pDataBuf, sizeBuf);
+				
+	//3. Проверка размера данных в TX FIFO
+	CC1120_TxFIFONumBytes(pCC1120->hSPI);
+				
+	//4. Перевод в режим передачи
+	CC1120_Tx(pCC1120->hSPI);
+			
+	//WaitTimeMCS(1e3);
+	//CC1120_MARCState(pCC1120->hSPI);
+	
+	return(1);
+}
+
+
+uint16_t CC1120_RxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t* sizeBuf)
+{
+	//Тут может быть проверка состояния CC1120_MARCState() и адекватности размера принятых данных CC1120_RxFIFONumBytes()
+	
+	*sizeBuf = CC1120_RxFIFONumBytes(pCC1120->hSPI);
+	
+	//Чтение массива данных из СС1120
+	CC1120_RxFIFORead(pCC1120->hSPI);
 	
 	return(1);
 }
