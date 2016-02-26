@@ -88,8 +88,17 @@ uint16_t nLengthDataToCMX7262 = 0;
 //Число буферов данных вокодера в одном радиопакете
 #define NUM_CMX7262_BUFFERS_IN_RADIOPACK	(3)				//60 мс x 3 = 180 мс
 
-//Размер радиопакета в режиме голосового обмена
+//Размер радиопакета в режиме речевого обмена, только речевые данные
 #define RADIOPACK_VOICEMODE_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK*CMX7262_CODEC_BUFFER_SIZE)
+
+//Размер расширенного радиопакета в режиме речевого обмена, со служебными данными в дополнении к речевым
+#define RADIOPACK_VOICEMODE_EXTSIZE	(90)
+
+//Данные расширенного пакета для передачи
+uint8_t RadioPackForSend[RADIOPACK_VOICEMODE_EXTSIZE];
+
+//Данные принятого расширенного радиопакета
+uint8_t RadioPackRcvd[RADIOPACK_VOICEMODE_EXTSIZE];
 
 
 #ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
@@ -538,6 +547,7 @@ void ProcessPTTState()
 }
 
 
+
 void ProcessRadioState()
 {
 	switch(pobjRadioModule->GetRadioChanState())
@@ -579,7 +589,14 @@ void ProcessRadioState()
 						 (g_CC1120Struct.TxState!=CC1120_TX_STATE_ACTIVE))
 					{
 						//CC1120_TxData(&g_CC1120Struct, pDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
-						CC1120_TxData(&g_CC1120Struct, pDataFromCMX7262, 90);
+						
+						//TODO Наполнение пакета для передачи вынести в отдельную функцию
+						//1й байт - адрес. Устанавливаем широковещательный
+						RadioPackForSend[0] = 0;
+						//За адресом размещаем речевые данные
+						memcpy(RadioPackForSend+1,pDataFromCMX7262,RADIOPACK_VOICEMODE_SIZE);
+						//Отправляем данные на CC1120
+						CC1120_TxData(&g_CC1120Struct, RadioPackForSend, RADIOPACK_VOICEMODE_EXTSIZE);
 						
 						g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
 						
@@ -617,7 +634,12 @@ void ProcessRadioState()
 					//2. Если есть прерывание, забираем данные из CC1120. Складируем их в очередь для вокодера, если в ней есть место
 						if(nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRecData)
 						{
-							CC1120_RxData(&g_CC1120Struct,&pDataToCMX7262[nLengthDataToCMX7262],&nSizeOfRecData);
+							//CC1120_RxData(&g_CC1120Struct,&pDataToCMX7262[nLengthDataToCMX7262],&nSizeOfRecData);
+							
+							CC1120_RxData(&g_CC1120Struct,RadioPackRcvd,&nSizeOfRecData);
+							//Копируем данные принятого радиопакета в очередь для вокодера с учетом того, что первый байт - адрес
+							memcpy(&pDataToCMX7262[nLengthDataToCMX7262],RadioPackRcvd+1,RADIOPACK_VOICEMODE_SIZE);
+							
 							nLengthDataToCMX7262+=nSizeOfRecData;
 						}
 			
