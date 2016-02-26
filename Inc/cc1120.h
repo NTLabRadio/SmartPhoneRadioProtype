@@ -87,6 +87,7 @@ typedef struct
 typedef enum
 {
 	CC1120_TX_STATE_STANDBY,
+	CC1120_TX_STATE_WAIT,
 	CC1120_TX_STATE_ACTIVE
 } CC1120TxStates_TypeDef;
 

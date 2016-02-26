@@ -46,6 +46,8 @@ uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi)
 {
 	pCC1120->hSPI = hspi;
 	
+	pCC1120->TxState = CC1120_TX_STATE_STANDBY;
+	
 	//1. Reset микросхемы
 	CC1120_Reset(hspi);
 

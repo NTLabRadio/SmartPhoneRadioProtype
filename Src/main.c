@@ -177,13 +177,13 @@ int main(void)
 	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
 	SPIMInit();
 
-	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулуй
+	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулей
 	CC1120_CheckModule(&hspi1);
 	CMX7262_CheckModule(&hspi1);
 	#endif
 
 
-	//Делаем инициализацию радиомодуля для вохзможности управления его режимами и параметрами
+	//Делаем инициализацию радиомодуля для возможности управления его режимами и параметрами
 	RadioModuleInit();
 
 	#ifdef TEST_CMX7262
@@ -497,12 +497,13 @@ void RadioModuleDeInit()
 	delete pobjRadioModule;
 }
 
+
 //Функция обработки состояние тангенты
 //TODO Не реализован антидребезг
 void ProcessPTTState()
 {
 	//Если нажата тангета
-	if(HAL_GPIO_ReadPin(PTT_GPIO_Port, PTT_Pin))
+	if(!HAL_GPIO_ReadPin(PTT_GPIO_Port, PTT_Pin))
 	{
 		//Проверяем состояние радиоканала
 		//Если до сих пор не находимся в передаче
@@ -512,6 +513,11 @@ void ProcessPTTState()
 			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_TRANSMIT);
 			
 			pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_TX_WAITING;
+			
+			//Перевод вокодера в режим кодирования
+			CMX7262_Encode(&g_CMX7262Struct);
+			
+			nLengthDataFromCMX7262 = 0;
 		}
 	}
 	else
@@ -525,6 +531,8 @@ void ProcessPTTState()
 			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
 			
 			pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_RX_WAITING;
+			
+			nLengthDataToCMX7262 = 0;
 		}
 	}
 }
@@ -539,9 +547,6 @@ void ProcessRadioState()
 			switch(pobjRadioModule->RadioModuleState)
 			{		
 				case RADIOMODULE_STATE_TX_WAITING:
-					//0. Перевод вокодера в режим кодирования
-					CMX7262_Encode(&g_CMX7262Struct);
-				
 					//1. Проверяем, нет ли прерывания о приходе новых данных с вокодера - CMX7262_ODA (делается в ProcessCMX7262State())
 
 					//2. Если есть, то забираем данные и складируем в очередь на передачу:	(делается в ProcessCMX7262State())
@@ -560,7 +565,7 @@ void ProcessRadioState()
 						//Сбрасываем флаг прерывания
 						g_flCC1120_IRQ_CHECKED = FALSE;
 
-						g_CC1120Struct.TxState = CC1120_TX_STATE_STANDBY;						
+						g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
 					}
 				
 					//1. Проверяем, нет ли прерывания о приходе новых данных с вокодера - CMX7262_ODA	(делается в ProcessCMX7262State())
@@ -573,7 +578,8 @@ void ProcessRadioState()
 					if((nLengthDataFromCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-RADIOPACK_VOICEMODE_SIZE) &&
 						 (g_CC1120Struct.TxState!=CC1120_TX_STATE_ACTIVE))
 					{
-						CC1120_TxData(&g_CC1120Struct, pDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
+						//CC1120_TxData(&g_CC1120Struct, pDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
+						CC1120_TxData(&g_CC1120Struct, pDataFromCMX7262, 90);
 						
 						g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
 						
