@@ -104,6 +104,10 @@ uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi)
  */
 uint16_t CC1120_TxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t sizeBuf)
 {
+	//0. перевод в режим IDLE
+	//NO: Надо ли это?
+	CC1120_IDLE_set(pCC1120->hSPI); 
+	
 	//1. Очистка Tx FIFO
 	CC1120_TxFIFOFlush(pCC1120->hSPI);
 		
