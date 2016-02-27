@@ -231,7 +231,6 @@ int main(void)
 
 	#ifdef	DEBUG_RX_CC1120 // проверка  приема одиночного пакета		
 		
-		uint8_t RxFIFONumBytes = 0;
 		
 		CC1120_RxFIFOFlush(&CURRENT_SPI); // Очистка Rx FIFO
 		CC1120_Rx(&CURRENT_SPI); // Перевод трасивера в режим Rx
