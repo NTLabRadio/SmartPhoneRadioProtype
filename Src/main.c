@@ -75,7 +75,7 @@ uint8_t g_flCC1120_IRQ_CHECKED = FALSE;
 uint8_t pDataFromCMX7262[MAX_SIZE_OF_DATA_FROM_CMX7262];
 uint16_t nLengthDataFromCMX7262 = 0;
 
-#define MAX_SIZE_OF_DATA_TO_CMX7262 (2048)
+#define MAX_SIZE_OF_DATA_TO_CMX7262 (4096)
 uint8_t pDataToCMX7262[MAX_SIZE_OF_DATA_TO_CMX7262];
 uint16_t nLengthDataToCMX7262 = 0;
 
@@ -174,12 +174,14 @@ int main(void)
 	CC1120_CSN_HIGH();
 	CMX7262_CSN_HIGH();
 	
-	//0. Pin Reset микросхемы CC1120 устанавливаем в высокое состояние
+	// Pin Reset CC1120 устанавливаем в высокое состояние для перевода микросхемы в активное состояние
 	CC1120_RESET_HIGH();
 	
 	#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);
 	#endif
 	
 	//Запускаем таймеры для работы с периферией
@@ -213,10 +215,6 @@ int main(void)
 		//Если из UART приняты данные
 		if(UARTstate==UART_DATA_RX_NEED_TO_PROCESS)
 		{
-			#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
-			HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
-			#endif
-			
 			//Обрабатываем их
 			ProcessDataFromExtDev();
 			
@@ -455,8 +453,8 @@ void MX_GPIO_Init(void)
   __GPIOB_CLK_ENABLE();	
   __GPIOC_CLK_ENABLE();
 
-  /*Configure GPIO pins : PE1 PE2 PE6 PE7 PE0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
+  /*Configure GPIO pins : PE1 PE2 PE3 PE4 PE6 PE7 PE0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -540,6 +538,7 @@ void ProcessPTTState()
 			CMX7262_Encode(&g_CMX7262Struct);
 			
 			nLengthDataFromCMX7262 = 0;
+			nLengthDataToCMX7262 = 0;
 		}
 	}
 	else
@@ -554,9 +553,24 @@ void ProcessPTTState()
 			
 			pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_RX_WAITING;
 			
+			#ifndef TEST_RADIO_IMITATE
 			nLengthDataToCMX7262 = 0;
+			#endif
+			nLengthDataFromCMX7262 = 0;
 		}
 	}
+}
+
+void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize)
+{
+	if(nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-packSize)
+	{
+		memcpy(&pDataToCMX7262[nLengthDataToCMX7262],pPackData,packSize);
+								
+		nLengthDataToCMX7262+=packSize;		
+	}
+	
+	g_flCC1120_IRQ_CHECKED = TRUE;
 }
 
 
@@ -598,7 +612,7 @@ void ProcessRadioState()
 
 					//3. Если в очереди на передачу достаточно данных для формирования одного пакета 
 					//и передатчик CC1120 свободен, то посылаем их в СС1120
-					if((nLengthDataFromCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-RADIOPACK_VOICEMODE_SIZE) &&
+					if((nLengthDataFromCMX7262 >= RADIOPACK_VOICEMODE_SIZE) &&
 						 (g_CC1120Struct.TxState!=CC1120_TX_STATE_ACTIVE))
 					{
 						//CC1120_TxData(&g_CC1120Struct, pDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
@@ -608,8 +622,13 @@ void ProcessRadioState()
 						RadioPackForSend[0] = 0;
 						//За адресом размещаем речевые данные
 						memcpy(RadioPackForSend+1,pDataFromCMX7262,RADIOPACK_VOICEMODE_SIZE);
+						
+						#ifndef TEST_RADIO_IMITATE
 						//Отправляем данные на CC1120
 						CC1120_TxData(&g_CC1120Struct, RadioPackForSend, RADIOPACK_VOICEMODE_EXTSIZE);
+						#else
+						RadioImitator_TxData(RadioPackForSend+1, RADIOPACK_VOICEMODE_SIZE);
+						#endif
 						
 						g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
 						
@@ -629,6 +648,15 @@ void ProcessRadioState()
 				case RADIOMODULE_STATE_RX_WAITING:
 					//Перевод вокодера в режим декодирования
 					CMX7262_Decode(&g_CMX7262Struct);
+				
+					//Отправим в вокодер один пакет, чтобы он просигнализировал прерыванием, что ему нужны данные
+					#ifndef CMX7262_CODEC_BUFFER_SIZE
+					memset(pDataToCMX7262,0,MAX_SIZE_OF_DATA_TO_CMX7262);
+					#endif
+					CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+				
+					//Подождем пока воспроизведется
+					WaitTimeMCS(CMX7262_BUFFER_DURATION_MS*1e3);
 				
 					//Очистка Rx FIFO
 					CC1120_RxFIFOFlush(g_CC1120Struct.hSPI);
@@ -650,10 +678,16 @@ void ProcessRadioState()
 							//CC1120_RxData(&g_CC1120Struct,&pDataToCMX7262[nLengthDataToCMX7262],&nSizeOfRecData);
 							
 							CC1120_RxData(&g_CC1120Struct,RadioPackRcvd,&nSizeOfRecData);
-							//Копируем данные принятого радиопакета в очередь для вокодера с учетом того, что первый байт - адрес
-							memcpy(&pDataToCMX7262[nLengthDataToCMX7262],RadioPackRcvd+1,RADIOPACK_VOICEMODE_SIZE);
 							
-							nLengthDataToCMX7262+=nSizeOfRecData;
+							#ifndef DEBUG_CMX7262_RECPACK_WO_ADDR
+							//Копируем данные принятого радиопакета в очередь для вокодера с учетом того, что первый байт - адрес
+							//Копируем только вокодерные данные. Несколько байт мусора за этими данными, которые генерит передачик, не трогаем
+							memcpy(&pDataToCMX7262[nLengthDataToCMX7262],RadioPackRcvd+1,RADIOPACK_VOICEMODE_SIZE);
+							#else
+							memcpy(&pDataToCMX7262[nLengthDataToCMX7262],RadioPackRcvd,RADIOPACK_VOICEMODE_SIZE);
+							#endif
+							
+							nLengthDataToCMX7262+=RADIOPACK_VOICEMODE_SIZE;
 						}
 			
 					//3. Сбрасываем флаг прерывания 
@@ -732,24 +766,35 @@ void ProcessCMX7262State()
 
 	if((g_CMX7262Struct.uIRQRequest & CMX7262_IDW) == CMX7262_IDW)
 	{
-		#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
-		HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_2);
-		#endif
-		
-		//Сбрасываем флаг CMX7262_IDW
-		g_CMX7262Struct.uIRQRequest = g_CMX7262Struct.uIRQRequest & ~CMX7262_IDW;
+			#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
+			HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_2);
+			#endif		
 
 		//Передаем данные на CMX7262
 		
 		#ifndef TEST_CMX7262
 		//Рабочий режим
+		#ifndef TEST_RADIO_IMITATE
 		if(nLengthDataToCMX7262>=CMX7262_CODEC_BUFFER_SIZE)
+		#else
+		//В тестовом режиме дополнительно проверяем, не нажата ли тангента
+		//При нажатой тангенте ничего не воспроизводим
+		if((nLengthDataToCMX7262>=CMX7262_CODEC_BUFFER_SIZE) && (HAL_GPIO_ReadPin(PTT_GPIO_Port, PTT_Pin)))
+		#endif
 		{
 			CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+			
+			#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
+			HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
+			#endif
 
 			//TODO Заменить pDataToCMX7262 на кольцевой буфер
 			memmove(pDataToCMX7262,pDataToCMX7262+CMX7262_CODEC_BUFFER_SIZE,nLengthDataToCMX7262-CMX7262_CODEC_BUFFER_SIZE);
 			nLengthDataToCMX7262-=CMX7262_CODEC_BUFFER_SIZE;
+			
+			//Сбрасываем флаг CMX7262_IDW
+			g_CMX7262Struct.uIRQRequest = g_CMX7262Struct.uIRQRequest & ~CMX7262_IDW;
+
 		}
 		else
 			printf("Bufer pDataToCMX7262 is Empty");

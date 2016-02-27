@@ -355,7 +355,7 @@ void CMX7262_Decode (CMX7262_TypeDef *pCmx7262)
 	else
 	{
 		pCmx7262->uMode = CMX7262_DECODE_MODE;
-		CMX7262_EnableIRQ(pCmx7262, IRQ+UF/*+IDW*/);        //enable underflow irq so we know when the call is over.
+		CMX7262_EnableIRQ(pCmx7262, IRQ+UF+IDW);        //enable underflow irq so we know when the call is over.
 	}
 }
 

@@ -137,7 +137,11 @@ uint16_t CC1120_RxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t* siz
 	*sizeBuf = CC1120_RxFIFONumBytes(pCC1120->hSPI);
 	
 	//Чтение массива данных из СС1120
-	CC1120_RxFIFORead(pCC1120->hSPI);
+	uint8_t* RxPackData = CC1120_RxFIFORead(pCC1120->hSPI);
+	
+	for(int16_t i=0; i<*sizeBuf; i++)
+		pDataBuf[i] = RxPackData[i];
+	//memcpy(pDataBuf,RxPackData,*sizeBuf);
 	
 	//Перевод повторно в режим приема
 	CC1120_Rx(pCC1120->hSPI);
@@ -935,17 +939,16 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 	{
 		return 0;
 	}
-	
+/*	
 	// сдвиг данных буфера на 1 индекс и запись в 0 элемент количество байтов Rx FIFO
-	for (uint8_t i = RxFIFONumBytes; (i>0); i--)
-			{
-				pCC1120RxData[i+1] = pCC1120RxData[i];
-			}
-			pCC1120RxData[1] = pCC1120RxData[0];
-			pCC1120RxData[0] = RxFIFONumBytes;
-			
+	for (int8_t i = (RxFIFONumBytes+1); i<=0; i--)
+	{
+		pCC1120RxData[i+1] = pCC1120RxData[i];
+	}
+	pCC1120RxData[0] = RxFIFONumBytes;
+
 	WaitTimeMCS(10e2);
-	
+*/		
 	CC1120_CSN_HIGH();
 	
 	return (pCC1120RxData);
