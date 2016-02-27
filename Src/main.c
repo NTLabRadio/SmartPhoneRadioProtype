@@ -591,7 +591,10 @@ void ProcessRadioState()
 
 					//3. Если накопили достаточно звуковых данных, переключаемся в режим RADIOMODULE_STATE_TX_RUNNING
 					if(nLengthDataFromCMX7262 > NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX * CMX7262_CODEC_BUFFER_SIZE)
+					{
 						pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_TX_RUNNING;
+						g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;						
+					}
 						
 					break;
 
