@@ -136,8 +136,12 @@ int main(void)
 	
 	#ifdef DEBUG_INT_CC1120	// Отладочная инициализация CC1120
 	 
+		CC1120_RESET_HW; // аппаратный сброс тансивера
 	 
+		WaitTimeMCS(5e1);
 	 
+		CC1120_SET_HW; // перевод трансивера в рабочий режим
+	
 		CC1120_CheckModule(&CURRENT_SPI); // запрос ID трансивера
 			
 		CC1120_Reset(&CURRENT_SPI); // сброс трансивера
@@ -255,12 +259,14 @@ int main(void)
 		
 		if (flCC1120_IRQ_CHECKED)
 		{
-			flCC1120_IRQ_CHECKED = FALSE;
 			
-			printf("Transmitting complete");
-			printf("\n");
+			
+		//	printf("Transmitting complete");
+		//	printf("\n");
 			
 			CC1120_Status (&CURRENT_SPI);
+			
+			flCC1120_IRQ_CHECKED = FALSE;
 			
 		}
 		
@@ -290,10 +296,6 @@ int main(void)
 		#endif
 		
 		
-		
-		
-		
-
 		
 	/* USER CODE END WHILE */
 
@@ -509,6 +511,7 @@ void MX_GPIO_Init(void)
 	/* GPIO Ports Clock Enable */
 	__GPIOE_CLK_ENABLE();
 	__GPIOA_CLK_ENABLE();
+	__GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pins : PE6 PE7 PE0 */
 	GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
@@ -521,6 +524,13 @@ void MX_GPIO_Init(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLUP; //***********************************************************************************
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	
+	/*Configure GPIO pins : PB15 */
+	GPIO_InitStruct.Pin = GPIO_PIN_15;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP; //***********************************************************************************
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	
 
 	/*Configure GPIO pins : PA2 PA4 */
 	GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_4;

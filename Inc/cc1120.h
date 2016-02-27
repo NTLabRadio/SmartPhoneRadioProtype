@@ -406,10 +406,14 @@ static const registerSetting_t CC1120_Config_48000[]= {
 
 
 
+// Definitions for IO port mapped as Reset (output).
+
+#define CC1120_RESET_PIN            	   	GPIO_PIN_15              		/* PB.15 */
+#define CC1120_RESET_GPIO_PORT      	   	GPIOB                       /* GPIOB */
 
 
-
-
+#define CC1120_SET_HW        HAL_GPIO_WritePin(CC1120_RESET_GPIO_PORT, CC1120_RESET_PIN, GPIO_PIN_SET)
+#define	CC1120_RESET_HW			HAL_GPIO_WritePin(CC1120_RESET_GPIO_PORT, CC1120_RESET_PIN, GPIO_PIN_RESET)
 
 
 

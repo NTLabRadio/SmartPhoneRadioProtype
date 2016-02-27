@@ -108,7 +108,7 @@ CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi)
 	CC1120_CSN_HIGH();
 	
 	// в байте статуса выделяем старшие 4 бита
-	return (pCC1120RxData[0]>>4);
+	return ((CC1120STATUSTypeDef)(pCC1120RxData[0]>>4));
 }
 
 
@@ -567,7 +567,7 @@ CC1120MARCSTATETypeDef CC1120_MARCState(SPI_HandleTypeDef *hspi)
 	WaitTimeMCS(1e2);
 	CC1120_CSN_HIGH();
 			
-	return ((pCC1120RxData [0]) & 0x1F);		
+	return ((CC1120MARCSTATETypeDef)((pCC1120RxData [0]) & 0x1F));		
 }
 
 /**
@@ -928,7 +928,7 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 			}
 	// сдвиг данных буфера на 1 индекс и запись в 0 элемент количество байтов Rx FIFO
 	
-	for (uint8_t i = (RxFIFONumBytes+1); i<0; i--)
+	for (uint8_t i = (RxFIFONumBytes+1); i==0; i--)
 			{
 				pCC1120RxData[i+1] = pCC1120RxData[i];
 			}
