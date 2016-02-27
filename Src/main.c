@@ -553,6 +553,9 @@ void ProcessPTTState()
 			
 			pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_RX_WAITING;
 			
+			//Перевод вокодера в режим декодирования
+			CMX7262_Decode(&g_CMX7262Struct);
+			
 			#ifndef TEST_RADIO_IMITATE
 			nLengthDataToCMX7262 = 0;
 			#endif
@@ -637,6 +640,7 @@ void ProcessRadioState()
 						
 						memmove(pDataFromCMX7262,pDataFromCMX7262+RADIOPACK_VOICEMODE_SIZE,nLengthDataFromCMX7262-RADIOPACK_VOICEMODE_SIZE);
 						nLengthDataFromCMX7262-=RADIOPACK_VOICEMODE_SIZE;
+						memset(pDataFromCMX7262+nLengthDataFromCMX7262,0,RADIOPACK_VOICEMODE_SIZE);
 					}
 
 					break;
@@ -649,17 +653,15 @@ void ProcessRadioState()
 			switch(pobjRadioModule->RadioModuleState)
 			{
 				case RADIOMODULE_STATE_RX_WAITING:
-					//Перевод вокодера в режим декодирования
-					CMX7262_Decode(&g_CMX7262Struct);
-				
 					//Отправим в вокодер один пакет, чтобы он просигнализировал прерыванием, что ему нужны данные
-					#ifndef CMX7262_CODEC_BUFFER_SIZE
+					#ifndef TEST_RADIO_IMITATE
 					memset(pDataToCMX7262,0,MAX_SIZE_OF_DATA_TO_CMX7262);
 					#endif
-					CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+					CMX7262_TxFIFO(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+					CMX7262_TxFIFO(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
 				
 					//Подождем пока воспроизведется
-					WaitTimeMCS(CMX7262_BUFFER_DURATION_MS*1e3);
+					WaitTimeMCS(2*CMX7262_BUFFER_DURATION_MS*1e3);
 				
 					//Очистка Rx FIFO
 					CC1120_RxFIFOFlush(g_CC1120Struct.hSPI);
@@ -750,6 +752,10 @@ void ProcessCMX7262State()
 			//Если данные еще есть куда складировать
 			if(nLengthDataFromCMX7262 <= MAX_SIZE_OF_DATA_FROM_CMX7262-CMX7262_CODEC_BUFFER_SIZE)
 			{
+				#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
+				HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_3);
+				#endif
+				
 				//Забираем их с CMX7262
 				CMX7262_RxFIFO(&g_CMX7262Struct,(uint8_t *)&pDataFromCMX7262[nLengthDataFromCMX7262]);
 				nLengthDataFromCMX7262 += CMX7262_CODEC_BUFFER_SIZE;
@@ -785,7 +791,7 @@ void ProcessCMX7262State()
 		if((nLengthDataToCMX7262>=CMX7262_CODEC_BUFFER_SIZE) && (HAL_GPIO_ReadPin(PTT_GPIO_Port, PTT_Pin)))
 		#endif
 		{
-			CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+			CMX7262_TxFIFO(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
 			
 			#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
 			HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_1);
