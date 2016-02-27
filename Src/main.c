@@ -141,6 +141,8 @@ int main(void)
 		WaitTimeMCS(5e1);
 	 
 		CC1120_SET_HW; // перевод трансивера в рабочий режим
+		
+		WaitTimeMCS(5e1);
 	
 		CC1120_CheckModule(&CURRENT_SPI); // запрос ID трансивера
 			
