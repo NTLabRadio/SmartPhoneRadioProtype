@@ -48,6 +48,9 @@ uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi)
 	
 	pCC1120->TxState = CC1120_TX_STATE_STANDBY;
 	
+	//0. Pin Reset микросхемы устанавливаем в высокое состояние
+	CC1120_RESET_HIGH();	
+	
 	//1. Reset микросхемы
 	CC1120_Reset(hspi);
 
@@ -135,6 +138,9 @@ uint16_t CC1120_RxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t* siz
 	
 	//Чтение массива данных из СС1120
 	CC1120_RxFIFORead(pCC1120->hSPI);
+	
+	//Перевод повторно в режим приема
+	CC1120_Rx(pCC1120->hSPI);
 	
 	return(1);
 }

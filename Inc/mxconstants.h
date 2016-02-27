@@ -38,6 +38,8 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define CC1120_RESET_Pin GPIO_PIN_15
+#define CC1120_RESET_GPIO_Port GPIOB
 #define PTT_Pin GPIO_PIN_8
 #define PTT_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */

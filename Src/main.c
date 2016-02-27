@@ -94,11 +94,13 @@ uint16_t nLengthDataToCMX7262 = 0;
 //Размер расширенного радиопакета в режиме речевого обмена, со служебными данными в дополнении к речевым
 #define RADIOPACK_VOICEMODE_EXTSIZE	(90)
 
+#define MAX_RADIOPACK_SIZE	(128)
+
 //Данные расширенного пакета для передачи
 uint8_t RadioPackForSend[RADIOPACK_VOICEMODE_EXTSIZE];
 
-//Данные принятого расширенного радиопакета
-uint8_t RadioPackRcvd[RADIOPACK_VOICEMODE_EXTSIZE];
+//Данные принятого радиопакета
+uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE];
 
 
 #ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
@@ -171,6 +173,9 @@ int main(void)
 	// Устанавливаем CS периферийных микросхем в высокое состояние
 	CC1120_CSN_HIGH();
 	CMX7262_CSN_HIGH();
+	
+	//0. Pin Reset микросхемы CC1120 устанавливаем в высокое состояние
+	CC1120_RESET_HIGH();
 	
 	#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
@@ -447,6 +452,7 @@ void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __GPIOE_CLK_ENABLE();
   __GPIOA_CLK_ENABLE();
+  __GPIOB_CLK_ENABLE();	
   __GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pins : PE1 PE2 PE6 PE7 PE0 */
@@ -473,6 +479,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PTT_GPIO_Port, &GPIO_InitStruct);
   
+  /*Configure GPIO pin : CC1120_RESET_Pin */
+  GPIO_InitStruct.Pin = CC1120_RESET_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+  HAL_GPIO_Init(CC1120_RESET_GPIO_Port, &GPIO_InitStruct);	
+	
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
