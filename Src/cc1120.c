@@ -937,11 +937,12 @@ uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi)
 	}
 	
 	// сдвиг данных буфера на 1 индекс и запись в 0 элемент количество байтов Rx FIFO
-	for (int8_t i = (RxFIFONumBytes+1); i<0; i--)
-	{
-		pCC1120RxData[i+1] = pCC1120RxData[i];
-	}
-	pCC1120RxData[0] = RxFIFONumBytes;
+	for (uint8_t i = RxFIFONumBytes; (i>0); i--)
+			{
+				pCC1120RxData[i+1] = pCC1120RxData[i];
+			}
+			pCC1120RxData[1] = pCC1120RxData[0];
+			pCC1120RxData[0] = RxFIFONumBytes;
 			
 	WaitTimeMCS(10e2);
 	
