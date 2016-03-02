@@ -583,10 +583,16 @@ uint16_t CMX7262_ConfigClocks(CMX7262_TypeDef  *pCmx7262)
 
 	data = 0x210;	// Select program block 1.2
 	CBUS_Write16 (VCTRL_REG,&data,1,pCmx7262->uInterface);
+
+	#ifdef CMX7262_CLOCK_20MHZ
+	data = 42;			// Set ref clk Divide in Rx or Tx Mode
+	#else
 	data = 40;			// Set ref clk Divide in Rx or Tx Mode
+	#endif
 	CBUS_Write16 (PROG_REG,&data,1,pCmx7262->uInterface);
 	if(!CBUS_WaitBitSet16 (IRQ_STATUS_REG, PRG, pCmx7262->uInterface))
 		return 0;		// Program fail.
+	
 	data = 208;		// Set PLL clk Divide in Rx or Tx Mode
 	CBUS_Write16 (PROG_REG,&data,1,pCmx7262->uInterface);
 	if(!CBUS_WaitBitSet16 (IRQ_STATUS_REG, PRG, pCmx7262->uInterface))
@@ -617,8 +623,12 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 	uint16_t uData;
 
 	// Power up the appropriate analog blocks - Start
-	// DAC Pwr, OP Bias, SPKR2, Enable DrvPwr 1&2
+	// DAC Pwr, OP Bias, SPKR1/SPKR2, Enable DrvPwr 1&2
+	#ifndef CMX7262_SPKR1_OUT
 	uData = 0x086A;
+	#else
+	uData = 0x088A;
+	#endif	
 	CBUS_Write16(ANAOUT_CONFIG,&uData,1,pCmx7262->uInterface);
 	// Single ended uses ANAIN2, differential uses ANAIN1.
 	// J24 Pins 1 to 2, 3 to 4 and 7 to 8, 9 to 10 need shorting.

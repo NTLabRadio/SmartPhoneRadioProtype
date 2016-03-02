@@ -21,10 +21,6 @@ void SPIMDeInit()
 
 void ProcessDataFromExtDev()
 {
-	#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
-	ProcessAudioDataFromUART();
-	#endif
-	
 	pSPIMmsgRcvd->setMsg(pUARTRxSLIPPack,nSizeSLIPPack);
 	
 	if(pSPIMmsgRcvd->checkCRC())
@@ -103,22 +99,13 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			}
 			break;
 		case SPIM_CMD_SET_MODE:
-		/*
-			//Проверяем на адекватность размер команды
-			//TODO Заменить неименованную константу		
-			if(SPIMCmdRcvd->getSizeBody()==4)
-			{
-				//TODO Настройку CMX7262 вынести в отдельную функцию в соответствующий модуль
-				uint8_t nAudioVolume = SPIMCmdRcvd->Body[2]&0x07;
-				CMX7262_AudioOutputGain(&g_CMX7262Struct,nAudioVolume);
-			}			
-		*/
+			//Обработаем команду SET_MODE
 			ProcessCmdSetMode(SPIMCmdRcvd);
 			
 			//Формируем тело ответа, указывающего, что команда выполнена успешно
-			bodySize = 1;
+			//TODO Неименованные константы
+			bodySize = 1;		
 			*pBodyData = 1;
-		
 			break;
 		case SPIM_CMD_SEND_DATA_FRAME:
 			break;
@@ -137,8 +124,9 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 		}
 		case SPIM_CMD_SOFT_VER:
 			uint16_t noSoftVersion;
-			bodySize = sizeof(noSoftVersion);
 			noSoftVersion = pobjRadioModule->GetARMSoftVer();
+
+			bodySize = sizeof(noSoftVersion);
 			memcpy(pBodyData,&noSoftVersion,sizeof(noSoftVersion));
 			break;
 		default:
@@ -178,16 +166,18 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	pobjRadioModule->SetAudioOutLevel(audioOutLevel);	
 	pobjRadioModule->SetAudioInLevel(audioInLevel);
 	
-	
+
 	//Читаем код рабочей частоты передачи
-	uint16_t* pTXFreqCode = (uint16_t*)(SPIMCmdRcvd->Body+2);
-	uint16_t TXFreqCode = *pTXFreqCode;
+	uint16_t TXFreqCode;
+	memcpy(&TXFreqCode,SPIMCmdRcvd->Body+2,sizeof(TXFreqCode));
+	
 	//Применяем код рабочей частоты передачи
 	pobjRadioModule->SetTxFreqChan(TXFreqCode);
 	
 	//Читаем код рабочей частоты приема
-	uint16_t* pRXFreqCode = (uint16_t*)(SPIMCmdRcvd->Body+4);
-	uint16_t RXFreqCode = *pRXFreqCode;
+	uint16_t RXFreqCode;
+	memcpy(&RXFreqCode,SPIMCmdRcvd->Body+4,sizeof(RXFreqCode));	
+	
 	//Применяем код рабочей частоты приемачи
 	pobjRadioModule->SetRxFreqChan(RXFreqCode);
 }

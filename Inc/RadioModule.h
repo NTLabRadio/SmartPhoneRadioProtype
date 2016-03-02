@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <version.h>
 
+#include "cc1120.h"
 #include "cmx7262.h"
  
 enum en_RadioChanTypes
@@ -93,6 +94,7 @@ public:
 	uint8_t GetRadioChanState();
 	
 	void ApplyAudioSettings();
+	void ApplyRadioFreq();
 	
 	uint16_t GetARMSoftVer();
 
@@ -131,8 +133,11 @@ private:
 		en_RadioChanStates radioChanState;
 	};
 
+	#define	RADIO_BASE_FREQ			(410e6)
+	#define RADIO_FREQCHAN_STEP	(25e3)
+	
 	#define DEFAULT_AUDIO_IN_GAIN		(3)
-	#define DEFAULT_AUDIO_OUT_GAIN	(3)
+	#define DEFAULT_AUDIO_OUT_GAIN	(7)
 
 //CMX7262
 	#define MAX_AUDIO_OUT_GAIN_CODE						(7)
@@ -142,6 +147,9 @@ private:
 
 	uint16_t AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel);
 	void SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut);
+
+	uint32_t FreqCodeToHz(uint16_t nFreqCode);
+	void SetCC1120Freq(uint32_t lFreq);
 
 };
 	 

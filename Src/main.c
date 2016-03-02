@@ -79,25 +79,9 @@ uint16_t nLengthDataFromCMX7262 = 0;
 uint8_t pDataToCMX7262[MAX_SIZE_OF_DATA_TO_CMX7262];
 uint16_t nLengthDataToCMX7262 = 0;
 
-//Длительность звуковых данных одного вокодерного буфера, мс
-#define CMX7262_BUFFER_DURATION_MS (60)
 
-//Число буферов данных вокодера, накапливаемых радимодулем прежде чем инициализировать передачу
-#define NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX	(6)		//60 мс x 6 = 360 мс
-
-//Число буферов данных вокодера в одном радиопакете
-#define NUM_CMX7262_BUFFERS_IN_RADIOPACK	(3)				//60 мс x 3 = 180 мс
-
-//Размер радиопакета в режиме речевого обмена, только речевые данные
-#define RADIOPACK_VOICEMODE_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK*CMX7262_CODEC_BUFFER_SIZE)
-
-//Размер расширенного радиопакета в режиме речевого обмена, со служебными данными в дополнении к речевым
-#define RADIOPACK_VOICEMODE_EXTSIZE	(90)
-
-#define MAX_RADIOPACK_SIZE	(128)
-
-//Данные расширенного пакета для передачи
-uint8_t RadioPackForSend[RADIOPACK_VOICEMODE_EXTSIZE];
+//Данные радиопакета для передачи
+uint8_t RadioPackForSend[RADIOPACK_MODE4800_EXTSIZE];
 
 //Данные принятого радиопакета
 uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE];
@@ -233,11 +217,11 @@ int main(void)
 		
 		//Обработка состояния модуля CMX7262: передача/прием/тест
 		ProcessCMX7262State();
-		
+
+		#ifndef TEST_CMX7262		
 		//Обрабатываем тангенту
 		ProcessPTTState();
 
-		#ifndef TEST_CMX7262
 		ProcessRadioState();
 		#endif
 
@@ -631,7 +615,7 @@ void ProcessRadioState()
 						
 						#ifndef TEST_RADIO_IMITATE
 						//Отправляем данные на CC1120
-						CC1120_TxData(&g_CC1120Struct, RadioPackForSend, RADIOPACK_VOICEMODE_EXTSIZE);
+						CC1120_TxData(&g_CC1120Struct, RadioPackForSend, RADIOPACK_MODE4800_EXTSIZE);
 						#else
 						RadioImitator_TxData(RadioPackForSend+1, RADIOPACK_VOICEMODE_SIZE);
 						#endif
@@ -712,7 +696,7 @@ void ProcessRadioState()
 void CMX7262_TestMode()
 {
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
-	CMX7262_EncodeDecode_Audio(&pCmx7262);	
+	CMX7262_EncodeDecode_Audio(&g_CMX7262Struct);	
 	#endif
 
 	#ifdef TEST_CMX7262_AUDIO_TESTMODE

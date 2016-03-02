@@ -20,6 +20,7 @@
 
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_spi.h"
+#include "globals.h"
 #include "spi_periphery.h"
 #include "timers.h"
 
@@ -184,7 +185,7 @@ static const registerSetting_t CC1120_Config_4800[]= {
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
 {0x002D,     0x7E},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
-{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_MODE4800_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]

@@ -1,6 +1,7 @@
 #include "RadioModule.h"
 
 extern CMX7262_TypeDef  g_CMX7262Struct;
+extern CC1120_TypeDef  g_CC1120Struct;
 
 
 
@@ -163,6 +164,33 @@ void RadioModule::ApplyAudioSettings()
 	
 	//Записываем вычисленные значения регистров в CMX7262
 	SetCMX7262AudioGains(CMX7262AudioGainIn, CMX7262AudioGainOut);
+}
+
+
+void RadioModule::ApplyRadioFreq()
+{
+	uint32_t lFreqValueHz=0;
+
+	//По значению кода частоты определяем значение частоты в Гц	
+	if(RadioChanState==RADIOCHAN_STATE_TRANSMIT)
+		lFreqValueHz = FreqCodeToHz(TxRadioFreq);
+	else
+		lFreqValueHz = FreqCodeToHz(RxRadioFreq);
+	
+	//Записываем значение частоты в СС1120
+	SetCC1120Freq(lFreqValueHz);
+}
+
+uint32_t RadioModule::FreqCodeToHz(uint16_t nFreqCode)
+{
+	return(RADIO_BASE_FREQ + RADIO_FREQCHAN_STEP*nFreqCode);
+}
+
+void RadioModule::SetCC1120Freq(uint32_t lFreq)
+{
+	uint8_t* pFreq = (uint8_t*)&lFreq;
+	pFreq++;
+	CC1120_FreqWrite(g_CC1120Struct.hSPI,pFreq);
 }
 
 

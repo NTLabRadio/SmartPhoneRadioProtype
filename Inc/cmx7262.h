@@ -137,6 +137,7 @@
 // Size of buffer to hold one packet of encoded samples (3 frame, hard decision, FEC).
 #define	CMX7262_CODEC_BUFFER_SIZE	27
 
+
 // Clock setup
 #define	FS_DIV										78 				// Setup a 8kHz sample rate for the audio converters
 
