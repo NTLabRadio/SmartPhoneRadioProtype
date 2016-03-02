@@ -29,16 +29,16 @@ uint16_t cntCMX7262TxAudioBuf = 0;
 
 
 
-void RadioModuleInit(SPI_HandleTypeDef hspiCMX7262, SPI_HandleTypeDef hspiCC1120)
+void RadioModuleInit(SPI_HandleTypeDef *hspiCMX7262, SPI_HandleTypeDef *hspiCC1120)
 {
 	//Инициализация CMX7262: загрузка образа в память, начальная настройка
-	CMX7262_Init(&g_CMX7262Struct, &hspiCMX7262);
+	CMX7262_Init(&g_CMX7262Struct, hspiCMX7262);
 
 	//Перевод CMX7262 в режим Idle
 	CMX7262_Idle(&g_CMX7262Struct);	
 	
 	//Инициализация СС1120
-	CC1120_Init(&g_CC1120Struct, &hspiCC1120);
+	CC1120_Init(&g_CC1120Struct, hspiCC1120);
 	
 	//После того, как все периферийные микросхемы радимодуля настроены, создаем объект
 	//для управления общими параметрами радиомодуля

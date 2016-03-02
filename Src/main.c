@@ -141,7 +141,7 @@ int main(void)
 
 
 	//Делаем инициализацию радиомодуля для возможности управления его режимами и параметрами
-	RadioModuleInit(hspi1,hspi1);
+	RadioModuleInit(&hspi1,&hspi1);
 
 	#ifdef TEST_CMX7262
 	CMX7262_TestMode();
