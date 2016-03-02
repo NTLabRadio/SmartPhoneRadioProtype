@@ -93,6 +93,9 @@ public:
 	uint8_t SetRadioChanState(uint8_t radioChanState);
 	uint8_t GetRadioChanState();
 	
+	uint8_t isTxMode();
+	uint8_t isRxMode();
+	
 	void ApplyAudioSettings();
 	void ApplyRadioFreq();
 	
@@ -107,9 +110,12 @@ private:
 	//Режим энергосбережения
 	en_ARMPowerModes ARMPowerMode;
 
+	//Текущая рабочая частота радиомодуля
+	uint16_t NoCurFreqChan;
+
 	//Рабочие частоты передачи/приема
-	uint16_t TxRadioFreq;
-	uint16_t RxRadioFreq;
+	uint16_t NoTxFreqChan;
+	uint16_t NoRxFreqChan;
 
 	uint8_t AudioInLevel;
 	uint8_t AudioOutLevel;
@@ -123,8 +129,8 @@ private:
 		en_RadioSignalPowers	radioSignalPower;
 		en_ARMPowerModes powerMode;
 
-		uint16_t txRadioFreq;
-		uint16_t rxRadioFreq;
+		uint16_t noTxFreqChan;
+		uint16_t noRxFreqChan;
 
 		uint8_t audioInLevel;
 		uint8_t audioOutLevel;

@@ -17,8 +17,9 @@ RadioModule::RadioModule()
 	ARMPowerMode = ARM_POWERMODE_NORMAL;
 
 	//Рабочие частоты передачи/приема
-	TxRadioFreq = 0;
-	RxRadioFreq = 0;
+	NoTxFreqChan = 0;
+	NoRxFreqChan = 0;
+	ApplyRadioFreq();
 
 	//Настройки аудио
 	AudioInLevel = DEFAULT_AUDIO_IN_GAIN;
@@ -83,26 +84,28 @@ uint8_t RadioModule::GetARMPowerMode()
 
 uint8_t RadioModule::SetTxFreqChan(uint16_t noFreqChan)
 {
-	TxRadioFreq = noFreqChan;
+	NoTxFreqChan = noFreqChan;
+	ApplyRadioFreq();
 	
 	return(0);
 }
 
 uint16_t RadioModule::GetTxFreqChan()
 {
-	return(TxRadioFreq);
+	return(NoTxFreqChan);
 }
 
 uint8_t RadioModule::SetRxFreqChan(uint16_t noFreqChan)
 {
-	RxRadioFreq = noFreqChan;
+	NoRxFreqChan = noFreqChan;
+	ApplyRadioFreq();
 	
 	return(0);	
 }
 
 uint16_t RadioModule::GetRxFreqChan()
 {
-	return(RxRadioFreq);
+	return(NoRxFreqChan);
 }
 
 uint8_t RadioModule::SetAudioInLevel(uint8_t audioLevel)
@@ -145,7 +148,21 @@ uint8_t RadioModule::SetRadioChanState(uint8_t radioChanState)
 {
 	RadioChanState = (en_RadioChanStates)radioChanState;
 	
+	//Частоты передачи и приема могут отличаться. При смене режима устанавливаем новую рабочую частоту
+	ApplyRadioFreq();
+	
 	return(0);
+}
+
+uint8_t RadioModule::isTxMode()
+{
+	return(GetRadioChanState() == RADIOCHAN_STATE_TRANSMIT);	
+}
+
+uint8_t RadioModule::isRxMode()
+{
+	return((GetRadioChanState() == RADIOCHAN_STATE_WAIT_RECEIVE) ||
+				 (GetRadioChanState() == RADIOCHAN_STATE_RECEIVE) );
 }
 
 
@@ -170,15 +187,33 @@ void RadioModule::ApplyAudioSettings()
 void RadioModule::ApplyRadioFreq()
 {
 	uint32_t lFreqValueHz=0;
+	bool flFreqChanged = FALSE;
 
-	//По значению кода частоты определяем значение частоты в Гц	
 	if(RadioChanState==RADIOCHAN_STATE_TRANSMIT)
-		lFreqValueHz = FreqCodeToHz(TxRadioFreq);
+	{
+		if(NoCurFreqChan!=NoTxFreqChan)
+		{
+			NoCurFreqChan = NoTxFreqChan;
+			flFreqChanged = TRUE;
+		}
+	}
 	else
-		lFreqValueHz = FreqCodeToHz(RxRadioFreq);
+	{
+		if(NoCurFreqChan!=NoRxFreqChan)
+		{
+			NoCurFreqChan = NoRxFreqChan;
+			flFreqChanged = TRUE;
+		}
+	}
 	
-	//Записываем значение частоты в СС1120
-	SetCC1120Freq(lFreqValueHz);
+	if(flFreqChanged)
+	{
+		//По значению кода частоты определяем значение частоты в Гц		
+		lFreqValueHz = FreqCodeToHz(NoCurFreqChan);
+		
+		//Записываем значение частоты в СС1120
+		SetCC1120Freq(lFreqValueHz);
+	}
 }
 
 uint32_t RadioModule::FreqCodeToHz(uint16_t nFreqCode)

@@ -42,6 +42,8 @@
 #define CC1120_RESET_GPIO_Port GPIOB
 #define PTT_Pin GPIO_PIN_8
 #define PTT_GPIO_Port GPIOC
+
+#define PTT_PRESSED()		(!HAL_GPIO_ReadPin(PTT_GPIO_Port, PTT_Pin))
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
