@@ -363,9 +363,9 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F103xE,SMART_PROTOTYPE,CMX7262_CLOCK_20MHZ</Define>
+              <Define>USE_HAL_DRIVER,STM32F103xE,SMART_PROTOTYPE,CMX7262_CLOCK_20MHZ,DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Inc/CrossPlatform;./Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F1xx/Include</IncludePath>
+              <IncludePath>../Inc;../Inc/CrossPlatform;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F1xx/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -719,7 +719,7 @@
             <File>
               <FileName>SLIPinterface.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>..\Src\SLIPinterface.cpp</FilePath>
+              <FilePath>..\Src\CrossPlatform\SLIPinterface.cpp</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -820,7 +820,7 @@
             <File>
               <FileName>uart_intermodule.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\uart_intermodule.c</FilePath>
+              <FilePath>..\Src\CrossPlatform\uart_intermodule.c</FilePath>
             </File>
           </Files>
         </Group>

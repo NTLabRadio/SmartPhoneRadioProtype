@@ -36,9 +36,14 @@ void WaitTimeMCS(uint32_t lTimeMCS)
 }
 
 
-uint32_t ReadCMX7262TimerCounter(void)
+uint32_t CMX7262TimerCounter(void)
 {
 	return __HAL_TIM_GetCounter(&htim5);
+}
+
+void ClearCMX7262TimerCounter(void)
+{
+	__HAL_TIM_SetCounter(&htim5,0);
 }
 
 

@@ -20,8 +20,16 @@
  extern "C" {
 #endif
 
+#ifdef STM32F071xB
+#include "stm32f0xx_hal.h"
+#include "stm32f0xx_hal_uart.h"
+#endif	 
+
+#ifdef STM32F103xE	 	 
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_uart.h"
+#endif
+	 
 #include <string.h>
 #include "DebugLog.h"
 	 

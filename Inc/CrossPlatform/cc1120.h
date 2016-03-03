@@ -18,8 +18,16 @@
  extern "C" {
 #endif
 
+#ifdef STM32F071xB
+#include "stm32f0xx_hal.h"
+#include "stm32f0xx_hal_spi.h"
+#endif
+	 
+#ifdef STM32F103xE	 
 #include "stm32f1xx_hal.h"
-#include "stm32f1xx_hal_spi.h"
+#include "stm32f1xx_hal_spi.h"	 
+#endif
+	 
 #include "globals.h"
 #include "spi_periphery.h"
 #include "timers.h"
@@ -184,6 +192,7 @@ static const registerSetting_t CC1120_Config_4800[]= {
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
+{0x002B,     0x7F},     //PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2 !!!!!!!!!!!!!!!!! для High Power Mode +10 dBm 0x74, для Low Power Mode +15 dBm 0x7F
 {0x002D,     0x7E},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
 {0x002E,     RADIOPACK_MODE4800_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
@@ -448,6 +457,7 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq);
 uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi);
 
+void CC1120_HardwareReset(void);
 	 
 #ifdef __cplusplus
 }

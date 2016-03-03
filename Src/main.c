@@ -37,9 +37,7 @@
 #include "globals.h"
 #include "cc1120.h"
 #include "cmx7262.h"
-#include "mathfuncs.h"
 #include "ProcessStates.h"
-#include "RadioModule.h"
 #include "SPIMLogic.h"
 /* USER CODE END Includes */
 
@@ -116,13 +114,13 @@ int main(void)
 	CMX7262_CSN_HIGH();
 	
 	// Pin Reset CC1120 устанавливаем в высокое состояние для перевода микросхемы в активное состояние
-	CC1120_RESET_HIGH();
+	CC1120_START();
 	
-	#ifdef DEBUG_USE_TL_LINES_FOR_CHECK_CMX7262_EVENTS
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_1, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4, GPIO_PIN_RESET);
+	//Выключаем светодиоды
+	LEDS_OFF();	
+	
+	#ifdef DEBUG_USE_TL_LINES
+	TLS_LOW();
 	#endif
 	
 	//Запускаем таймеры для работы с периферией
@@ -151,6 +149,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	#ifdef DEBUG_USE_LEDS
+	LED1_ON();
+	#endif
+	
   while (1)
   {
 		//Если из UART приняты данные
@@ -225,7 +227,6 @@ void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;									// синхронизация по заднему фронту
   hspi1.Init.NSS = SPI_NSS_SOFT;													// программный CS (аппаратный (SPI_NSS_HARD_OUTPUT) не понятно, как задействовать)
-  //hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32 ;	//предделитель частоты SPI: 64МГц/32 = 2 МГц
 	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64 ;	//предделитель частоты SPI: 64МГц/64 = 1 МГц
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;									// старший бит - первый
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
@@ -385,20 +386,32 @@ void MX_GPIO_Init(void)
   __GPIOB_CLK_ENABLE();	
   __GPIOC_CLK_ENABLE();
 
-  /*Configure GPIO pins : PE1 PE2 PE3 PE4 PE6 PE7 PE0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_0;
+  /*Configure GPIO pins : AUDIO_PA_SHDN */
+  GPIO_InitStruct.Pin = AUDIO_PA_SHDN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(AUDIO_PA_SHDN_GPIO_Port, &GPIO_InitStruct);
+	
+  /*Configure GPIO pins : PE1 PE2 PE3 PE4 PE5*/
+  GPIO_InitStruct.Pin = TL1_Pin|TL2_Pin|TL3_Pin|TL4_Pin|TL5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA0 PA1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+	/*Configure GPIO pins : LED1 LED2 */
+	GPIO_InitStruct.Pin = LED1_Pin|LED2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+	
+  /*Configure GPIO pins : IRQ_CC1120 IRQ_CMX7262 */
+  GPIO_InitStruct.Pin = IRQ_CC1120_Pin|IRQ_CMX7262_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA2 PA4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_4;
+  /*Configure GPIO pins : CS_CC1120 CS_CMX7262 */
+  GPIO_InitStruct.Pin = CS_CC1120_Pin|CS_CMX7262_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -409,12 +422,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PTT_GPIO_Port, &GPIO_InitStruct);
   
-  /*Configure GPIO pin : CC1120_RESET_Pin */
-  GPIO_InitStruct.Pin = CC1120_RESET_Pin;
+  /*Configure GPIO pin : RESET_CC1120 */
+  GPIO_InitStruct.Pin = RESET_CC1120_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-  HAL_GPIO_Init(CC1120_RESET_GPIO_Port, &GPIO_InitStruct);	
+  HAL_GPIO_Init(RESET_CC1120_GPIO_Port, &GPIO_InitStruct);	
 	
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);

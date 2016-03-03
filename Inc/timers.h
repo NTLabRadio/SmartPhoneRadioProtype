@@ -23,7 +23,8 @@ uint32_t ReadHighPrecisionCounter (void);
 void ClearHighPrecisionCounter(void);
 void WaitTimeMCS(uint32_t lTimeMS);
 	 
-uint32_t ReadCMX7262TimerCounter(void);
+uint32_t CMX7262TimerCounter(void);
+void ClearCMX7262TimerCounter(void);
 	 
 void StartPeriphTimers(void);
 	 

@@ -49,7 +49,7 @@ uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi)
 	pCC1120->TxState = CC1120_TX_STATE_STANDBY;
 	
 	//0. Pin Reset микросхемы устанавливаем в высокое состояние
-	CC1120_RESET_HIGH();	
+	CC1120_START();
 	
 	//1. Reset микросхемы
 	CC1120_Reset(hspi);
@@ -771,7 +771,12 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_
 		}
 
 		if (pCC1120RxData[0] != CC1120_Config[i].data)
+		{
+			#ifdef DEBUG_USE_LEDS
+			LED2_ON();
+			#endif
 			return (2);
+		}
 	}
 			
 	WaitTimeMCS(1e2);
@@ -1115,3 +1120,19 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 	return (ReadWriteOk);
 
 }
+
+
+/**
+	* @brief	Функция аппаратного сброса CC1120
+	* @note		Функция формирует 50мкс-ный импульс на ноге аппаратного сброса микросхемы
+	*					и ожидает в течение 50мкс пока она выйдет в рабочий режим
+	*/
+void CC1120_HardwareReset()
+{
+	CC1120_RESET(); 		// аппаратный сброс СС1120
+	WaitTimeMCS(5e1); 	// задержка 50 мкс
+
+	CC1120_START(); 		// запуск СС1120
+	WaitTimeMCS(5e1); 	// ожидание, пока стабилизируется внутренний генератор
+}
+
