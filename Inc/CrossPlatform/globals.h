@@ -40,7 +40,7 @@
 
 //Размер расширенного радиопакета в режиме речевого обмена, речевые данные + служебные
 //Служебные данные - только 1-байтовый адрес, предваряющий речевые данные
-#define RADIOPACK_MODE4800_EXTSIZE	(RADIOPACK_VOICEMODE_SIZE+1)
+#define RADIOPACK_MODE4800_EXTSIZE	(RADIOPACK_VOICEMODE_SIZE+5)
 
 
 #define MAX_RADIOPACK_SIZE	(128)	 

@@ -17,8 +17,8 @@ RadioModule::RadioModule()
 	ARMPowerMode = ARM_POWERMODE_NORMAL;
 
 	//Рабочие частоты передачи/приема
-	NoTxFreqChan = 0;
-	NoRxFreqChan = 0;
+	NoTxFreqChan = 960;
+	NoRxFreqChan = 960;
 	ApplyRadioFreq();
 
 	//Настройки аудио
@@ -222,10 +222,17 @@ uint32_t RadioModule::FreqCodeToHz(uint16_t nFreqCode)
 }
 
 void RadioModule::SetCC1120Freq(uint32_t lFreq)
-{
-	uint8_t* pFreq = (uint8_t*)&lFreq;
-	pFreq++;
-	CC1120_FreqWrite(g_CC1120Struct.hSPI,pFreq);
+{	
+	uint32_t setFreqCode = 0;
+	uint8_t	FreqCode[3];
+	
+	setFreqCode = (65536 * (lFreq / 10000)/(F_XOSC/10000))* LO_DIVIDER;
+	
+	FreqCode[0] = (uint8_t)((setFreqCode & 0x00FF0000) >> 16);
+  FreqCode[1] =	(uint8_t)((setFreqCode & 0x0000FF00) >> 8);
+	FreqCode[2] = (uint8_t)(setFreqCode  & 0x000000FF);
+	
+	CC1120_FreqWrite(g_CC1120Struct.hSPI,FreqCode);
 }
 
 
