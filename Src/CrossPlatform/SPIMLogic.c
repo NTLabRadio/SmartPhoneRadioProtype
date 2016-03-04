@@ -222,16 +222,18 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 	//≈сли запрашиваетс€ частота приема радиомодул€
 	if(SPIMCmdRcvd->cmdReqParam.isRxFreqReq())
 	{
-		pBodyData[bodySize] = pobjRadioModule->GetRxFreqChan();
-		bodySize++;
+		uint16_t nRxFreq = pobjRadioModule->GetRxFreqChan();
+		memcpy(&pBodyData[bodySize],&nRxFreq,sizeof(nRxFreq));
+		bodySize+=sizeof(nRxFreq);
 	}
 
 	//≈сли запрашиваетс€ частота передачи радиомодул€
 	if(SPIMCmdRcvd->cmdReqParam.isTxFreqReq())
 	{
-		pBodyData[bodySize] = pobjRadioModule->GetTxFreqChan();
-		bodySize++;
-	}	
+		uint16_t nTxFreq = pobjRadioModule->GetTxFreqChan();
+		memcpy(&pBodyData[bodySize],&nTxFreq,sizeof(nTxFreq));
+		bodySize+=sizeof(nTxFreq);
+	}
 	
 	//≈сли запрашиваетс€ текущий уровень приема сигнала
 	if(SPIMCmdRcvd->cmdReqParam.isRSSIReq())
