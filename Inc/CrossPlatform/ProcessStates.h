@@ -37,5 +37,6 @@ void ProcessCMX7262State(void);
 
 void TransceiverStartRx(void);
 void VocoderStartDecode(void);
+void VocoderStartEncode(void);
 
 #endif /* __PROCESSSTATES_H */	 
