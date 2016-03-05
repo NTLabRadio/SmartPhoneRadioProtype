@@ -35,8 +35,10 @@
 #define NUM_CMX7262_BUFFERS_IN_RADIOPACK	(3)				//60 мс x 3 = 180 мс
 
 //–азмер радиопакета в режиме речевого обмена, только речевые данные
-#define RADIOPACK_VOICEMODE_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK*CMX7262_CODEC_BUFFER_SIZE)
+#define RADIOPACK_VOICEMODE_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK * CMX7262_CODEC_BUFFER_SIZE)
 
+//–азмер данных от вокодера, накапливаемый радимодулем прежде чем инициализировать передачу
+#define SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX	(NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX * CMX7262_CODEC_BUFFER_SIZE)
 
 //–азмер расширенного радиопакета в режиме речевого обмена, речевые данные + служебные
 //—лужебные данные - только 1-байтовый адрес, предвар€ющий речевые данные

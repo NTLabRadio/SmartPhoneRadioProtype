@@ -99,16 +99,16 @@ public:
 private:
 
 	//Максимальный размер тела сообщения, байт
-	#define MAX_SIZE_OF_BODY     (128)
+	static const uint8_t MAX_SIZE_OF_BODY = 128;
 	//Размер заголовка, байт
-	#define SIZE_OF_HEADER       (3)
+	static const uint8_t SIZE_OF_HEADER = 3;
 	//Размер поля CRC, байт
-	#define SIZE_OF_CRC          (1)
+	static const uint8_t SIZE_OF_CRC = 1;
 
 	//Максимальный размер всего сообщения, байт
-	#define MAX_SIZE_OF_MSG     (SIZE_OF_HEADER + MAX_SIZE_OF_BODY + SIZE_OF_CRC)
+	static const uint8_t MAX_SIZE_OF_MSG = (SIZE_OF_HEADER + MAX_SIZE_OF_BODY + SIZE_OF_CRC);
 	//Минимальный размер всего сообщения, байт
-	#define MIN_SIZE_OF_MSG     (SIZE_OF_HEADER + SIZE_OF_CRC)
+	static const uint8_t MIN_SIZE_OF_MSG = (SIZE_OF_HEADER + SIZE_OF_CRC);
 
 	struct structSPIMMsgHeader {
 		uint8_t bodySize;               // размер тела, байт

@@ -22,9 +22,9 @@
 enum en_RadioChanTypes
 {
 	RADIOCHAN_TYPE_IDLE,	
-	RADIOCHAN_TYPE_VOICE			=1,
-	RADIOCHAN_TYPE_DATA				=2,
-	RADIOCHAN_TYPE_RTKDATA		=3,
+	RADIOCHAN_TYPE_VOICE		=1,
+	RADIOCHAN_TYPE_DATA			=2,
+	RADIOCHAN_TYPE_RTKDATA	=3,
 	NUM_RADIOCHAN_TYPES
 };
 
@@ -37,8 +37,8 @@ enum en_RadioSignalPowers
 
 enum en_ARMPowerModes
 {
-	ARM_POWERMODE_NORMAL	=0,
-	ARM_POWERMODE_SLEEP		=1,
+	ARM_POWERMODE_NORMAL		=0,
+	ARM_POWERMODE_SLEEP			=1,
 	NUM_ARM_POWERMODES
 };
 
@@ -92,7 +92,10 @@ public:
 	
 	uint8_t SetRadioChanState(uint8_t radioChanState);
 	uint8_t GetRadioChanState();
-	
+
+	uint8_t SetRadioAddress(uint8_t address);
+	uint8_t GetRadioAddress();
+
 	uint8_t isTxMode();
 	uint8_t isRxMode();
 	
@@ -123,6 +126,8 @@ private:
 	uint8_t RSSILevel;
 	en_RadioChanStates RadioChanState;
 
+	uint8_t RadioAddress;
+
 	struct RadioModuleSettings
 	{
 		en_RadioChanTypes radioChanType;
@@ -139,17 +144,22 @@ private:
 		en_RadioChanStates radioChanState;
 	};
 
-	#define	RADIO_BASE_FREQ			(410e6)
-	#define RADIO_FREQCHAN_STEP	(25e3)
+	static const uint32_t RADIO_BASE_FREQ 			= 410000000;
+	static const uint32_t RADIO_FREQCHAN_STEP		= 25000;
 	
-	#define DEFAULT_AUDIO_IN_GAIN		(3)
-	#define DEFAULT_AUDIO_OUT_GAIN	(7)
+	static const uint8_t DEFAULT_AUDIO_IN_GAIN 	= 3;
+	static const uint8_t DEFAULT_AUDIO_OUT_GAIN = 7;
 
+	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 960;
+	static const uint16_t DEFAULT_RX_FREQ_CHAN	= 960;
+	
+	static const uint8_t DEFAULT_RADIO_ADDRESS	= 1;
+	
 //CMX7262
-	#define MAX_AUDIO_OUT_GAIN_CODE						(7)
-	#define CMX7262_MAX_AUDIO_OUT_GAIN_VALUE	(59)
-	#define CMX7262_STEP_AUDIO_OUT_GAIN_VALUE	(9)
-	#define CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE	(0x80)
+	static const uint8_t MAX_AUDIO_OUT_GAIN_CODE 						= 7;
+	static const uint8_t CMX7262_MAX_AUDIO_OUT_GAIN_VALUE		= 59;
+	static const uint8_t CMX7262_STEP_AUDIO_OUT_GAIN_VALUE 	= 9;
+	static const uint8_t CMX7262_AUDIO_OUT_EXTRAGAIN_VALUE 	=	0x80;
 
 	uint16_t AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel);
 	void SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut);

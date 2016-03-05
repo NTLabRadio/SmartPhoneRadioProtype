@@ -233,7 +233,7 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 		uint16_t nTxFreq = pobjRadioModule->GetTxFreqChan();
 		memcpy(&pBodyData[bodySize],&nTxFreq,sizeof(nTxFreq));
 		bodySize+=sizeof(nTxFreq);
-	}
+	}	
 	
 	//Если запрашивается текущий уровень приема сигнала
 	if(SPIMCmdRcvd->cmdReqParam.isRSSIReq())

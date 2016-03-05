@@ -17,8 +17,8 @@ RadioModule::RadioModule()
 	ARMPowerMode = ARM_POWERMODE_NORMAL;
 
 	//Рабочие частоты передачи/приема
-	NoTxFreqChan = 960;
-	NoRxFreqChan = 960;
+	NoTxFreqChan = DEFAULT_TX_FREQ_CHAN;
+	NoRxFreqChan = DEFAULT_RX_FREQ_CHAN;
 	ApplyRadioFreq();
 
 	//Настройки аудио
@@ -31,6 +31,8 @@ RadioModule::RadioModule()
 	
 	//Текущее состояние радиоканала
 	RadioChanState = RADIOCHAN_STATE_IDLE;
+	
+	RadioAddress = DEFAULT_RADIO_ADDRESS;
 }
 
 
@@ -150,6 +152,18 @@ uint8_t RadioModule::SetRadioChanState(uint8_t radioChanState)
 	
 	//Частоты передачи и приема могут отличаться. При смене режима устанавливаем новую рабочую частоту
 	ApplyRadioFreq();
+	
+	return(0);
+}
+
+uint8_t RadioModule::GetRadioAddress()
+{
+	return(RadioAddress);
+}
+
+uint8_t RadioModule::SetRadioAddress(uint8_t address)
+{
+	RadioAddress = address;
 	
 	return(0);
 }
