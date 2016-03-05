@@ -44,8 +44,11 @@
 //Служебные данные - только 1-байтовый адрес, предваряющий речевые данные
 #define RADIOPACK_MODE4800_EXTSIZE	(RADIOPACK_VOICEMODE_SIZE+5)
 
+//Число статус-байтов, добавляемых СС1120 к полезным принятым данным и сообщающих уровень RSSI, LQI и результат проверки CRC
+#define SIZE_OF_RADIO_STATUS	(2)
 
-#define MAX_RADIOPACK_SIZE	(128)	 
+//Максимальный размер радиопакета, байт
+#define MAX_RADIOPACK_SIZE	(128)
 	 
 	 
 #ifdef __cplusplus

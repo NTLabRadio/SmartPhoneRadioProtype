@@ -5,7 +5,7 @@
 uint8_t RadioPackForSend[MAX_RADIOPACK_SIZE];
 
 //Данные принятого радиопакета
-uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE];
+uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE+SIZE_OF_RADIO_STATUS];
 
 
 void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize)
@@ -61,9 +61,13 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize)
 		CC1120_RxData(&g_CC1120Struct,RadioPackRcvd,&nSizeOfRecData);
 	else
 		return;
+
+	//В конце принятого буфера располагаются статус-байты, удалим их
+	//TODO Сделать функцию обработки этих данных
+	nSizeOfRecData-=SIZE_OF_RADIO_STATUS;
 	
 	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRecData);
-	
+
 	nPayloadSize = RadioMsgRcvd.getBody(pPayloadData);
 
 	return;

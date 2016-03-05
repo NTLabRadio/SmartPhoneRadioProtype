@@ -174,11 +174,13 @@ void ProcessRadioState()
 		case RADIOMODULE_STATE_TX_WAITING:
 			//≈сли накопили достаточно звуковых данных от вокодера, переключаемс€ в режим RADIOMODULE_STATE_TX_RUNNING
 			if(nLengthDataFromCMX7262 > SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX)
+			//### или от внешнего устройства получен пакет дл€ передачи
 			{
 				pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_TX_RUNNING;
 				//ќтмечаем, что передатчик находитс€ в свободном состо€нии и может передавать следующий пакет данных
-				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;						
+				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
 			}
+
 		break;
 
 		case RADIOMODULE_STATE_TX_RUNNING:
@@ -192,19 +194,27 @@ void ProcessRadioState()
 				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
 			}
 		
-			//≈сли в очереди на передачу достаточно данных дл€ формировани€ одного пакета 
-			//и передатчик CC1120 свободен, то посылаем данные в ——1120
-			if((nLengthDataFromCMX7262 >= RADIOPACK_VOICEMODE_SIZE) &&
-				 (g_CC1120Struct.TxState!=CC1120_TX_STATE_ACTIVE))
+			//≈сли передатчик CC1120 свободен, то можно передавать данные
+			if(g_CC1120Struct.TxState!=CC1120_TX_STATE_ACTIVE)
 			{
-				//»з данных вокодера формируем радиопакет и отправл€ем его в трансивер
-				FormAndSendRadioPack(pDataFromCMX7262,RADIOPACK_VOICEMODE_SIZE);
+				//≈сли в очереди от вокодера достаточно данных дл€ формировани€ одного радиопакета, то посылаем данные в трансивер
+				if(nLengthDataFromCMX7262 >= RADIOPACK_VOICEMODE_SIZE)
+				{
+					//»з данных вокодера формируем радиопакет и отправл€ем его в трансивер
+					FormAndSendRadioPack(pDataFromCMX7262,RADIOPACK_VOICEMODE_SIZE);
+					
+					//«апоминаем, что теперь передатчик находитс€ в активном состо€нии передачи
+					g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
+					
+					//”дал€ем переданные данные из очереди данных от вокодера
+					RemDataFromFIFOBuf(pDataFromCMX7262, nLengthDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
+				}
 				
-				//«апоминаем, что теперь передатчик находитс€ в активном состо€нии передачи
-				g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
-				
-				//”дал€ем переданные данные из очереди данных от вокодера
-				RemDataFromFIFOBuf(pDataFromCMX7262, nLengthDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
+				//###если есть данные дл€ передачи от внешнего устройства
+				//{
+				//	FormAndSendRadioPack(буфер с полезными данными от терминального устройства, размер полезных данных);
+				//	g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
+				//}
 			}
 		break;
 
