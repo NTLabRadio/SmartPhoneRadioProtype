@@ -21,7 +21,7 @@ extern CC1120_TypeDef  g_CC1120Struct;
 void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize);
 void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint16_t nPayloadSize);
 void SendRadioPackToTansceiver(uint8_t* pData, uint16_t nSizeData);
-void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize);
+void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nDataType);
 
 
 #endif // RADIOLOGIC_H

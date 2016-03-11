@@ -41,7 +41,7 @@ void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint16_t nPay
 	//Собственный адрес берем из настроек радиомодуля
 	uint8_t srcAddress = pobjRadioModule->GetRadioAddress();
 	//Тип передаваемых данных
-	uint8_t dataType = RADIO_DATATYPE_VOICE;
+	uint8_t dataType = RadioMessage::RADIO_DATATYPE_VOICE;
 	
 	//Формируем ответ для управляющего устройства
 	RadioPack->setHeader(dstAddress,srcAddress,dataType);
@@ -51,7 +51,7 @@ void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint16_t nPay
 }
 
 
-void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize)
+void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nDataType)
 {
 	nPayloadSize = 0;
 	
@@ -80,6 +80,12 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize)
 	
 	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRecData);
 
+	//Данные заголовка радиосообщения
+	uint8_t dstAddress = RadioMsgRcvd.getDstAddress();
+	uint8_t srcAddress = RadioMsgRcvd.getSrcAddress();
+	uint8_t dataType = RadioMsgRcvd.getDataType();
+	
+	//Данные тела радиосообщения
 	nPayloadSize = RadioMsgRcvd.getBody(pPayloadData);
 
 	return;

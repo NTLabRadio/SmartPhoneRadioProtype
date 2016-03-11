@@ -111,6 +111,34 @@ uint8_t RadioMessage::getHeader(uint8_t* pHeaderData)
 }
 
 
+uint8_t RadioMessage::getDstAddress()
+{
+	structRadioMsgHeader *RadioMsgHeader;
+
+	RadioMsgHeader = (structRadioMsgHeader*)RadioHeaderData;
+
+	return(RadioMsgHeader->dstAddress);
+}
+	
+uint8_t RadioMessage::getSrcAddress()
+{
+	structRadioMsgHeader *RadioMsgHeader;
+
+	RadioMsgHeader = (structRadioMsgHeader*)RadioHeaderData;
+
+	return(RadioMsgHeader->srcAddress);
+	
+}
+
+uint8_t RadioMessage::getDataType()
+{
+	structRadioMsgHeader *RadioMsgHeader;
+
+	RadioMsgHeader = (structRadioMsgHeader*)RadioHeaderData;
+
+	return(RadioMsgHeader->dataType);
+}
+
 uint8_t RadioMessage::getBody(uint8_t* pBodyData)
 {
 	if(!pBodyData)

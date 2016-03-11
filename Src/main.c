@@ -165,6 +165,8 @@ int main(void)
 			UARTstate = UART_IDLE;
 		}
 		
+		ProcessDataToExtDev();
+		
 		//ќбработка состо€ни€ модул€ CMX7262: передача/прием/тест
 		ProcessCMX7262State();
 

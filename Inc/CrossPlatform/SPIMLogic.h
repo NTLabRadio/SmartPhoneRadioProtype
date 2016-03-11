@@ -51,5 +51,9 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
 void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd);
 
+void ProcessDataToExtDev(void);
+void FormAndSendDataMsgToExtDev(void);
+void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend);
+
 
 #endif // SPIMLOGIC_H

@@ -33,8 +33,6 @@ public:
 	uint16_t PopFrame(uint8_t* pData);
 	uint8_t isEmpty();
 
-	uint16_t AddFrameToTail(uint16_t sizeFrame);
-
 private:
 
 	uint16_t m_numFramesInQue;

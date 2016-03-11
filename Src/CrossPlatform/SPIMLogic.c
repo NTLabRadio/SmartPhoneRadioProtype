@@ -6,7 +6,7 @@ SPIMMessage*	pSPIMmsgRcvd;
 SPIMMessage*	pSPIMmsgToSend;
 
 extern QueDataFrames QueDataFromExtDev;
-	
+extern QueDataFrames QueDataToExtDev;	
 
 
 void SPIMInit()
@@ -60,6 +60,7 @@ void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd)
 	//Отправляем сформированный ответ
 	SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
 }
+
 
 
 void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend)
@@ -260,4 +261,57 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 		pBodyData[bodySize] = pobjRadioModule->GetRadioChanState();
 		bodySize++;
 	}		
+}
+
+
+void ProcessDataToExtDev()
+{
+	//Если есть данные для внешнего устройства
+	if(!QueDataToExtDev.isEmpty())
+	{
+		//Формируем и отправляем сообщение с данными для внешнего устройства
+		FormAndSendDataMsgToExtDev();
+	}
+}
+
+
+void FormAndSendDataMsgToExtDev()
+{
+	//Если есть данные для внешнего устройства
+	if(!QueDataToExtDev.isEmpty())
+	{
+		SPIMMessage SPIMmsgToSend;
+
+		//Формируем сообщение с данными для внешнего устройства
+		FormDataMsgToExtDev(&SPIMmsgToSend);
+		
+		//Отправляем сформированное сообщение
+		SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
+	}
+}
+
+
+void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend)
+{
+	//Если есть данные для внешнего устройства
+	if(!QueDataToExtDev.isEmpty())
+	{	
+		//ID команды
+		uint8_t IDcmd = SPIM_CMD_TAKE_DATA_FRAME_BACK;
+		//Адресат - внешнешнее управляющее устройство
+		uint8_t address = SPIM_ADDR_EXTDEV;
+		//Порядковый номер команды - нулевой (это не ответ на команду)
+		uint8_t noMsg = 0;		
+		
+		//Получим указатель на тело сообщения
+		uint8_t* pBodyData = SPIMCmdToSend->Body;
+
+		uint16_t bodySize = QueDataToExtDev.PopFrame(pBodyData);
+		
+		SPIMCmdToSend->setHeader(bodySize,address,noMsg,IDcmd);
+		
+		SPIMCmdToSend->setBody(pBodyData,bodySize);
+		
+		SPIMCmdToSend->setCRC();
+	}
 }

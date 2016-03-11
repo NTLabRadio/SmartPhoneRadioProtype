@@ -26,6 +26,9 @@ uint16_t cntCMX7262TxAudioBuf = 0;
 //Очередь пакетов данных, принятых от внешнего управляющего устройства для отправки в радиоинтерфейс
 QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADIOPACK_SIZE);
 
+#define MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV 	(5)
+//Очередь пакетов данных, принятых из радиоинтерфейса, предназначенных внешнему управляющему устройству
+QueDataFrames QueDataToExtDev(MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV, MAX_RADIOPACK_SIZE);
 
 
 // ------------------------------- Описание режима передачи речевого сигнала -------------------------------------
@@ -33,7 +36,6 @@ QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADI
 //1. При нажатии на тангенту в обработчике ProcessPTTState():
 //	1.1 устанавливаем состояние радиомодуля в RADIOMODULE_STATE_TX_WAITING;
 //	1.2 переводим вокодер CMX7262 в состояние кодирования данных с аудиовхода;
-//	1.3 переводим FrontEnd в передачу
 //
 //2. Поскольку вокодер переведен в состояние кодирования, то как только накапливается новый 60-мс кадр, вокодер
 //выдает прерывание ODA. В обработчике ProcessCMX7262State() проверяется, нет ли прерывания. Если есть, то
@@ -41,7 +43,7 @@ QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADI
 //
 //3. В обработчике ProcessRadioState(), если установлено состояние радиомодуля в RADIOMODULE_STATE_TX_WAITING, 
 //проверяем, достаточно ли данных накоплено от вокодера. Если данных накопили достаточно, изменяем состояние 
-//радимодуля на RADIOMODULE_STATE_TX_RUNNING
+//радимодуля на RADIOMODULE_STATE_TX_RUNNING и переводим FrontEnd в передачу
 //
 //4. В обработчике ProcessRadioState(), если установлено состояние радиомодуля RADIOMODULE_STATE_TX_RUNNING:
 //	4.1 проверяем, достаточно ли в очереди на передачу данных для формирования одного пакета и свободен ли в данный
@@ -60,11 +62,11 @@ QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADI
 //	1.2 переводим вокодер CMX7262 в состояние декодирования данных и воспроизведения результата на аудиовыход;
 //	1.3 программно генерируем прерывание от вокодера о том, что он готов принимать данные (сам он не выдаст 
 //	прерывание IDW, пока в него не переданы данные);
-//	1.4 переводим FrontEnd в прием
 //
 //2. В обработчике ProcessRadioState(), если установлено состояние радиомодуля в RADIOMODULE_STATE_RX_WAITING:
 //	2.1 переводим трансивер в режим приема;
 //	2.2 изменяем состояние радимодуля на RADIOMODULE_STATE_RX_RUNNING (непосредственно прием)
+//	2.3 переводим FrontEnd в прием
 //
 //3. В обработчике ProcessRadioState(), если установлено состояние радиомодуля в RADIOMODULE_STATE_RX_RUNNING:
 //	3.1 проверяем, нет ли прерывания, указывающего, что трансивер CC1120 принял данные;
@@ -109,7 +111,7 @@ void ProcessPTTState()
 	//Если в данный момент не передаем данные
 	if(pobjRadioModule->GetRadioChanType()!=RADIOCHAN_TYPE_DATA)
 	{
-	
+		
 		//Если нажата тангета
 		if(PTT_PRESSED())
 		{
@@ -233,17 +235,17 @@ void ProcessRadioState()
 				//Если есть данные для передачи от внешнего устройства
 				if(!QueDataFromExtDev.isEmpty())
 				{
-					uint16_t sizePack = 0;
 					uint8_t pDataPack[RADIOPACK_DATAMODE_SIZE];
-					sizePack = QueDataFromExtDev.PopFrame(pDataPack);
+					//Забираем из очереди один пакет данных для передачи
+					uint16_t sizePack = QueDataFromExtDev.PopFrame(pDataPack);
 					
-					if(sizePack)
-					{
-						FormAndSendRadioPack(pDataPack, sizePack);
-						g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
+					//Формируем радиопакет и отправляем его в трансивер
+					FormAndSendRadioPack(pDataPack, sizePack);
 						
-						pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
-					}
+					//Запоминаем, что теперь передатчик находится в активном состоянии передачи
+					g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
+						
+					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
 				}
 			}
 		break;
@@ -267,16 +269,25 @@ void ProcessRadioState()
 			{
 				uint8_t pRadioPayloadData[MAX_RADIOPACK_SIZE];
 				uint16_t nSizeOfRadioPayload = 0;
+				uint8_t nRadioPayloadType;
 				
 				//Забираем данные из буфера RxFIFO трансивера
-				ProcessRadioPack(pRadioPayloadData, nSizeOfRadioPayload);
+				ProcessRadioPack(pRadioPayloadData, nSizeOfRadioPayload, nRadioPayloadType);
 
 				//Проверям, приняли ли хоть-что нибудь из трансивера
 				if(nSizeOfRadioPayload)
 				{
-					//Копируем полезные данные принятого радиопакета в очередь для вокодера, если в ней есть место
-					if(nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRadioPayload)
-						AddDataToFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, pRadioPayloadData, nSizeOfRadioPayload);
+					if(nRadioPayloadType==RadioMessage::RADIO_DATATYPE_VOICE)
+					{
+						//Копируем полезные данные принятого радиопакета в очередь для вокодера, если в ней есть место
+						if(nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRadioPayload)
+							AddDataToFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, pRadioPayloadData, nSizeOfRadioPayload);
+					}
+					else
+					{
+						//Пакет данных, принятый из радиоинтерфейса, копируем в очередь для внешнего устройства
+						QueDataToExtDev.PushFrame(pRadioPayloadData, nSizeOfRadioPayload);
+					}
 				}
 				//Сбрасываем флаг прерывания 
 				g_flCC1120_IRQ_CHECKED = FALSE;
