@@ -57,10 +57,10 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize)
 	
 	uint16_t nSizeOfRecData = CC1120_RxFIFONumBytes(g_CC1120Struct.hSPI);
 			
-	if((nSizeOfRecData<=MAX_RADIOPACK_SIZE) && nSizeOfRecData)
+	if(nSizeOfRecData<=MAX_RADIOPACK_SIZE)
 		CC1120_RxData(&g_CC1120Struct,RadioPackRcvd,&nSizeOfRecData);
-	else
-		return;
+	
+		if (!nSizeOfRecData)	return;
 
 	//В конце принятого буфера располагаются статус-байты, удалим их
 	//TODO Сделать функцию обработки этих данных
