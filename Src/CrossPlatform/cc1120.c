@@ -143,9 +143,6 @@ uint16_t CC1120_RxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t* siz
 		pDataBuf[i] = RxPackData[i];
 	//memcpy(pDataBuf,RxPackData,*sizeBuf);
 	
-	//Перевод повторно в режим приема
-	CC1120_Rx(pCC1120->hSPI);
-	
 	return(1);
 }
 

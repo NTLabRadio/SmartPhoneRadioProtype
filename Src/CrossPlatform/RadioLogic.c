@@ -56,11 +56,23 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize)
 	nPayloadSize = 0;
 	
 	uint16_t nSizeOfRecData = CC1120_RxFIFONumBytes(g_CC1120Struct.hSPI);
-			
-	if(nSizeOfRecData<=MAX_RADIOPACK_SIZE)
-		CC1120_RxData(&g_CC1120Struct,RadioPackRcvd,&nSizeOfRecData);
 	
-		if (!nSizeOfRecData)	return;
+	//Флаг, указыюващий на то, что данные из буфера RxFIFO прочитаны
+	uint8_t flDataRcvdFromCC1120 = false;
+	
+	//Читаем данные из буфера RxFIFO только если размер данных адекватный (ненулевой и не слишком большой)
+	if((nSizeOfRecData<=MAX_RADIOPACK_SIZE) && (nSizeOfRecData))
+	{
+		flDataRcvdFromCC1120 = true;
+		CC1120_RxData(&g_CC1120Struct,RadioPackRcvd,&nSizeOfRecData);
+	}
+
+	//Переводим трансивер повторно в режим приема
+	CC1120_Rx(g_CC1120Struct.hSPI);
+	
+	//Если из буфера RxFIFO ничего не прочитали, то и обрабатывать нечего
+	if(!flDataRcvdFromCC1120)
+		return;	
 
 	//В конце принятого буфера располагаются статус-байты, удалим их
 	//TODO Сделать функцию обработки этих данных
