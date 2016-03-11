@@ -36,6 +36,23 @@ RadioModule::RadioModule()
 }
 
 
+uint8_t RadioModule::SetRadioModuleState(uint8_t state)
+{
+	if(state<NUM_RADIOMODULE_STATES)
+	{
+		RadioModuleState = (en_RadioModuleStates)state;
+		return(0);
+	}
+	else
+		return(1);	
+}
+
+uint8_t RadioModule::GetRadioModuleState()
+{
+	return(RadioModuleState);
+}
+
+
 uint8_t RadioModule::SetRadioChanType(uint8_t chanType)
 {
 	if(chanType<NUM_RADIOCHAN_TYPES)

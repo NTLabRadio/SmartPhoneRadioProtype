@@ -5,18 +5,20 @@ SPIMMessage*	pSPIMmsgRcvd;
 //Объект для формирования сообщений SPIM-протокола для отправки
 SPIMMessage*	pSPIMmsgToSend;
 
+extern QueDataFrames QueDataFromExtDev;
+	
+
+
 void SPIMInit()
 {
 	//Создаем объекты для обработки и формирования сообщений SPIM-протокола
 	pSPIMmsgRcvd = new SPIMMessage;
-	//pSPIMmsgToSend  = new SPIMMessage;
 }
 
 void SPIMDeInit()
 {
 	//Удаляем объекты для обработки и формирования сообщений SPIM-протокола
 	delete pSPIMmsgRcvd;
-	//delete pSPIMmsgToSend;
 }
 
 void ProcessDataFromExtDev()
@@ -104,10 +106,20 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			
 			//Формируем тело ответа, указывающего, что команда выполнена успешно
 			//TODO Неименованные константы
-			bodySize = 1;		
-			*pBodyData = 1;
+			bodySize = 1;
+			*pBodyData = SPIM_OP_RESULT_SUCCESS;
 			break;
 		case SPIM_CMD_SEND_DATA_FRAME:
+			uint8_t nAnswer;
+		
+			//Копируем данные в очередь для отправки, если в ней есть место
+			if(QueDataFromExtDev.PushFrame(SPIMCmdRcvd->Body,SPIMCmdRcvd->getSizeBody()))
+				nAnswer = SPIM_OP_RESULT_SUCCESS;		//и отвечаем, что все ок, данные будут переданы
+			else
+				nAnswer = SPIM_OP_RESULT_FAIL;			//если места нет, отвечаем, что все плохо, стоит попробовать попозже
+
+			bodySize = 1;
+			*pBodyData = nAnswer;
 			break;
 		case SPIM_CMD_TAKE_DATA_FRAME:
 			break;	

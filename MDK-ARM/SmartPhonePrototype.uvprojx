@@ -1115,6 +1115,11 @@
                 </FileArmAds>
               </FileOption>
             </File>
+            <File>
+              <FileName>QueDataFrames.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\Src\CrossPlatform\QueDataFrames.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

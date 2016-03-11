@@ -9,10 +9,10 @@ SLIPInterface::SLIPInterface()
 }
 
 /**
-  * @brief  Инициализация механизма поиска SLIP-пакета
+    * @brief  Инициализация механизма поиска SLIP-пакета
 	* @param  нет
 	*
-  * @note   Функция инициализирует параметры механизма
+    * @note   Функция инициализирует параметры механизма
 	*					поиска SLIP-пакета: устанавливает начальное
 	*					состояние поиска, сбрасывает счетчик накопленных
 	*					данных, устанавливает указатель данных на начало
@@ -30,11 +30,11 @@ void SLIPInterface::WaitForPack()
 
 
 /**
-  * @brief  Функция поиска SLIP-пакета в потоковых данных
+    * @brief  Функция поиска SLIP-пакета в потоковых данных
 	*					и извлечения из найденного пакета	полезных данных
 	*
 	* @param  nStreamDataByte - входной символ потоковых данных;
-	*	@param	pPayloadPackData - указатель, по которому должны быть
+    * @param	pPayloadPackData - указатель, по которому должны быть
 	*					переданы полезные данные, извлеченные из найденного 
 	*					SLIP-пакета
 	* @param	nPayloadPackSize - размер полезных данных, байт;
@@ -46,7 +46,7 @@ void SLIPInterface::WaitForPack()
 	*						255 - ошибка в данных (превышен максимально 
 	*						допустимый размер пакета или др.)
 	*
-  * @note   Функция побайтно анализирует потоковые данные на
+    * @note   Функция побайтно анализирует потоковые данные на
 	*					предмет нахождения в них SLIP-данных, которые 
 	*					начинаются и заканчиваются специальными символами.
 	*					В случае нахождения начала SLIP-пакета, функция
@@ -82,7 +82,7 @@ uint8_t SLIPInterface::CheckForSLIPData(uint8_t nStreamDataByte, uint8_t* pPaylo
 			break;
 		case STATE_WAIT_FOR_END_OF_PACK:
 			//Проверка, не превысил ли счетчик накапливаемых данных допустимый размер пакета	
-			if(nPackSize>=SIZE_BUF_FOR_SLIP_DATA-1)
+            if(nPackSize>=MAX_SIZE_OF_PACK-1)
 			{
 				nCheckState = 0xFF;
 				return(0);
@@ -98,15 +98,7 @@ uint8_t SLIPInterface::CheckForSLIPData(uint8_t nStreamDataByte, uint8_t* pPaylo
 				InterfaceState = STATE_IDLE;				
 				
 				//Обрабатываем накопленные данные, выполняя операцию байт-стаффинга
-				#ifdef DEBUG_NO_CHECK_SLIP_EXCEPTIONS
-				FindPackInData(&BufForSLIPData[0], nPackSize, pPayloadPackData, nPayloadPackSize, nPosEndOfPack);
-				#else
-				if(FindPackInData(&BufForSLIPData[0], nPackSize, pPayloadPackData, nPayloadPackSize, nPosEndOfPack)!=2)
-				{
-					nCheckState = 0xFF;
-					return(0);
-				}
-				#endif
+				FindPackInData(&BufForSLIPData[0], nPackSize, pPayloadPackData, nPayloadPackSize, nPosEndOfPack);				
 				
 				nCheckState = InterfaceState;
 				return(1);
@@ -122,7 +114,7 @@ uint8_t SLIPInterface::CheckForSLIPData(uint8_t nStreamDataByte, uint8_t* pPaylo
 
 
 /**
-  * @brief  Функция поиска SLIP пакета в массиве данных
+    * @brief  Функция поиска SLIP пакета в массиве данных
 	*
 	* @param  pData - указатель на массив входных данных;
 	* @param  nDataSize - размер входного массива, в байтах;
@@ -130,10 +122,13 @@ uint8_t SLIPInterface::CheckForSLIPData(uint8_t nStreamDataByte, uint8_t* pPaylo
 	* @param  nPackSize - размер пакета, в байтах;
 	* @param	nPackEndPosInData - позиция последнего символа найденного пакета
 	*
-  * @note   Функция ищет SLIP-пакет, начиная с первого символа входного массива, 
-	*					который начинается и заканчивается специальным символом FEND. 
-	*					В пакете также 2-байтные ESC-последовательности заменяются на 
-	*					соответствующие символы
+    * @note   Функция ищет SLIP-пакет в масиве входных данных. Поиск выполняется
+    *                  начиная с первого символа входного массива. При нахождении одного
+    *                  SLIP-пакета поиск прекращается.
+    * 					Признаком SLIP-пакета является специальный символ FEND, с которого
+    *                  пакет начинается и которым же заканчивается.
+    *					Функция возвращает полезную нагрузку пакета, без символов FEND и
+    *                  с выполненной операцией байт-стафинга над данными
 	* @note		ВНИМАНИЕ! Память для pPayloadPackData должна быть выделена 
 	*					предварительно
 	*
@@ -199,7 +194,7 @@ uint8_t SLIPInterface::FindPackInData(uint8_t* pData, uint16_t nDataSize, uint8_
                         #ifdef QTDEBUG_SLIP_PRINTOUT_EXCEPTIONS
                         qDebug() << "WARNING! ::FindSLIPPackInData() В обрабатываемом SLIP-пакете найден одинокий символ FESC, не входящий в ESC-последовательность";
                         #endif
-                        return(RES_FAIL);
+                        return(RESULT_FAIL);
                     }
                 }
                 break;
@@ -220,23 +215,22 @@ uint8_t SLIPInterface::FindPackInData(uint8_t* pData, uint16_t nDataSize, uint8_
 
 
 /**
-  * @brief  Функция формирования SLIP пакета
+    * @brief  Функция формирования SLIP пакета
 	*
 	* @param  pPayloadData - указатель на массив полезной нагрузки пакета;
 	* @param  nPayloadSize - размер полезной нагрузки пакета, в байтах;
 	* @param  pPackData - указатель на данные сформированного SLIP-пакета;
 	* @param  nPackSize - размер сформированного SLIP-пакета, в байтах;
 	*
-  * @note   Функция добавляет в начало и конец полезных данных символ FEND 
-	*					и выполняет
-	* 				операцию байт-стаффинга над данными
-	* @note		ВНИМАНИЕ! Память для pPackData должна быть выделена предварительно
+    * @note   Функция добавляет в начало и конец полезных данных символ FEND
+    *					и выполняет операцию байт-стаффинга над данными
+    * @note ВНИМАНИЕ! Память для pPackData должна быть выделена предварительно
 	*
 	* @retval Результат выполнения функции:
 	*					0 - пакет успешно сформирован;
 	*  				0xFFFF - при формировании пакета произошла ошибка, возможные ошибки:
-	*						- один из указателей, переданных в функцию- нулевой;
-	*			      - указанный максимальный размер пакета - меньше минимально допустимого (2);
+    *                  - один из указателей, переданных в функцию- нулевой;
+    *                  - указанный максимальный размер пакета - меньше минимально допустимого (2);
 	*  			    - при формировании превышен максимально допустимый размер пакета
   */
 uint8_t SLIPInterface::FormPack(uint8_t* pPayloadData, uint16_t nPayloadSize, uint8_t* pPackData, uint16_t& nPackSize, uint16_t nMaxPackSize)
@@ -245,11 +239,11 @@ uint8_t SLIPInterface::FormPack(uint8_t* pPayloadData, uint16_t nPayloadSize, ui
 
     //Проверка указателей, переданных в функцию
     if(!pPayloadData || !pPackData)
-        return(RES_FAIL);
+        return(RESULT_FAIL);
 
     //Пакет должен состоять не менее чем из 2х символов FEND
     if(nMaxPackSize<2)
-        return(RES_FAIL);
+        return(RESULT_FAIL);
 
     //Первый символ пакета - FEND
     *pPackData++ = FEND;
@@ -268,7 +262,7 @@ uint8_t SLIPInterface::FormPack(uint8_t* pPayloadData, uint16_t nPayloadSize, ui
                     #ifdef QTDEBUG_SLIP_PRINTOUT_EXCEPTIONS
                     qDebug() << "WARNING! ::FormSLIPPack() Размер формируемого SLIP пакета превысил допустимый";
                     #endif
-                    return(RES_FAIL);
+                    return(RESULT_FAIL);
                 }
 
                 //В пакет записываем ESC-последовательность
@@ -289,7 +283,7 @@ uint8_t SLIPInterface::FormPack(uint8_t* pPayloadData, uint16_t nPayloadSize, ui
                     #ifdef QTDEBUG_SLIP_PRINTOUT_EXCEPTIONS
                     qDebug() << "WARNING! ::FormSLIPPack() Размер формируемого SLIP пакета превысил допустимый";
                     #endif
-                    return(RES_FAIL);
+                    return(RESULT_FAIL);
                 }
 
                 //В пакет непосредственно записываем символ полезной нагрузки
@@ -308,5 +302,5 @@ uint8_t SLIPInterface::FormPack(uint8_t* pPayloadData, uint16_t nPayloadSize, ui
     *pPackData++ = FEND;
     nPackSize++;
 
-    return(RES_SUCCESS);
+    return(RESULT_SUCCESS);
 }

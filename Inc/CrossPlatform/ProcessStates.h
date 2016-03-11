@@ -18,6 +18,7 @@
 #include "cc1120.h"
 #include "cmx7262.h"
 #include "FIFOBuffers.h"
+#include "QueDataFrames.h"
 #include "RadioLogic.h"
 #include "RadioModule.h"
 

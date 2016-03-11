@@ -85,7 +85,7 @@
 	 
 // Default gains
 #define CMX7262_INPUT_GAIN_DEFAULT		0x0000
-#define CMX7262_OUPUT_GAIN_DEFAULT		0x1000				
+#define CMX7262_OUPUT_GAIN_DEFAULT		0x8000				
 
 // Default noise gate parameters
 #define CMX7262_NOISEGATE_THRESHOLD_DEFAULT		(70)

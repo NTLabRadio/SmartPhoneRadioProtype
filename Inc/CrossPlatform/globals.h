@@ -37,6 +37,9 @@
 //Размер радиопакета в режиме речевого обмена, только речевые данные
 #define RADIOPACK_VOICEMODE_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK * CMX7262_CODEC_BUFFER_SIZE)
 
+//Размер радиопакета в режиме передачи данных
+#define RADIOPACK_DATAMODE_SIZE 	(RADIOPACK_VOICEMODE_SIZE)
+
 //Размер данных от вокодера, накапливаемый радимодулем прежде чем инициализировать передачу
 #define SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX	(NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX * CMX7262_CODEC_BUFFER_SIZE)
 

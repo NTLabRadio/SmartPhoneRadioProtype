@@ -21,6 +21,13 @@ uint16_t nLengthDataToCMX7262 = 0;
 uint16_t cntCMX7262TxAudioBuf = 0;
 #endif
 
+
+#define MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV 	(5)
+//Очередь пакетов данных, принятых от внешнего управляющего устройства для отправки в радиоинтерфейс
+QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADIOPACK_SIZE);
+
+
+
 // ------------------------------- Описание режима передачи речевого сигнала -------------------------------------
 //
 //1. При нажатии на тангенту в обработчике ProcessPTTState():
@@ -99,59 +106,55 @@ void RadioModuleDeInit()
 //TODO Не реализован антидребезг
 void ProcessPTTState()
 {
-	//Если нажата тангета
-	if(PTT_PRESSED())
+	//Если в данный момент не передаем данные
+	if(pobjRadioModule->GetRadioChanType()!=RADIOCHAN_TYPE_DATA)
 	{
-		//Проверяем состояние радиоканала
-		//Если до сих пор не находимся в передаче
-		if( !pobjRadioModule->isTxMode() )
+	
+		//Если нажата тангета
+		if(PTT_PRESSED())
 		{
-			//Изменяем состояние радиоканала на "передачу"
-			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_TRANSMIT);
-			
-			//Изменяем рабочее состояние радиомодуля на "подготовку к передаче"
-			pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_TX_WAITING;
-			
-			//Запускаем процесс кодирования вокодера
-			VocoderStartEncode();
-			
-			nLengthDataFromCMX7262 = 0;
-			nLengthDataToCMX7262 = 0;
-			
-			#ifndef SMART_PROTOTYPE
-			//TODO SKY_TR_HIGH - функция не соответствующая уровню абстракции ProcessPTTState()
-			//Тут должна вызываться функция вроде FrontEndSetTx()
-			SKY_TR_HIGH();
-			#endif
+			//Проверяем состояние радиоканала
+			//Если до сих пор не находимся в передаче
+			if( !pobjRadioModule->isTxMode() )
+			{
+				//Изменяем состояние радиоканала на "передачу"
+				pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_TRANSMIT);
+				
+				//Изменяем рабочее состояние радиомодуля на "подготовку к передаче"
+				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_WAITING);
+				
+				//Запускаем процесс кодирования вокодера
+				VocoderStartEncode();
+				
+				nLengthDataFromCMX7262 = 0;
+				nLengthDataToCMX7262 = 0;
+			}
 		}
-	}
-	else
-	{
-		//Проверяем состояние радиоканала
-		//Если до сих пор не находимся в приеме
-		if( !pobjRadioModule->isRxMode() )
+		else
 		{
-			//Изменяем состояние радиоканала на "прием"
-			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
-			
-			//Изменяем рабочее состояние радиомодуля на "подготовку к приему"
-			pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_RX_WAITING;
-			
-			//Запускаем процесс декодирования вокодера
-			VocoderStartDecode();
-			
-			#ifndef TEST_RADIO_IMITATE
-			nLengthDataToCMX7262 = 0;
-			#endif
-			nLengthDataFromCMX7262 = 0;
-			
-			#ifndef SMART_PROTOTYPE
-			//TODO Тут должна вызываться функция вроде FrontEndSetRx()
-			SKY_TR_LOW();
-			#endif
-		}
-	}
+			//Проверяем состояние радиоканала
+			//Если до сих пор не находимся в приеме
+			if( !pobjRadioModule->isRxMode() )
+			{
+				//Изменяем состояние радиоканала на "прием"
+				pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
+				
+				//Изменяем рабочее состояние радиомодуля на "подготовку к приему"
+				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_WAITING);
+				
+				//Запускаем процесс декодирования вокодера
+				VocoderStartDecode();
+				
+				#ifndef TEST_RADIO_IMITATE
+				nLengthDataToCMX7262 = 0;
+				#endif
+				nLengthDataFromCMX7262 = 0;
+			}
+		}	//if(PTT_PRESSED())
+		
+	}	//if(pobjRadioModule->GetRadioChanType()!=RADIOCHAN_TYPE_DATA)
 }
+
 
 void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize)
 {
@@ -169,18 +172,22 @@ void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize)
 
 void ProcessRadioState()
 {
-	switch(pobjRadioModule->RadioModuleState)
+	switch(pobjRadioModule->GetRadioModuleState())
 	{		
 		case RADIOMODULE_STATE_TX_WAITING:
 			//Если накопили достаточно звуковых данных от вокодера, переключаемся в режим RADIOMODULE_STATE_TX_RUNNING
-			if(nLengthDataFromCMX7262 > SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX)
-			//### или от внешнего устройства получен пакет для передачи
+			if( (nLengthDataFromCMX7262 > SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX) ||
+			//или есть данные для передачи от внешнего устройства
+			(!QueDataFromExtDev.isEmpty()) )
 			{
-				pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_TX_RUNNING;
+				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_RUNNING);
 				//Отмечаем, что передатчик находится в свободном состоянии и может передавать следующий пакет данных
 				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
+				
+				#ifndef SMART_PROTOTYPE
+				FrontEndSetToTx();			
+				#endif
 			}
-
 		break;
 
 		case RADIOMODULE_STATE_TX_RUNNING:
@@ -192,6 +199,17 @@ void ProcessRadioState()
 
 				//Запоминаем, что передатчик находится в свободном состоянии и может передавать следующий пакет данных
 				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
+				
+				//Если передавали пакет данных, то переходим в режим приема
+				if(pobjRadioModule->GetRadioChanType()==RADIOCHAN_TYPE_DATA)
+				{
+					//Изменяем состояние радиоканала на "прием"
+					pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
+					
+					//Изменяем рабочее состояние радиомодуля на "подготовку к приему"
+					pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_WAITING);
+					break;
+				}
 			}
 		
 			//Если передатчик CC1120 свободен, то можно передавать данные
@@ -208,13 +226,25 @@ void ProcessRadioState()
 					
 					//Удаляем переданные данные из очереди данных от вокодера
 					RemDataFromFIFOBuf(pDataFromCMX7262, nLengthDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
+					
+					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_VOICE);
 				}
 				
-				//###если есть данные для передачи от внешнего устройства
-				//{
-				//	FormAndSendRadioPack(буфер с полезными данными от терминального устройства, размер полезных данных);
-				//	g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
-				//}
+				//Если есть данные для передачи от внешнего устройства
+				if(!QueDataFromExtDev.isEmpty())
+				{
+					uint16_t sizePack = 0;
+					uint8_t pDataPack[RADIOPACK_DATAMODE_SIZE];
+					sizePack = QueDataFromExtDev.PopFrame(pDataPack);
+					
+					if(sizePack)
+					{
+						FormAndSendRadioPack(pDataPack, sizePack);
+						g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
+						
+						pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
+					}
+				}
 			}
 		break;
 
@@ -222,7 +252,13 @@ void ProcessRadioState()
 			//Подготавливаем трансивер к приему данных
 			TransceiverStartRx();
 		
-			pobjRadioModule->RadioModuleState = RADIOMODULE_STATE_RX_RUNNING;
+			pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_RUNNING);
+		
+			pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_IDLE);
+		
+			#ifndef SMART_PROTOTYPE
+			FrontEndSetToRx();
+			#endif
 		break;
 
 		case RADIOMODULE_STATE_RX_RUNNING:
@@ -245,6 +281,19 @@ void ProcessRadioState()
 				//Сбрасываем флаг прерывания 
 				g_flCC1120_IRQ_CHECKED = FALSE;
 			}	//if(g_flCC1120_IRQ_CHECKED)
+			
+			//Если есть данные для передачи от внешнего устройства, то переходим в режим передачи
+			if(!QueDataFromExtDev.isEmpty())
+			{
+				//Изменяем состояние радиоканала на "передачу"
+				pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_TRANSMIT);
+				
+				//Изменяем рабочее состояние радиомодуля на "подготовку к передаче"
+				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_WAITING);
+				
+				pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
+				break;
+			}
 		break;
 			
 		default:
@@ -402,3 +451,15 @@ void VocoderStartEncode()
 {
 	CMX7262_Encode(&g_CMX7262Struct);
 }
+
+#ifndef SMART_PROTOTYPE
+void FrontEndSetToTx()
+{
+	SKY_TR_HIGH();
+}
+
+void FrontEndSetToRx()
+{
+	SKY_TR_LOW();
+}
+#endif
