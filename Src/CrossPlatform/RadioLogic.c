@@ -7,13 +7,17 @@ uint8_t RadioPackForSend[MAX_RADIOPACK_SIZE];
 //Данные принятого радиопакета
 uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE+SIZE_OF_RADIO_STATUS];
 
+#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+uint16_t g_cntCC1120_TxDataErrors = 0;
+#endif
 
-void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize)
+
+void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize, uint8_t nPayloadDataType)
 {	
 	RadioMessage RadioMsgToSend;
 	
 	//Формируем радиопакет
-	FormRadioPack(&RadioMsgToSend,pPayloadData,nPayloadSize);
+	FormRadioPack(&RadioMsgToSend,pPayloadData,nPayloadSize,nPayloadDataType);
 	
 	//Отправляем сформированный пакет в эфир
 	#ifndef TEST_RADIO_IMITATE
@@ -28,24 +32,57 @@ void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize)
 }
 
 
-void SendRadioPackToTansceiver(uint8_t* pData, uint16_t nSizeData)
+uint8_t SendRadioPackToTansceiver(uint8_t* pData, uint16_t nSizeData)
 {
-	CC1120_TxData(&g_CC1120Struct, pData, nSizeData);
+	if(!CC1120_TxData(&g_CC1120Struct, pData, nSizeData))
+	{
+		#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+		g_cntCC1120_TxDataErrors++;
+		#endif
+		return(0);
+	}
+
+	return(1);
 }
 
 
-void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint16_t nPayloadSize)
+void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint16_t nPayloadSize, uint8_t nPayloadDataType)
 {
 	//Устанавливаем широковещательный адрес
 	uint8_t dstAddress = RADIO_BROADCAST_ADDR;
 	//Собственный адрес берем из настроек радиомодуля
 	uint8_t srcAddress = pobjRadioModule->GetRadioAddress();
 	//Тип передаваемых данных
-	uint8_t dataType = RadioMessage::RADIO_DATATYPE_VOICE;
+	uint8_t dataType = nPayloadDataType;
+	//Размер полезных данных в пакете
+	uint8_t dataSize = nPayloadSize;
+	
+	//Данные радиопакета
+	uint8_t pBodyData[MAX_RADIOPACK_SIZE];
+	memset(pBodyData,RADIOPACK_DATAMODE_SIZE,0);	
+	//Размер пакета
+	uint8_t nBodySize;
+	switch(nPayloadDataType)
+	{
+		case RadioMessage::RADIO_DATATYPE_VOICE:
+			nBodySize	= RADIOPACK_VOICEMODE_SIZE;
+			break;
+		case RadioMessage::RADIO_DATATYPE_CONF_DATA:
+			nBodySize	= RADIOPACK_DATAMODE_SIZE;
+			break;
+		case RadioMessage::RADIO_DATATYPE_UNCONF_DATA:
+			nBodySize	= RADIOPACK_DATAMODE_SIZE;
+			break;		
+		default:
+			nBodySize	= RADIOPACK_DATAMODE_SIZE;
+	}
+	
+	//Копируем полезные данные в начало тела пакета, остальное - нули
+	memcpy(pBodyData,pPayloadData,nPayloadSize);
 	
 	//Формируем ответ для управляющего устройства
-	RadioPack->setHeader(dstAddress,srcAddress,dataType);
-	RadioPack->setBody(pPayloadData,nPayloadSize);
+	RadioPack->setHeader(dstAddress,srcAddress,dataType,dataSize);
+	RadioPack->setBody(pBodyData,nBodySize);
 
 	return;
 }
@@ -83,7 +120,7 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nD
 	//Данные заголовка радиосообщения
 	uint8_t dstAddress = RadioMsgRcvd.getDstAddress();
 	uint8_t srcAddress = RadioMsgRcvd.getSrcAddress();
-	uint8_t dataType = RadioMsgRcvd.getDataType();
+	nDataType = RadioMsgRcvd.getDataType();
 	
 	//Данные тела радиосообщения
 	nPayloadSize = RadioMsgRcvd.getBody(pPayloadData);

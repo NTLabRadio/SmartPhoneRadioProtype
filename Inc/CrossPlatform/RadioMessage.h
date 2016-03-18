@@ -29,7 +29,7 @@ public:
 
 	uint8_t* Body;
 
-	uint8_t setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType);
+	uint8_t setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType, uint8_t nDataSize);
 	uint8_t setBody(uint8_t* pBodyData, uint8_t bodySize);
 	uint8_t setMsg(uint8_t* pMsgData, uint8_t msgSize);
 
@@ -64,8 +64,9 @@ private:
 	typedef struct {
 		uint8_t dstAddress;     // адрес получателя
 		uint8_t srcAddress;     // адрес источника
-		uint8_t dataType;     	// тип данных
-		uint8_t reserve[2];
+		uint8_t dataType;     	// тип данных (речь / гарант. данные / негарант. данные)
+		uint8_t dataSize;     	// размер полезных данных в сообщении, байт
+		uint8_t reserve;
 	} structRadioMsgHeader;
 
 	uint8_t RadioMsgData[MAX_SIZE_OF_MSG];

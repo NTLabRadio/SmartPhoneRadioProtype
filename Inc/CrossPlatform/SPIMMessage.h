@@ -23,7 +23,7 @@ enum en_SPIMcmds
 	SPIM_CMD_SET_MODE_BACK					=0x03,
 	SPIM_CMD_SEND_DATA_FRAME				=0x04,
 	SPIM_CMD_SEND_DATA_FRAME_BACK		=0x05,
-    SPIM_CMD_TAKE_DATA_FRAME                 =0x06,
+	SPIM_CMD_TAKE_DATA_FRAME        =0x06,
 	SPIM_CMD_TAKE_DATA_FRAME_BACK		=0x07,
 	SPIM_CMD_REQ_CURRENT_PARAM 			=0x08,
 	SPIM_CMD_REQ_CURRENT_PARAM_BACK =0x09,
@@ -91,27 +91,27 @@ public:
 			SPIMMessage* objSPIMMessage;			
 		
 			//ћаски запрашиваемых параметров
-            static const uint8_t OPMODE_MASK_IN_REQ = (1<<1);
-            static const uint8_t AUDIO_MASK_IN_REQ = (1<<2);
-            static const uint8_t TXFREQ_MASK_IN_REQ = (1<<3);
-            static const uint8_t RXFREQ_MASK_IN_REQ = (1<<4);
-            static const uint8_t RSSI_MASK_IN_REQ = (1<<5);
-            static const uint8_t CHANSTATE_MASK_IN_REQ = (1<<5);
+			static const uint8_t OPMODE_MASK_IN_REQ = (1<<1);
+			static const uint8_t AUDIO_MASK_IN_REQ = (1<<2);
+			static const uint8_t TXFREQ_MASK_IN_REQ = (1<<3);
+			static const uint8_t RXFREQ_MASK_IN_REQ = (1<<4);
+			static const uint8_t RSSI_MASK_IN_REQ = (1<<5);
+			static const uint8_t CHANSTATE_MASK_IN_REQ = (1<<5);
 	} cmdReqParam;	
 
-    enum en_SPIMaddrs
-    {
-        SPIM_ADDR_STM32								=0x1,		//контроллер STM32 целевого устройства (радимодул§)
-        SPIM_ADDR_EXTDEV								=0x2		//внешнее управл§ющее устройство (процессор NT1004, Њ  или др.)
-    };
+	enum en_SPIMaddrs
+	{
+		SPIM_ADDR_STM32									=0x1,		//контроллер STM32 целевого устройства (радимодул§)
+		SPIM_ADDR_EXTDEV								=0x2		//внешнее управл§ющее устройство (процессор NT1004, Њ  или др.)
+	};
 
-    enum en_SPIMReqTypes
-    {
-        SPIM_REQTYPE_SINGLE							=0,			//одиночный синхронный запрос - запрос, ответ на который должен быть выслан ведомым
-                                                                                    //устройством однократно в момент получени§ запроса
-        SPIM_REQTYPE_ASYNC							=1			//асинхронный запрос - запрос, в ответ на который параметр (например, RSSI) высылаетс§
-                                                                                    //ведомым устройством в произвольный момент времени, при изменении его значени§
-    };
+	enum en_SPIMReqTypes
+	{
+		SPIM_REQTYPE_SINGLE							=0,			//одиночный синхронный запрос - запрос, ответ на который должен быть выслан ведомым
+																						//устройством однократно в момент получени§ запроса
+		SPIM_REQTYPE_ASYNC							=1			//асинхронный запрос - запрос, в ответ на который параметр (например, RSSI) высылаетс§
+																						//ведомым устройством в произвольный момент времени, при изменении его значени§
+	};
 
 private:
 

@@ -210,6 +210,8 @@ void RadioModule::ApplyAudioSettings()
 	//ѕо 3-битному значению кода определ€ем значение соответствуюшего регистра CMX7262
 	CMX7262AudioGainOut = AudioOutGainCodeToCMX7262ValueReg(AudioOutLevel);
 	
+	CMX7262AudioGainIn = AudioInLevel;
+	
 	//«аписываем вычисленные значени€ регистров в CMX7262
 	SetCMX7262AudioGains(CMX7262AudioGainIn, CMX7262AudioGainOut);
 }
@@ -282,6 +284,6 @@ uint16_t RadioModule::AudioOutGainCodeToCMX7262ValueReg(uint8_t audioOutLevel)
 void RadioModule::SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX7262AudioGainOut)
 {
 	CMX7262_AudioOutputGain(&g_CMX7262Struct, CMX7262AudioGainOut);
-	CMX7262_AudioInputGain(&g_CMX7262Struct);
+	CMX7262_AudioInputGain(&g_CMX7262Struct, CMX7262AudioGainIn);
 }
 

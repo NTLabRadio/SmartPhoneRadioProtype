@@ -528,7 +528,7 @@ uint16_t CMX7262_InitHardware(CMX7262_TypeDef *pCmx7262)
 	// Configure analog blocks
 	CMX7262_AnalogBlocks(pCmx7262);
 	// Setup the input and output gains.
-	CMX7262_AudioInputGain(pCmx7262);
+	CMX7262_AudioInputGain(pCmx7262,CMX7262_INPUT_GAIN_DEFAULT);
 	CMX7262_AudioOutputGain(pCmx7262,CMX7262_OUPUT_GAIN_DEFAULT);
 	
 	// Enable register write confirmation for VCTRL
@@ -644,15 +644,15 @@ void CMX7262_AnalogBlocks(CMX7262_TypeDef *pCmx7262)
 
 
 // Set the audio input gain. Note that the full 16 bit register for input and output is set by the parameter..
-void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262)
+void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262, uint16_t uGain)
 {
 	uint16_t uData;
-	uData = (uint16_t)pCmx7262->sInputGain;
 	#ifdef DEBUG_CMX7262_MIC_MAXGAIN
+	uData = (uint16_t)pCmx7262->sInputGain;
 	uData = 7;
 	#endif
 	// Position the gain to ANAIN2
-	uData = uData << 8;
+	uData = uGain << 8;
 	CBUS_Write16(ANAIN_GAIN,&uData,1,pCmx7262->uInterface);
 }
 

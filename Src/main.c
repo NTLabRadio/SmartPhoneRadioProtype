@@ -61,7 +61,6 @@ extern UART_InitTypeDef DefaultUARTParams;
 
 extern en_UARTstates UARTstate;
 
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -229,7 +228,7 @@ void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;									// синхронизаци€ по заднему фронту
   hspi1.Init.NSS = SPI_NSS_SOFT;													// программный CS (аппаратный (SPI_NSS_HARD_OUTPUT) не пон€тно, как задействовать)
-	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64 ;	//предделитель частоты SPI: 64ћ√ц/64 = 1 ћ√ц
+	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128 ;	//предделитель частоты SPI: 64ћ√ц/128 = 500 к√ц
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;									// старший бит - первый
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;// CRC не вычисл€етс€

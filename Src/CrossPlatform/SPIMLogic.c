@@ -8,6 +8,10 @@ SPIMMessage*	pSPIMmsgToSend;
 extern QueDataFrames QueDataFromExtDev;
 extern QueDataFrames QueDataToExtDev;	
 
+#ifdef DEBUG_COUNT_DATA_PACK_TO_EXT_DEV
+uint16_t g_cntDataPckToExtDev = 0;
+#endif
+
 
 void SPIMInit()
 {
@@ -182,6 +186,7 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 
 	//Читаем код рабочей частоты передачи
 	uint16_t TXFreqCode;
+	//TODO Неименованная константа
 	memcpy(&TXFreqCode,SPIMCmdRcvd->Body+2,sizeof(TXFreqCode));
 	
 	//Применяем код рабочей частоты передачи
@@ -189,6 +194,7 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	
 	//Читаем код рабочей частоты приема
 	uint16_t RXFreqCode;
+	//TODO Неименованная константа
 	memcpy(&RXFreqCode,SPIMCmdRcvd->Body+4,sizeof(RXFreqCode));	
 	
 	//Применяем код рабочей частоты приемачи
@@ -284,6 +290,10 @@ void FormAndSendDataMsgToExtDev()
 
 		//Формируем сообщение с данными для внешнего устройства
 		FormDataMsgToExtDev(&SPIMmsgToSend);
+		
+		#ifdef DEBUG_COUNT_DATA_PACK_TO_EXT_DEV
+		g_cntDataPckToExtDev++;
+		#endif
 		
 		//Отправляем сформированное сообщение
 		SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);

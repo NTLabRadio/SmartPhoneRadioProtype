@@ -50,7 +50,7 @@ RadioMessage::~RadioMessage()
 }
 
 
-uint8_t RadioMessage::setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType)
+uint8_t RadioMessage::setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType, uint8_t nDataSize)
 {
 	structRadioMsgHeader strMsgHeader;
 
@@ -59,6 +59,8 @@ uint8_t RadioMessage::setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_
 	strMsgHeader.srcAddress = nSrcAddress;
 
 	strMsgHeader.dataType = nDataType;
+	
+	strMsgHeader.dataSize = nDataSize;
 
 	memcpy((void*)RadioHeaderData,(void*)&strMsgHeader,SIZE_OF_HEADER);
 
@@ -120,6 +122,7 @@ uint8_t RadioMessage::getDstAddress()
 	return(RadioMsgHeader->dstAddress);
 }
 	
+
 uint8_t RadioMessage::getSrcAddress()
 {
 	structRadioMsgHeader *RadioMsgHeader;
@@ -130,6 +133,7 @@ uint8_t RadioMessage::getSrcAddress()
 	
 }
 
+
 uint8_t RadioMessage::getDataType()
 {
 	structRadioMsgHeader *RadioMsgHeader;
@@ -138,6 +142,7 @@ uint8_t RadioMessage::getDataType()
 
 	return(RadioMsgHeader->dataType);
 }
+
 
 uint8_t RadioMessage::getBody(uint8_t* pBodyData)
 {

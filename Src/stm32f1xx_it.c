@@ -40,6 +40,10 @@
 
 extern uint8_t g_flCMX7262_IRQ_CHECKED;
 extern uint8_t g_flCC1120_IRQ_CHECKED;
+
+#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS
+uint16_t g_cntCC1120_IRQ = 0;
+#endif
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -114,6 +118,10 @@ void EXTI0_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
   /* USER CODE BEGIN EXTI0_IRQn 1 */
 	g_flCC1120_IRQ_CHECKED = TRUE;
+	
+	#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS
+	g_cntCC1120_IRQ++;
+	#endif
   /* USER CODE END EXTI0_IRQn 1 */
 }
 

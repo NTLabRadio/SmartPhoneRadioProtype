@@ -280,7 +280,7 @@ uint16_t  CMX7262_Init (CMX7262_TypeDef  *pCmx7262, SPI_HandleTypeDef *hspi);
 uint16_t  CMX7262_InitHardware (CMX7262_TypeDef *pCmx7262);
 void CMX7262_Config (CMX7262_TypeDef  *pCmx7262, uint16_t uConfig);
 void CMX7262_Routing (CMX7262_TypeDef  *pCmx7262, uint16_t uData);
-void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262);
+void CMX7262_AudioInputGain (CMX7262_TypeDef  *pCmx7262, uint16_t uGain);
 void CMX7262_AudioOutputGain (CMX7262_TypeDef  *pCmx7262, uint16_t uGain);
 void CMX7262_FlushStatusReg (CMX7262_TypeDef  *pCmx7262);
 uint16_t CMX7262_ConfigClocks (CMX7262_TypeDef  *pCmx7262);

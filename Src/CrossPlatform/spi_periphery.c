@@ -150,7 +150,7 @@ HAL_StatusTypeDef SPI_TransmitRecieve(SPI_HandleTypeDef *hspi, uint8_t *pTxData,
 	#endif
 	{
 		cntWaitEndOfTransaction--;
-		if(isCplt_SPI_TransmitReceive(hspi)) // если SPI передача прием завершены возвращаем HAL_OK в nRes
+		if(isCplt_SPI_TransmitReceive(hspi)) // если SPI передача/прием завершены, возвращаем HAL_OK в nRes
 		{
 			return nRes;
 		}

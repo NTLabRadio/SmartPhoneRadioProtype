@@ -30,6 +30,11 @@ QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADI
 //ќчередь пакетов данных, прин€тых из радиоинтерфейса, предназначенных внешнему управл€ющему устройству
 QueDataFrames QueDataToExtDev(MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV, MAX_RADIOPACK_SIZE);
 
+#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS
+uint16_t g_cntCC1120_IRQ_ProcessInTxMode = 0;
+uint16_t g_cntSendRadioPacks = 0;
+#endif
+
 
 // ------------------------------- ќписание режима передачи речевого сигнала -------------------------------------
 //
@@ -198,6 +203,10 @@ void ProcessRadioState()
 			{
 				//—брасываем флаг прерывани€
 				g_flCC1120_IRQ_CHECKED = FALSE;
+				
+				#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+				g_cntCC1120_IRQ_ProcessInTxMode++;
+				#endif
 
 				//«апоминаем, что передатчик находитс€ в свободном состо€нии и может передавать следующий пакет данных
 				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
@@ -220,32 +229,36 @@ void ProcessRadioState()
 				//≈сли в очереди от вокодера достаточно данных дл€ формировани€ одного радиопакета, то посылаем данные в трансивер
 				if(nLengthDataFromCMX7262 >= RADIOPACK_VOICEMODE_SIZE)
 				{
+					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_VOICE);					
+					
 					//»з данных вокодера формируем радиопакет и отправл€ем его в трансивер
-					FormAndSendRadioPack(pDataFromCMX7262,RADIOPACK_VOICEMODE_SIZE);
-					
-					//«апоминаем, что теперь передатчик находитс€ в активном состо€нии передачи
-					g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
-					
+					FormAndSendRadioPack(pDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE, RadioMessage::RADIO_DATATYPE_VOICE);
+
 					//”дал€ем переданные данные из очереди данных от вокодера
 					RemDataFromFIFOBuf(pDataFromCMX7262, nLengthDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
 					
-					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_VOICE);
+					//«апоминаем, что теперь передатчик находитс€ в активном состо€нии передачи
+					g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
 				}
 				
 				//≈сли есть данные дл€ передачи от внешнего устройства
 				if(!QueDataFromExtDev.isEmpty())
 				{
+					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);					
+					
 					uint8_t pDataPack[RADIOPACK_DATAMODE_SIZE];
 					//«абираем из очереди один пакет данных дл€ передачи
 					uint16_t sizePack = QueDataFromExtDev.PopFrame(pDataPack);
 					
 					//‘ормируем радиопакет и отправл€ем его в трансивер
-					FormAndSendRadioPack(pDataPack, sizePack);
+					FormAndSendRadioPack(pDataPack, sizePack, RadioMessage::RADIO_DATATYPE_CONF_DATA);
 						
+					#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+					g_cntSendRadioPacks++;
+					#endif
+					
 					//«апоминаем, что теперь передатчик находитс€ в активном состо€нии передачи
 					g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
-						
-					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
 				}
 			}
 		break;

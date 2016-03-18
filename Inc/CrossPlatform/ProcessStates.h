@@ -29,6 +29,8 @@
 void RadioModuleInit(SPI_HandleTypeDef *hspiCMX7262, SPI_HandleTypeDef *hspiCC1120);
 void RadioModuleDeInit(void);
 
+void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize);
+
 void ProcessPTTState(void);
 
 void ProcessRadioState(void);
@@ -39,5 +41,10 @@ void ProcessCMX7262State(void);
 void TransceiverStartRx(void);
 void VocoderStartDecode(void);
 void VocoderStartEncode(void);
+
+#ifndef SMART_PROTOTYPE
+void FrontEndSetToTx();
+void FrontEndSetToRx();
+#endif
 
 #endif /* __PROCESSSTATES_H */	 
