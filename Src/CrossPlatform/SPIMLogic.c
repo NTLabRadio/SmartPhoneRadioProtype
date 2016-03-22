@@ -158,8 +158,8 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	uint8_t opModeCode = SPIMCmdRcvd->Body[0];
 	
 	//Разбираем код на отдельные параметры
-	uint8_t radioChanType, signalPower, ARMPowerMode;
-	SPIMCmdRcvd->ParseOpModeCode(opModeCode, radioChanType, signalPower, ARMPowerMode);
+	uint8_t radioChanType, signalPower, ARMPowerMode, baudRate;
+	SPIMCmdRcvd->ParseOpModeCode(opModeCode, radioChanType, signalPower, ARMPowerMode, baudRate);
 	
 	//Применяем принятые значения параметров рабочего режима
 	pobjRadioModule->SetRadioChanType(radioChanType);
@@ -171,6 +171,7 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	#ifdef ENABLE_SET_ARM_STANDBY_MODE
 	pobjRadioModule->SetARMPowerMode(ARMPowerMode);
 	#endif
+	pobjRadioModule->SetRadioBaudRate(baudRate);
 	
 	
 	//Читаем код аудиопараметров
@@ -216,9 +217,10 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 		uint8_t radioChanType = pobjRadioModule->GetRadioChanType();
 		uint8_t radioSignalPower = pobjRadioModule->GetRadioSignalPower();
 		uint8_t powerMode = pobjRadioModule->GetARMPowerMode();
+		uint8_t baudRate = pobjRadioModule->GetRadioBaudRate();
 
 		//Формируем код рабочего режима
-		uint8_t OpModeCode = SPIMCmdRcvd->cmdReqParam.OpModeCode(radioChanType,radioSignalPower,powerMode);
+		uint8_t OpModeCode = SPIMCmdRcvd->cmdReqParam.OpModeCode(radioChanType,radioSignalPower,powerMode,baudRate);
 		
 		pBodyData[bodySize] = OpModeCode;
 		bodySize++;		

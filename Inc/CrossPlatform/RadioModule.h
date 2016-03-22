@@ -42,6 +42,15 @@ enum en_ARMPowerModes
 	NUM_ARM_POWERMODES
 };
 
+enum en_RadioBaudRates
+{
+	RADIO_BAUD_RATE_4800		=0,
+	RADIO_BAUD_RATE_9600		=1,
+	RADIO_BAUD_RATE_19200		=2,
+	RADIO_BAUD_RATE_48000		=3,
+	NUM_RADIO_BAUD_RATES
+};
+
 enum en_RadioChanStates
 {
 	RADIOCHAN_STATE_IDLE,
@@ -78,6 +87,9 @@ public:
 	uint8_t SetARMPowerMode(uint8_t powerMode);
 	uint8_t GetARMPowerMode();
 
+	uint8_t SetRadioBaudRate(uint8_t baudRate);
+	uint8_t GetRadioBaudRate();
+
 	uint8_t SetTxFreqChan(uint16_t noFreqChan);
 	uint16_t GetTxFreqChan();
 
@@ -102,6 +114,7 @@ public:
 	uint8_t isRxMode();
 	
 	void ApplyAudioSettings();
+	void ApplyRadioConfig();
 	void ApplyRadioFreq();
 	
 	uint16_t GetARMSoftVer();
@@ -117,6 +130,8 @@ private:
 	en_RadioSignalPowers	RadioSignalPower;
 	//Режим энергосбережения
 	en_ARMPowerModes ARMPowerMode;
+	//Канальная скорость передачи данных
+	en_RadioBaudRates RadioBaudRate;
 
 	//Текущая рабочая частота радиомодуля
 	uint16_t NoCurFreqChan;

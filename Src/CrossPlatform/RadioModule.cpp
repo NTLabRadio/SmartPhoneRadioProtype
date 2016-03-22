@@ -15,7 +15,10 @@ RadioModule::RadioModule()
 	RadioSignalPower = RADIO_SIGNALPOWER_LOW;
 	//Режим энергосбережения
 	ARMPowerMode = ARM_POWERMODE_NORMAL;
-
+	//Канальная скорость передачи данных
+	RadioBaudRate = RADIO_BAUD_RATE_4800;
+	ApplyRadioConfig();
+	
 	//Рабочие частоты передачи/приема
 	NoTxFreqChan = DEFAULT_TX_FREQ_CHAN;
 	NoRxFreqChan = DEFAULT_RX_FREQ_CHAN;
@@ -100,6 +103,26 @@ uint8_t RadioModule::GetARMPowerMode()
 {
 	return(ARMPowerMode);
 }
+
+uint8_t RadioModule::SetRadioBaudRate(uint8_t baudRate)
+{
+	if(baudRate<NUM_RADIO_BAUD_RATES)
+	{
+		RadioBaudRate = (en_RadioBaudRates)baudRate;
+		ApplyRadioConfig();
+
+		return(0);
+	}
+	else
+		return(1);	
+}
+
+uint8_t RadioModule::GetRadioBaudRate()
+{
+	return(RadioBaudRate);
+}
+
+
 
 uint8_t RadioModule::SetTxFreqChan(uint16_t noFreqChan)
 {
@@ -214,6 +237,49 @@ void RadioModule::ApplyAudioSettings()
 	
 	//Записываем вычисленные значения регистров в CMX7262
 	SetCMX7262AudioGains(CMX7262AudioGainIn, CMX7262AudioGainOut);
+}
+
+void RadioModule::ApplyRadioConfig()
+{
+	const CC1120regSetting_t *CC1120_Config;
+	uint8_t nSizeConfig;
+	
+	//TODO Перед применением конфига узнать, в каком состоянии находится радимодуль (передача/прием), 
+	//и после настройки вернуть его в это состояние
+
+	//TODO Проверить, какая конфигурация установлена в текущий момент. Если новая конфигурация не отличается
+	//от текущей, не проводить лишнюю настройку
+	
+	switch(RadioBaudRate)
+	{
+		case RADIO_BAUD_RATE_4800:
+			CC1120_Config = CC1120_Config_4800;
+			nSizeConfig = sizeof(CC1120_Config_4800)/sizeof(CC1120regSetting_t);
+			break;
+		case RADIO_BAUD_RATE_9600:
+			CC1120_Config = CC1120_Config_9600;
+			nSizeConfig = sizeof(CC1120_Config_9600)/sizeof(CC1120regSetting_t);
+			break;
+		case RADIO_BAUD_RATE_19200:
+			CC1120_Config = CC1120_Config_19200;
+			nSizeConfig = sizeof(CC1120_Config_19200)/sizeof(CC1120regSetting_t);
+			break;
+		case RADIO_BAUD_RATE_48000:
+			CC1120_Config = CC1120_Config_48000;
+			nSizeConfig = sizeof(CC1120_Config_48000)/sizeof(CC1120regSetting_t);
+			break;
+		default:
+			CC1120_Config = CC1120_Config_4800;
+			nSizeConfig = sizeof(CC1120_Config_4800)/sizeof(CC1120regSetting_t);
+			break;		
+	}
+	
+	CC1120_SetConfig(g_CC1120Struct.hSPI, CC1120_Config, nSizeConfig);
+	//Вместе с конфигурацией изменилась рабочая частота (на частоту, заданную в конфигурации по умолчанию)
+	NoCurFreqChan = DEFAULT_RX_FREQ_CHAN;
+	
+	//Возвращаем частоту, установленную пользователем
+	ApplyRadioFreq();
 }
 
 

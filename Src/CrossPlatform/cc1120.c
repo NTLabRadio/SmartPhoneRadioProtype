@@ -69,30 +69,68 @@ uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi)
 	CC1120_RxFIFOFlush(hspi);
 
 	//6. Загрузка конфигурации
-	CC1120_ConfigWrite(hspi, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
-		
+	CC1120_ConfigWrite(hspi, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(CC1120regSetting_t));
+			
 	WaitTimeMCS(1e2);
 		
 	//7. Проверка конфигурации
-	CC1120_ConfigReadCompare(hspi, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(registerSetting_t));
+	CC1120_ConfigReadCompare(hspi, CC1120_Config_4800, sizeof (CC1120_Config_4800)/sizeof(CC1120regSetting_t));
 		
-	//TODO здесь должны быть функции установки частоты и проверки уставленной частоты
-	
-	//9. Запрос статуса
+	//8. Запрос статуса
 	CC1120_Status(hspi);
 	
-	//10. Калибровка PLL
+	//9. Калибровка PLL
 	CC1120_ManualCalibration(hspi);
 
 	WaitTimeMCS(1e2);
 	
-	//11. Повторная калибровка PLL
+	//10. Повторная калибровка PLL
 	CC1120_ManualCalibration(hspi);
 	
 	WaitTimeMCS(1e2);	
 	
 	return(1);
 }
+
+
+uint16_t CC1120_SetConfig(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum)
+{
+	//Reset микросхемы
+	CC1120_Reset(hspi);
+
+	//Сброс флага прерывания конца передачи/начала приема пакета
+	g_flCC1120_IRQ_CHECKED = FALSE;
+	
+	WaitTimeMCS(10e2);
+	
+	//Перевод микросхемы в режим IDLE
+	CC1120_IDLE_set(hspi);
+	
+	//CC1120_TxFIFOFlush(hspi);
+		
+	//CC1120_RxFIFOFlush(hspi);
+	
+	//Загрузка конфигурации
+	CC1120_ConfigWrite(hspi, CC1120_Config, configRegNum);
+			
+	WaitTimeMCS(1e2);
+		
+	//Проверка конфигурации
+	CC1120_ConfigReadCompare(hspi, CC1120_Config, configRegNum);
+	
+	//Калибровка PLL
+	CC1120_ManualCalibration(hspi);
+
+	WaitTimeMCS(1e2);
+	
+	//Повторная калибровка PLL
+	CC1120_ManualCalibration(hspi);
+	
+	WaitTimeMCS(1e2);		
+	
+	return(1);
+}
+
 
 /* 			Порядок действий при отправке пакета:
 			 1. Очистка Tx FIFO CC1120_TxFIFOFlush
@@ -699,7 +737,7 @@ uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi)
 	*					1 - успешное выполнение;
 	*					0 - ошибка при выполнении функции (занята шина SPI)
 	*/
-uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum)
+uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum)
 {
 	hspiCC1120 = hspi;
 
@@ -744,7 +782,7 @@ uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1
 	*					2 - ошибка сравнения
 	*					0 - ошибка при выполнении функции (занята шина SPI)
 	*/
-uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum)
+uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum)
 {
 	hspiCC1120 = hspi;
 	uint8_t	readExtAddress; // дополнительный адрес регистра

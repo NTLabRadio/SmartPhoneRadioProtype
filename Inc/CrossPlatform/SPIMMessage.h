@@ -62,18 +62,18 @@ public:
 	uint8_t getSizeBody();
 	uint8_t getIDCmd();
 
-    //Максимальный размер тела сообщения, байт
-    static const uint8_t MAX_SIZE_OF_BODY = 128;
+	//Максимальный размер тела сообщения, байт
+	static const uint8_t MAX_SIZE_OF_BODY = 128;
 	
 	uint8_t IDBackCmd(uint8_t IDCmd);
 	
-	static void ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& SignalPower, uint8_t& ARMPowerMode);
+  static void ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& SignalPower, uint8_t& ARMPowerMode, uint8_t& BaudRate);
 	static void ParseAudioCode(uint8_t audioCode, uint8_t& AudioOutLevel, uint8_t& AudioInLevel);
 	
 	class CmdReqParam
 	{
 		public:
-			static uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode);
+			static uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode, uint8_t BaudRate);
 			static uint8_t AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel);
 			
 			void SetPointerToMessage(SPIMMessage* mes);
@@ -144,14 +144,18 @@ private:
 	
 	//--------- Код рабочего режима ---------------
 	//Тип радиоканала
-    static const uint8_t SHIFT_RADIOCHANTYPE_IN_OPMODECODE = (0);
-    static const uint8_t MASK_RADIOCHANTYPE_IN_OPMODECODE = (3);
+	static const uint8_t SHIFT_RADIOCHANTYPE_IN_OPMODECODE = (0);
+	static const uint8_t MASK_RADIOCHANTYPE_IN_OPMODECODE = (3);
 	//Мощность сигнала передатчика
-    static const uint8_t SHIFT_SIGNALPOWER_IN_OPMODECODE = (3);
-    static const uint8_t MASK_SIGNALPOWER_IN_OPMODECODE = (1);
+	static const uint8_t SHIFT_SIGNALPOWER_IN_OPMODECODE = (3);
+	static const uint8_t MASK_SIGNALPOWER_IN_OPMODECODE = (1);
 	//Режим энергосбережения ARM
-    static const uint8_t SHIFT_ARMPOWERMODE_IN_OPMODECODE = (4);
-    static const uint8_t MASK_ARMPOWERMODE_IN_OPMODECODE = (1);
+	static const uint8_t SHIFT_ARMPOWERMODE_IN_OPMODECODE = (4);
+	static const uint8_t MASK_ARMPOWERMODE_IN_OPMODECODE = (1);
+	//Канальная скорость передачи данных
+	static const uint8_t SHIFT_RADIOBAUDRATE_IN_OPMODECODE = (5);
+	static const uint8_t MASK_RADIOBAUDRATE_IN_OPMODECODE = (7);
+
 
 	//------ Код настроек аудиопараметров ---------
 	//Усиление звукового выхода

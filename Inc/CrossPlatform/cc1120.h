@@ -91,7 +91,7 @@ typedef struct
 {
   uint16_t  addr; // поле адреса
   uint8_t   data; // поле данных
-}registerSetting_t;	// шаблон структуры конфигурации
+}CC1120regSetting_t;	// шаблон структуры конфигурации
 
 
 typedef enum
@@ -99,12 +99,12 @@ typedef enum
 	CC1120_TX_STATE_STANDBY,
 	CC1120_TX_STATE_WAIT,
 	CC1120_TX_STATE_ACTIVE
-} CC1120TxStates_TypeDef;
+} CC1120TxStates_t;
 
 typedef struct
 {
 	SPI_HandleTypeDef *hSPI;
-	CC1120TxStates_TypeDef TxState;
+	CC1120TxStates_t TxState;
 } CC1120_TypeDef;	
 
 
@@ -173,7 +173,7 @@ typedef struct
 /* Symbol rate = 4.8 */
 /* RF settings for CC1120 */
 
-static const registerSetting_t CC1120_Config_4800[]= {
+static const CC1120regSetting_t CC1120_Config_4800[]= {
 {0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
 {0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
 {0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
@@ -239,7 +239,7 @@ static const registerSetting_t CC1120_Config_4800[]= {
 /* Symbol rate = 9.6 */
 /* RF settings for CC1120 */
 
-static const registerSetting_t CC1120_Config_9600[]= {
+static const CC1120regSetting_t CC1120_Config_9600[]= {
 {0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
 {0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
 {0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
@@ -262,7 +262,7 @@ static const registerSetting_t CC1120_Config_9600[]= {
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
 {0x002D,     0x7D},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
-{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_MODE9600_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -306,7 +306,7 @@ static const registerSetting_t CC1120_Config_9600[]= {
 /* Symbol rate = 19.2 */
 /* RF settings for CC1120 */
 
-static const registerSetting_t CC1120_Config_19200[]= {
+static const CC1120regSetting_t CC1120_Config_19200[]= {
 {0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
 {0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
 {0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
@@ -328,7 +328,7 @@ static const registerSetting_t CC1120_Config_19200[]= {
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
-{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_MODE19200_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -371,7 +371,7 @@ static const registerSetting_t CC1120_Config_19200[]= {
 /* Symbol rate = 24 */
 /* RF settings for CC1120 */
 
-static const registerSetting_t CC1120_Config_48000[]= {
+static const CC1120regSetting_t CC1120_Config_48000[]= {
 {0x0000,     0xB0},     //IOCFG3             GPIO3 IO PIN CONFIGURATION
 {0x0001,     0x06},     //IOCFG2             GPIO2 IO PIN CONFIGURATION
 {0x0002,     0xB0},     //IOCFG1             GPIO1 IO PIN CONFIGURATION
@@ -395,7 +395,7 @@ static const registerSetting_t CC1120_Config_48000[]= {
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
-{0x002E,     0x5A},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_MODE48000_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -425,6 +425,8 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 
 uint16_t CC1120_Init(CC1120_TypeDef *pCC1120, SPI_HandleTypeDef *hspi);
 
+uint16_t CC1120_SetConfig(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum);
+
 uint16_t CC1120_TxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t sizeBuf);
 uint16_t CC1120_RxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t* sizeBuf);
 
@@ -453,8 +455,8 @@ uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi);
 uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
 
-uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
-uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const registerSetting_t *CC1120_Config, uint8_t configRegNum);
+uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum);
+uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum);
 
 uint8_t CC1120_FreqWrite (SPI_HandleTypeDef *hspi, uint8_t *freq);
 uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi);

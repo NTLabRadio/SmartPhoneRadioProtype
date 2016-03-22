@@ -193,7 +193,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void WaitNextByteFromUART(UART_HandleTypeDef *huart)
 {
 	//ќжидаем следующий 
-	HAL_UART_Receive_IT(huart,pUARTRxBuf,1);
+	HAL_UART_Receive_DMA(huart,pUARTRxBuf,1);
 }
 
 
