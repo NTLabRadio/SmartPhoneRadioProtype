@@ -78,6 +78,8 @@ public:
 	uint8_t SetRadioModuleState(uint8_t state);
 	uint8_t GetRadioModuleState();
 
+	void SwitchToIdleState();
+
 	uint8_t SetRadioChanType(uint8_t chanType);
 	uint8_t GetRadioChanType();
 
@@ -121,10 +123,10 @@ public:
 
 private:
 	
-	//Состояние радиомодуля
+	//Состояние радиомодуля (в т.ч. переходные состояния между режимами передачи и приема)
 	en_RadioModuleStates RadioModuleState;
 
-	//Тип радиоканала
+	//Тип радиоканала (речь/данные)
 	en_RadioChanTypes RadioChanType;
 	//Режим мощности ВЧ сигнала
 	en_RadioSignalPowers	RadioSignalPower;
@@ -144,6 +146,10 @@ private:
 	uint8_t AudioOutLevel;
 
 	uint8_t RSSILevel;
+	
+	//Состояние радиоканала: - активный прием (прием и обработка полезных данных),
+	//											 - дежурный прием (ожидание полезных данных),
+	//											 - передача
 	en_RadioChanStates RadioChanState;
 
 	uint8_t RadioAddress;
