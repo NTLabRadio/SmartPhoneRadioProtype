@@ -80,6 +80,8 @@ public:
 		
 			uint8_t MaskReqParam();
 		
+			uint8_t isAsynReqParam();
+		
 			uint8_t isOpModeReq();
 			uint8_t isAudioReq();
 			uint8_t isRxFreqReq();
@@ -87,8 +89,8 @@ public:
 			uint8_t isRSSIReq();
 			uint8_t isChanStateReq();
 		
-		private:
-			SPIMMessage* objSPIMMessage;			
+			//Маска асинхронного запроса параметров
+			static const uint8_t ASYNC_MASK_IN_REQ = (1<<0);
 		
 			//Маски запрашиваемых параметров
 			static const uint8_t OPMODE_MASK_IN_REQ = (1<<1);
@@ -96,7 +98,10 @@ public:
 			static const uint8_t TXFREQ_MASK_IN_REQ = (1<<3);
 			static const uint8_t RXFREQ_MASK_IN_REQ = (1<<4);
 			static const uint8_t RSSI_MASK_IN_REQ = (1<<5);
-			static const uint8_t CHANSTATE_MASK_IN_REQ = (1<<5);
+			static const uint8_t CHANSTATE_MASK_IN_REQ = (1<<6);		
+		
+		private:
+			SPIMMessage* objSPIMMessage;			
 	} cmdReqParam;	
 
 	enum en_SPIMaddrs

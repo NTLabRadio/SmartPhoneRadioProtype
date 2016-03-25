@@ -61,6 +61,8 @@ extern UART_InitTypeDef DefaultUARTParams;
 
 extern en_UARTstates UARTstate;
 
+#define DMA_UART_PRIORITY (2)
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -152,6 +154,10 @@ int main(void)
 	LED1_ON();
 	#endif
 	
+	#ifdef DEBUG_TEST_ASYNC_REQ_PARAM
+	pobjRadioModule->SetAsyncReqMaskParam(0x60);
+	#endif
+	
   while (1)
   {
 		//Если из UART приняты данные
@@ -163,9 +169,9 @@ int main(void)
 			//Указываем, что данные обработаны
 			UARTstate = UART_IDLE;
 		}
-		
-		ProcessDataToExtDev();
-		
+
+		ProcessAsyncReq();
+
 		//Обработка состояния модуля CMX7262: передача/прием/тест
 		ProcessCMX7262State();
 
@@ -362,9 +368,9 @@ void MX_DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
   HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, DMA_UART_PRIORITY, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, DMA_UART_PRIORITY, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }

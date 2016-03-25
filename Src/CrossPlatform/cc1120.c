@@ -151,7 +151,7 @@ uint16_t CC1120_TxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t size
 	
 	//1. Очистка Tx FIFO
 	CC1120_TxFIFOFlush(pCC1120->hSPI);
-		
+	
 	//2. Загрузка массива данных в Tx FIFO
 	CC1120_TxFIFOWrite(pCC1120->hSPI, pDataBuf, sizeBuf);
 				

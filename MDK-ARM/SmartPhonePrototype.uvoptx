@@ -172,32 +172,37 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CC1120_Config_4800</ItemText>
+          <ItemText>g_cntRcvdRadioPacks,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CC1120_Config_9600</ItemText>
+          <ItemText>g_cntDataPckToExtDev,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CC1120_Config_19200</ItemText>
+          <ItemText>g_cntCallPushFrame,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CC1120_Config_48000</ItemText>
+          <ItemText>g_cntPushFramesInQue,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CC1120_Config</ItemText>
+          <ItemText>g_cntRcvdPacksWithPayload,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>RadioChanState</ItemText>
+          <ItemText>g_cntRcvdVoicePacks,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_cntRcvdPacksWithErrSize,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>

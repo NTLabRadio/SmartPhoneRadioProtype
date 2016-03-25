@@ -18,6 +18,7 @@
 
 #include "cc1120.h"
 #include "cmx7262.h"
+#include "SPIMMessage.h"
  
 enum en_RadioChanTypes
 {
@@ -111,6 +112,11 @@ public:
 
 	uint8_t SetRadioAddress(uint8_t address);
 	uint8_t GetRadioAddress();
+	
+	uint8_t GetAsyncReqMaskParam();
+	uint8_t SetAsyncReqMaskParam(uint8_t mask);
+	
+	uint8_t GetMaskOfChangedParams();
 
 	uint8_t isTxMode();
 	uint8_t isRxMode();
@@ -153,6 +159,9 @@ private:
 	en_RadioChanStates RadioChanState;
 
 	uint8_t RadioAddress;
+	
+	uint8_t AsyncReqMaskParam;
+	uint8_t MaskOfChangedParams;
 
 	struct RadioModuleSettings
 	{

@@ -1,5 +1,10 @@
 #include "QueDataFrames.h"
 
+#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+uint16_t g_cntCallPushFrame = 0;
+uint16_t g_cntPushFramesInQue = 0;
+#endif
+
 QueDataFrames::QueDataFrames(uint16_t numFrames, uint16_t maxSizeFrame)
 {
 	m_queFrames.firstFrame = NULL;
@@ -59,6 +64,10 @@ uint16_t QueDataFrames::GetMaxSizeOfFrame()
 
 uint16_t QueDataFrames::PushFrame(uint8_t* pData, uint16_t sizeOfData)
 {
+	#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+	g_cntCallPushFrame++;
+	#endif
+	
 	//Если размер кадра данных, который пытаемся запихнуть в очередь, превышает 
 	//размер предвыделенных элементов очереди, возвращаем 0
 	if(sizeOfData>m_maxSizeFrame)
@@ -75,7 +84,6 @@ uint16_t QueDataFrames::PushFrame(uint8_t* pData, uint16_t sizeOfData)
 	//Если очередь уже заполнена на 100%, возвращаем 0
 	if(m_numFramesInQue==m_maxNumFrames)
 		return(0);
-	
 	
 	//Создаем элемент очереди
 	queFrame_t* curFrame = new queFrame_t;
@@ -99,6 +107,10 @@ uint16_t QueDataFrames::PushFrame(uint8_t* pData, uint16_t sizeOfData)
 		m_queFrames.lastFrame = curFrame;
 	}
 	m_numFramesInQue++;
+	
+	#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+	g_cntPushFramesInQue++;
+	#endif
 	
 	return(sizeOfData);
 }

@@ -36,6 +36,8 @@ RadioModule::RadioModule()
 	
 	//—обственный абонентский адрес
 	SetRadioAddress(DEFAULT_RADIO_ADDRESS);
+	
+	SetAsyncReqMaskParam(0);
 }
 
 
@@ -202,6 +204,15 @@ uint8_t RadioModule::SetRadioChanState(uint8_t radioChanState)
 {
 	RadioChanState = (en_RadioChanStates)radioChanState;
 	
+	//≈сли до сих пор в маске измененных параметров нет текущего параметра
+	if(! (MaskOfChangedParams & SPIMMessage::CmdReqParam::CHANSTATE_MASK_IN_REQ))
+	{
+		//ƒобавл€ем его в маску
+		MaskOfChangedParams |= SPIMMessage::CmdReqParam::CHANSTATE_MASK_IN_REQ;
+		//» накладываем маску запрашиваемых параметров
+		MaskOfChangedParams &= AsyncReqMaskParam;
+	}
+	
 	//„астоты передачи и приема могут отличатьс€. ѕри смене режима устанавливаем новую рабочую частоту
 	ApplyRadioFreq();
 	
@@ -367,4 +378,22 @@ void RadioModule::SetCMX7262AudioGains(uint16_t CMX7262AudioGainIn, uint16_t CMX
 }
 
 
+uint8_t RadioModule::GetAsyncReqMaskParam()
+{
+	return(AsyncReqMaskParam);
+}
 
+uint8_t RadioModule::GetMaskOfChangedParams()
+{
+	uint8_t nRes = AsyncReqMaskParam & MaskOfChangedParams;
+	MaskOfChangedParams = 0;
+	
+	return(nRes);
+}
+
+uint8_t RadioModule::SetAsyncReqMaskParam(uint8_t mask)
+{
+	AsyncReqMaskParam = mask;
+	
+	return(0);
+}

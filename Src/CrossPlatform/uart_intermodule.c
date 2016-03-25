@@ -139,6 +139,10 @@ void DeinitSerialProtocol()
   */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	#ifdef DEBUG_USE_TL_LINES
+	TL2_HIGH();
+	#endif
+	
 	if(huart!=huartExtDev)
 		return;
 	
@@ -183,6 +187,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	
 	//ќжидаем следующий символ
 	WaitNextByteFromUART(huart);
+	
+	#ifdef DEBUG_USE_TL_LINES
+	TL2_LOW();
+	#endif
 
 }
 

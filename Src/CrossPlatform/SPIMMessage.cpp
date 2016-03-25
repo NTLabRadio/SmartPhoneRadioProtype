@@ -396,6 +396,14 @@ uint8_t SPIMMessage::CmdReqParam::MaskReqParam()
 	return(objSPIMMessage->Body[0]);
 }
 
+uint8_t SPIMMessage::CmdReqParam::isAsynReqParam()
+{
+	if(MaskReqParam() & ASYNC_MASK_IN_REQ)
+		return(1);
+	else
+		return(0);
+}
+
 
 uint8_t SPIMMessage::CmdReqParam::isOpModeReq()
 {

@@ -35,6 +35,10 @@ uint16_t g_cntCC1120_IRQ_ProcessInTxMode = 0;
 uint16_t g_cntSendRadioPacks = 0;
 #endif
 
+#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+uint16_t g_cntRcvdRadioPacks = 0;
+uint16_t g_cntRcvdPacksWithPayload = 0;
+#endif
 
 // ------------------------------- ќписание режима передачи речевого сигнала -------------------------------------
 //
@@ -287,9 +291,17 @@ void ProcessRadioState()
 				//«абираем данные из буфера RxFIFO трансивера
 				ProcessRadioPack(pRadioPayloadData, nSizeOfRadioPayload, nRadioPayloadType);
 
+				#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+				g_cntRcvdRadioPacks++;
+				#endif
+				
 				//ѕровер€м, прин€ли ли хоть-что нибудь из трансивера
 				if(nSizeOfRadioPayload)
 				{
+					#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+					g_cntRcvdPacksWithPayload++;
+					#endif
+					
 					if(nRadioPayloadType==RadioMessage::RADIO_DATATYPE_VOICE)
 					{
 						// опируем полезные данные прин€того радиопакета в очередь дл€ вокодера, если в ней есть место

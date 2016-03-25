@@ -51,6 +51,11 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_t& bodySize);
 void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd);
 
+void FormAsyncReqParamBack(uint8_t maskReqParam, SPIMMessage* SPIMmsgToSend);
+void FormBodyOfAsyncReqParamBack(uint8_t maskReqParam, uint8_t* pBodyMsgToSend, uint8_t& bodySizeMsgToSend);
+
+void ProcessAsyncReq(void);
+
 void ProcessDataToExtDev(void);
 void FormAndSendDataMsgToExtDev(void);
 void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend);

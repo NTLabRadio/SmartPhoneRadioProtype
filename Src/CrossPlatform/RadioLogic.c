@@ -11,6 +11,10 @@ uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE+SIZE_OF_RADIO_STATUS];
 uint16_t g_cntCC1120_TxDataErrors = 0;
 #endif
 
+#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+uint16_t g_cntRcvdPacksWithErrSize = 0;
+#endif
+
 
 void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize, uint8_t nPayloadDataType)
 {	
@@ -34,15 +38,28 @@ void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize, uint8_t 
 
 uint8_t SendRadioPackToTansceiver(uint8_t* pData, uint16_t nSizeData)
 {
+	uint8_t nRes;
+	
+	#ifdef DEBUG_USE_TL_LINES
+	TL1_HIGH();
+	#endif
+	
 	if(!CC1120_TxData(&g_CC1120Struct, pData, nSizeData))
 	{
 		#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
 		g_cntCC1120_TxDataErrors++;
 		#endif
-		return(0);
+		
+		nRes = 0;
 	}
+	else
+		nRes = 1;
 
-	return(1);
+	#ifdef DEBUG_USE_TL_LINES
+	TL1_LOW();
+	#endif
+
+	return(nRes);
 }
 
 
@@ -109,7 +126,12 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nD
 	
 	//Если из буфера RxFIFO ничего не прочитали, то и обрабатывать нечего
 	if(!flDataRcvdFromCC1120)
-		return;	
+	{
+		#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+		g_cntRcvdPacksWithErrSize++;
+		#endif
+		return;
+	}
 
 	//В конце принятого буфера располагаются статус-байты, удалим их
 	//TODO Сделать функцию обработки этих данных
