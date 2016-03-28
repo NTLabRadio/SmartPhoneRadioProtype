@@ -14,6 +14,7 @@
 #ifndef __UART_INTERMODULE_H
 #define __UART_INTERMODULE_H
 
+#include "globals.h"
 #include "slipinterface.h"
 
 #ifdef __cplusplus
@@ -43,6 +44,7 @@ typedef enum
 	 
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart);
 	 
 void UART_InitInterface(UART_HandleTypeDef *huart);
 void UART_DeInitInterface(UART_HandleTypeDef *huart);

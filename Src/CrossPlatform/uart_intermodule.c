@@ -45,6 +45,7 @@ en_UARTstates UARTstate;
 //Handle UART-интерфейса внешнего управл€ющего модул€
 UART_HandleTypeDef *huartExtDev;
 
+uint8_t Cplt_UART_DMA_Transmit = TRUE;
 
 
 /**
@@ -241,21 +242,34 @@ uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePac
 	*/
 void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData)
 {
-		memcpy(pUARTTxPayload,pData,nSizeData);
-		nSizeTxPayload = nSizeData;
-		objSLIPinterface->FormPack(pUARTTxPayload, nSizeTxPayload, pUARTTxBuf, nSizeTxBuf);
+	memcpy(pUARTTxPayload,pData,nSizeData);
+	nSizeTxPayload = nSizeData;
 
-			#ifdef DEBUG_PRINTF_SLIP_DATA
-			printf("SLIP Pack Ready for Send\n * Pack Data:");
+	//ќжидаем окончани€ передачи предыдущих данных
+	while(!Cplt_UART_DMA_Transmit)
+	{
+	}
+	
+	objSLIPinterface->FormPack(pUARTTxPayload, nSizeTxPayload, pUARTTxBuf, nSizeTxBuf);
 
-			memcpy(UTF8DataSLIPPack,pUARTTxBuf,nSizeTxBuf);
-			
-			ConvertHexIntToUTF8(UTF8DataSLIPPack,nSizeTxBuf);
-			printf((const char*)UTF8DataSLIPPack);
-			
-			printf("\n");
-			#endif
+		#ifdef DEBUG_PRINTF_SLIP_DATA
+		printf("SLIP Pack Ready for Send\n * Pack Data:");
 
-		HAL_UART_Transmit_DMA(huartExtDev, pUARTTxBuf, nSizeTxBuf);		
+		memcpy(UTF8DataSLIPPack,pUARTTxBuf,nSizeTxBuf);
+		
+		ConvertHexIntToUTF8(UTF8DataSLIPPack,nSizeTxBuf);
+		printf((const char*)UTF8DataSLIPPack);
+		
+		printf("\n");
+		#endif
+
+	HAL_UART_Transmit_DMA(huartExtDev, pUARTTxBuf, nSizeTxBuf);
+	
+	Cplt_UART_DMA_Transmit = FALSE;
+
 }
 
+ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	Cplt_UART_DMA_Transmit = TRUE;
+}
