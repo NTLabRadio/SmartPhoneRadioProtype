@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registerexporttemplate>
+  <name><![CDATA[Nuclon config template]]></name>
+  <commentStart><![CDATA[/*]]></commentStart>
+  <commentEnd><![CDATA[*/]]></commentEnd>
+  <paramSummary><![CDATA[1]]></paramSummary>
+  <paTable><![CDATA[0]]></paTable>
+  <header><![CDATA[/* RF settings for @CHIPID@ */
+
+static const registerSetting_t CC1120_Config_9600[]= {
+]]></header>
+  <registers><![CDATA[{0x@AH@,     0x@VH@},     //@RN@     @<<@@RD@]]></registers>
+  <footer><![CDATA[};]]></footer>
+  <filename><![CDATA[@CHIPID@.h]]></filename>
+  <devices><![CDATA[]]></devices>
+</registerexporttemplate>

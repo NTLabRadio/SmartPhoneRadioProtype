@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE configuration SYSTEM "C:/Program Files (x86)/Texas Instruments/SmartRF Tools/SmartRF Studio 7/config/xml/configdata.dtd"[]>
+<dcpanelconfiguration>
+    <Devicename>CC1120</Devicename>
+    <Description>Saved configuration data</Description>
+    <registersettings>
+        <Register>
+            <Name>AGC_CFG0</Name>
+            <Value>0xcf</Value>
+        </Register>
+        <Register>
+            <Name>AGC_CFG1</Name>
+            <Value>0xa9</Value>
+        </Register>
+        <Register>
+            <Name>AGC_CS_THR</Name>
+            <Value>0x19</Value>
+        </Register>
+        <Register>
+            <Name>AGC_REF</Name>
+            <Value>0x20</Value>
+        </Register>
+        <Register>
+            <Name>CHAN_BW</Name>
+            <Value>0x05</Value>
+        </Register>
+        <Register>
+            <Name>DCFILT_CFG</Name>
+            <Value>0x1c</Value>
+        </Register>
+        <Register>
+            <Name>DEVIATION_M</Name>
+            <Value>0x3a</Value>
+        </Register>
+        <Register>
+            <Name>FIFO_CFG</Name>
+            <Value>0x00</Value>
+        </Register>
+        <Register>
+            <Name>FREQ1</Name>
+            <Value>0x80</Value>
+        </Register>
+        <Register>
+            <Name>FREQ2</Name>
+            <Value>0x6c</Value>
+        </Register>
+        <Register>
+            <Name>FREQOFF_CFG</Name>
+            <Value>0x22</Value>
+        </Register>
+        <Register>
+            <Name>FS_CAL0</Name>
+            <Value>0x0e</Value>
+        </Register>
+        <Register>
+            <Name>FS_CAL1</Name>
+            <Value>0x40</Value>
+        </Register>
+        <Register>
+            <Name>FS_CFG</Name>
+            <Value>0x14</Value>
+        </Register>
+        <Register>
+            <Name>FS_DIG0</Name>
+            <Value>0x5f</Value>
+        </Register>
+        <Register>
+            <Name>FS_DIG1</Name>
+            <Value>0x00</Value>
+        </Register>
+        <Register>
+            <Name>FS_DIVTWO</Name>
+            <Value>0x03</Value>
+        </Register>
+        <Register>
+            <Name>FS_DSM0</Name>
+            <Value>0x33</Value>
+        </Register>
+        <Register>
+            <Name>FS_DVC0</Name>
+            <Value>0x17</Value>
+        </Register>
+        <Register>
+            <Name>FS_PFD</Name>
+            <Value>0x50</Value>
+        </Register>
+        <Register>
+            <Name>FS_PRE</Name>
+            <Value>0x6e</Value>
+        </Register>
+        <Register>
+            <Name>FS_REG_DIV_CML</Name>
+            <Value>0x14</Value>
+        </Register>
+        <Register>
+            <Name>FS_SPARE</Name>
+            <Value>0xac</Value>
+        </Register>
+        <Register>
+            <Name>FS_VCO0</Name>
+            <Value>0xb4</Value>
+        </Register>
+        <Register>
+            <Name>IF_MIX_CFG</Name>
+            <Value>0x00</Value>
+        </Register>
+        <Register>
+            <Name>IOCFG0</Name>
+            <Value>0x40</Value>
+        </Register>
+        <Register>
+            <Name>IOCFG1</Name>
+            <Value>0xb0</Value>
+        </Register>
+        <Register>
+            <Name>IOCFG2</Name>
+            <Value>0x06</Value>
+        </Register>
+        <Register>
+            <Name>IOCFG3</Name>
+            <Value>0xb0</Value>
+        </Register>
+        <Register>
+            <Name>IQIC</Name>
+            <Value>0x46</Value>
+        </Register>
+        <Register>
+            <Name>MDMCFG0</Name>
+            <Value>0x05</Value>
+        </Register>
+        <Register>
+            <Name>MODCFG_DEV_E</Name>
+            <Value>0x0b</Value>
+        </Register>
+        <Register>
+            <Name>MODEM_STATUS1</Name>
+            <Value>0x10</Value>
+        </Register>
+        <Register>
+            <Name>PARTNUMBER</Name>
+            <Value>0x48</Value>
+        </Register>
+        <Register>
+            <Name>PARTVERSION</Name>
+            <Value>0x21</Value>
+        </Register>
+        <Register>
+            <Name>PKT_CFG1</Name>
+            <Value>0x75</Value>
+        </Register>
+        <Register>
+            <Name>PKT_LEN</Name>
+            <Value>0x56</Value>
+        </Register>
+        <Register>
+            <Name>PREAMBLE_CFG1</Name>
+            <Value>0x2c</Value>
+        </Register>
+        <Register>
+            <Name>SETTLING_CFG</Name>
+            <Value>0x03</Value>
+        </Register>
+        <Register>
+            <Name>SYMBOL_RATE2</Name>
+            <Value>0x83</Value>
+        </Register>
+        <Register>
+            <Name>SYNC_CFG1</Name>
+            <Value>0x0b</Value>
+        </Register>
+        <Register>
+            <Name>XOSC1</Name>
+            <Value>0x03</Value>
+        </Register>
+        <Register>
+            <Name>XOSC5</Name>
+            <Value>0x0e</Value>
+        </Register>
+    </registersettings>
+    <dcpanel>
+        <Property name="m_chkRegView" role="44">2</Property>
+        <Property name="m_chkRfParameters" role="44">2</Property>
+        <Property name="m_tabUserMode" role="37">1</Property>
+        <Property name="m_easyModeSettings" role="33">-1</Property>
+        <Property name="m_typicalSettings" role="33">-1</Property>
+        <Property name="m_testFuncPanel" role="37">3</Property>
+    </dcpanel>
+    <rfparameters>
+        <Property name="m_cmbFrontends" role="46">0</Property>
+        <Property name="m_chkHGMorBYP" role="44">2</Property>
+        <Property name="m_cmbEmRevs" role="46">-1</Property>
+        <Property name="Xtal frequency" role="46">32.000000</Property>
+    </rfparameters>
+    <conttx>
+        <Property name="m_rbtModulated" role="45">1</Property>
+        <Property name="m_rbtUnmodulated" role="45">0</Property>
+        <Property name="m_cmbDataFormat" role="46">-1</Property>
+        <Property name="m_chkFreqSweep" role="44">0</Property>
+        <Property name="m_chkChanSweep" role="44">0</Property>
+    </conttx>
+    <contrx>
+        <Property name="m_cmbDataFormat" role="46">-1</Property>
+        <Property name="m_chkAutoScroll" role="44">2</Property>
+    </contrx>
+    <packettx>
+        <Property name="m_edtPayloadSize" role="42">90</Property>
+        <Property name="m_edtPacketCount" role="42">100</Property>
+        <Property name="m_edtPacketCountEsy" role="42">100</Property>
+        <Property name="m_edtRandomPacketData" role="42">86 38 43 ee f2 88 d3 fc d0 18 e6 be db 47 aa bc 4b fa c4 11 9e 4a 3a c1 98 7a 90 4d 89 2c 31 85 ce d4 11 9e 9a 6c 91 84 f7 6a a3 71 07 ef 2e bf 90 41 b4 fb b7 7b 32 3a 0c 83 47 b0 c7 3d 99 7e 51 fe 75 cc 07 44 b5 18 3a a4 e7 cd 7a 03 ab 18 14 09 5d f7 d9 d3 f4 93 21 </Property>
+        <Property name="m_edtPacketData" role="42"></Property>
+        <Property name="m_edtAccessAddress" role="42"></Property>
+        <Property name="m_edtDeviceAddress" role="42"></Property>
+        <Property name="m_chkAddSeqNbr" role="44">0</Property>
+        <Property name="m_chkInfinite" role="44">0</Property>
+        <Property name="m_chkInfiniteEsy" role="44">0</Property>
+        <Property name="m_rbtRandom" role="45">1</Property>
+        <Property name="m_rbtText" role="45">0</Property>
+        <Property name="m_rbtHex" role="45">0</Property>
+        <Property name="m_chkAdvanced" role="44">2</Property>
+        <Property name="m_cmbSyncWord" role="46">-1</Property>
+        <Property name="m_cmbPreambleCount" role="46">-1</Property>
+        <Property name="m_chkAddress" role="44">2</Property>
+        <Property name="m_edtAddress" role="42">10</Property>
+        <Property name="m_cmbLengthConfig" role="46">0</Property>
+        <Property name="m_edtLengthConfig" role="42">86</Property>
+        <Property name="m_spnPktInterval" role="52">90</Property>
+        <Property name="m_chkDefPktInterval" role="44">2</Property>
+    </packettx>
+    <packetrx>
+        <Property name="m_edtPacketCount" role="42">100</Property>
+        <Property name="m_edtPacketCountEsy" role="42">100</Property>
+        <Property name="m_edtAccessAddress" role="42"></Property>
+        <Property name="m_chkInfinite" role="44">0</Property>
+        <Property name="m_chkInfiniteEsy" role="44">0</Property>
+        <Property name="m_cmbViewFormat" role="46">0</Property>
+        <Property name="m_chkSeqNbrIncluded" role="44">0</Property>
+        <Property name="m_edtDumpFile" role="42">C:/Users/Pavel Moroshek/Desktop/222.txt</Property>
+        <Property name="m_chkAdvanced" role="44">2</Property>
+        <Property name="m_chk802154gMode" role="44">0</Property>
+        <Property name="m_cmbSyncWord" role="46">-1</Property>
+        <Property name="m_cmbAddressConfig" role="46">3</Property>
+        <Property name="m_chkAddress" role="44">0</Property>
+        <Property name="m_chkFifoAutoFlush" role="44">0</Property>
+        <Property name="m_edtAddress" role="42">0</Property>
+        <Property name="m_cmbLengthConfig" role="46">0</Property>
+        <Property name="m_edtLengthConfig" role="42">86</Property>
+    </packetrx>
+    <commandpanel>
+        <Property name="m_chkInsertLength" role="44">0</Property>
+        <Property name="m_edtTxFifo" role="42"></Property>
+        <Property name="m_edtRxFifo" role="42"></Property>
+        <Property name="m_cmbInstrInput" role="46">-1</Property>
+    </commandpanel>
+    <packetRxSniffMode>
+        <Property name="m_edtPreambleLength" role="42">8</Property>
+        <Property name="m_edtCarrierSenseThreshold" role="42">-90</Property>
+        <Property name="m_rbtRssi" role="45">1</Property>
+        <Property name="m_rbtPreamble" role="45">0</Property>
+    </packetRxSniffMode>
+</dcpanelconfiguration>
