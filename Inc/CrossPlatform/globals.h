@@ -29,7 +29,7 @@
 #define CMX7262_BUFFER_DURATION_MS (60)
 
 //Число буферов данных вокодера, накапливаемых радимодулем прежде чем инициализировать передачу
-#define NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX	(6)		//60 мс x 6 = 360 мс
+#define NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX	(3)		//60 мс x 6 = 180 мс
 
 //Число буферов данных вокодера в одном радиопакете
 #define NUM_CMX7262_BUFFERS_IN_RADIOPACK	(3)				//60 мс x 3 = 180 мс
