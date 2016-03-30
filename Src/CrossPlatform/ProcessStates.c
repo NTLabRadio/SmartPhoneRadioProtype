@@ -183,6 +183,7 @@ void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize)
 
 void ProcessRadioState()
 {
+	//TODO Этот switch лучше заменить на 4 функции и вызывать функцию-обработчик, на которую показывает указатель текущей функции
 	switch(pobjRadioModule->GetRadioModuleState())
 	{		
 		case RADIOMODULE_STATE_TX_WAITING:

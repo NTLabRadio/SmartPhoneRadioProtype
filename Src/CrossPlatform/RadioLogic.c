@@ -143,9 +143,10 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nD
 	uint8_t dstAddress = RadioMsgRcvd.getDstAddress();
 	uint8_t srcAddress = RadioMsgRcvd.getSrcAddress();
 	nDataType = RadioMsgRcvd.getDataType();
+	nPayloadSize = RadioMsgRcvd.getDataSize();
 	
 	//Данные тела радиосообщения
-	nPayloadSize = RadioMsgRcvd.getBody(pPayloadData);
+	RadioMsgRcvd.getBody(pPayloadData);
 
 	return;
 }

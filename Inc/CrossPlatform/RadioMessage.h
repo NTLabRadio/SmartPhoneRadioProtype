@@ -39,6 +39,7 @@ public:
 	uint8_t getDstAddress();
 	uint8_t getSrcAddress();
 	uint8_t getDataType();
+	uint8_t getDataSize();
 
 	typedef enum radioDataTypes_t
 	{

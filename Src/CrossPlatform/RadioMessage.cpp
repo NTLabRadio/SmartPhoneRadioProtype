@@ -144,6 +144,16 @@ uint8_t RadioMessage::getDataType()
 }
 
 
+uint8_t RadioMessage::getDataSize()
+{
+	structRadioMsgHeader *RadioMsgHeader;
+
+	RadioMsgHeader = (structRadioMsgHeader*)RadioHeaderData;
+
+	return(RadioMsgHeader->dataSize);
+}
+
+
 uint8_t RadioMessage::getBody(uint8_t* pBodyData)
 {
 	if(!pBodyData)
