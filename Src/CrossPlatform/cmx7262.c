@@ -313,6 +313,13 @@ void CMX7262_Encode (CMX7262_TypeDef *pCmx7262)
 {
 	// PCM samples in through audio port and TWELP out through CBUS - in relation to the CMX7262
 	CMX7262_Routing(pCmx7262, SRC_AUDIO | DEST_CBUS);
+	
+	#ifdef DEBUG_CMX7262_NOISE_REDUCTION
+	uint16_t uData = 3;	//Noise Supression -14dB
+	//uint16_t uData = 1;	//Noise Supression -20dB (most aggressive noise suppression)
+	CBUS_Write16(NOISE_REDUCTION,&uData,1,pCmx7262->uInterface);
+	#endif
+	
 	// The encoder is started, there will be a packet delay before  we are requested to service it..
 	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCODE))
 		pCmx7262->uError |= CMX7262_ENCODE_ERROR;

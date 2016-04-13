@@ -266,7 +266,6 @@ void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData)
 	HAL_UART_Transmit_DMA(huartExtDev, pUARTTxBuf, nSizeTxBuf);
 	
 	Cplt_UART_DMA_Transmit = FALSE;
-
 }
 
  void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)

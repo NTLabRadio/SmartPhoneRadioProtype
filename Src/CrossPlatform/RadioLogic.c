@@ -7,6 +7,11 @@ uint8_t RadioPackForSend[MAX_RADIOPACK_SIZE];
 //Данные принятого радиопакета
 uint8_t RadioPackRcvd[MAX_RADIOPACK_SIZE+SIZE_OF_RADIO_STATUS];
 
+#define MAX_NUM_RECSTATUSES_IN_QUE_TO_EXT_DEV 	(15)
+//Очередь статус-данных приемника, предназначенных внешнему управляющему устройству
+QueDataFrames QueRecStatusToExtDev(MAX_NUM_RECSTATUSES_IN_QUE_TO_EXT_DEV, SIZE_OF_RADIO_STATUS);
+
+
 #ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
 uint16_t g_cntCC1120_TxDataErrors = 0;
 #endif
@@ -136,6 +141,9 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nD
 	//В конце принятого буфера располагаются статус-байты, удалим их
 	//TODO Сделать функцию обработки этих данных
 	nSizeOfRecData-=SIZE_OF_RADIO_STATUS;
+	#ifdef DEBUG_SEND_REC_STATUS_WO_REQUEST
+	QueRecStatusToExtDev.PushFrame(RadioPackRcvd+nSizeOfRecData, SIZE_OF_RADIO_STATUS);
+	#endif
 	
 	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRecData);
 

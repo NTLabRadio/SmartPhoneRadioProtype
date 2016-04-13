@@ -30,6 +30,7 @@ QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADI
 //Очередь пакетов данных, принятых из радиоинтерфейса, предназначенных внешнему управляющему устройству
 QueDataFrames QueDataToExtDev(MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV, MAX_RADIOPACK_SIZE);
 
+
 #ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS
 uint16_t g_cntCC1120_IRQ_ProcessInTxMode = 0;
 uint16_t g_cntSendRadioPacks = 0;
@@ -98,8 +99,10 @@ void RadioModuleInit(SPI_HandleTypeDef *hspiCMX7262, SPI_HandleTypeDef *hspiCC11
 	//Перевод CMX7262 в режим Idle
 	CMX7262_Idle(&g_CMX7262Struct);	
 	
+	#ifndef TEST_CMX7262
 	//Инициализация СС1120
 	CC1120_Init(&g_CC1120Struct, hspiCC1120);
+	#endif
 	
 	//После того, как все периферийные микросхемы радимодуля настроены, создаем объект
 	//для управления общими параметрами радиомодуля

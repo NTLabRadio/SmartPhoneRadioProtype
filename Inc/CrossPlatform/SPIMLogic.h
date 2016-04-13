@@ -12,6 +12,8 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "FirmwareFrame.h"
+#include "flash.h"
 #include "QueDataFrames.h"
 #include "RadioModule.h"
 #include "SPIMMessage.h"
@@ -60,5 +62,10 @@ void ProcessDataToExtDev(void);
 void FormAndSendDataMsgToExtDev(void);
 void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend);
 
+void FormAndSendRecStatusToExtDev(void);
+void FormRecStatusMsgToExtDev(SPIMMessage* SPIMCmdToSend);
+
+uint8_t ProcessFirmwareFrame(uint8_t* pBodyFrame, uint8_t nSizeFrame);
+//uint8_t ProcessFirmwareFrame(SPIMMessage* SPIMCmd);
 
 #endif // SPIMLOGIC_H

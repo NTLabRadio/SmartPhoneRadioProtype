@@ -110,6 +110,7 @@
 
 // Регистры CMX7262
 #define	FREQ_CONTROL				0x52
+#define	NOISE_REDUCTION			0x53
 #define	VCFG_REG						0x55
 #define	SIGNAL_CONTROL			0x58
 #define	AUDIO_ROUTING_REG		0x5D

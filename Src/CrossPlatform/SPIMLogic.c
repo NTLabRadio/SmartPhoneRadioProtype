@@ -1,12 +1,23 @@
 #include "SPIMLogic.h"
 
+//TODO В этом модуле достаточно много функций взаимосвязано с большим набором данных
+//Надо вынести это в класс
+
 //Объект для обработки принятых сообщений SPIM-протокола
 SPIMMessage*	pSPIMmsgRcvd;
 //Объект для формирования сообщений SPIM-протокола для отправки
 SPIMMessage*	pSPIMmsgToSend;
 
+#ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
+uint8_t noLastSPIMMsgRcvd;
+uint8_t pLastSPIMMsgData[MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
+uint8_t nSizeLastSPIMMsg = 0xFF;
+#endif
+
 extern QueDataFrames QueDataFromExtDev;
 extern QueDataFrames QueDataToExtDev;	
+extern QueDataFrames QueRecStatusToExtDev;
+
 
 #ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
 uint16_t g_cntDataPckToExtDev = 0;
@@ -42,11 +53,25 @@ void ProcessDataFromExtDev()
 		printf("* No Msg: %d\n", pObjSPIMmsgRcvd->getNoMsg());
 		#endif
 
-		//TODO Проверить, не была ли принята ранее эта команда (по порядковому номеру)
-		//Если ранее принимали, то отвечаем сохраненной копией отправленного ранее сообшения
+		//Порядковый номер принятого сообщения
+		uint8_t noSPIMMsgRcvd = pSPIMmsgRcvd->getNoMsg();
 		
-		//Формируем и отправляем ответ, подтверждающий успешный прием команды
-		FormAndSendAnswerToExtDev(pSPIMmsgRcvd);
+		#ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
+		//Проверяем, не была ли принята ранее эта команда (по порядковому номеру)
+		if(noSPIMMsgRcvd!=noLastSPIMMsgRcvd)
+		{
+			noLastSPIMMsgRcvd = noSPIMMsgRcvd;
+			#endif
+			//Формируем и отправляем ответ, подтверждающий успешный прием команды
+			FormAndSendAnswerToExtDev(pSPIMmsgRcvd);
+		#ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
+		}
+		else
+		{
+			//Если ранее принимали, то отвечаем сохраненной копией отправленного ранее сообшения
+			SendDataToExtDev(pLastSPIMMsgData, nSizeLastSPIMMsg);
+		}
+		#endif
 		
 		//TODO Функция FormAndSendAnswerToExtDev() только обрабатывает сообщение и отвечает, 
 		//но не изменяет состояние радиомодуля. Сделать отдельную функцию для обработки команд
@@ -67,6 +92,11 @@ void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd)
 	
 	//Отправляем сформированный ответ
 	SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
+	
+	#ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
+	nSizeLastSPIMMsg = SPIMmsgToSend.Size;
+	memcpy(pLastSPIMMsgData,SPIMmsgToSend.Data,nSizeLastSPIMMsg);
+	#endif	
 }
 
 
@@ -151,12 +181,21 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			break;
 		}
 		case SPIM_CMD_SOFT_VER:
-			uint16_t noSoftVersion;
-			noSoftVersion = pobjRadioModule->GetARMSoftVer();
+		{
+			uint16_t noSoftVersion = pobjRadioModule->GetARMSoftVer();
 
 			bodySize = sizeof(noSoftVersion);
 			memcpy(pBodyData,&noSoftVersion,sizeof(noSoftVersion));
 			break;
+		}
+		case SPIM_CMD_SEND_FIRM_FRAME:
+		{
+			uint8_t nAnswer = ProcessFirmwareFrame(SPIMCmdRcvd->Body,SPIMCmdRcvd->getSizeBody());
+
+			bodySize = 1;
+			*pBodyData = nAnswer;
+			break;
+		}
 		default:
 			break;
 	}
@@ -291,6 +330,13 @@ void ProcessDataToExtDev()
 		//Формируем и отправляем сообщение с данными для внешнего устройства
 		FormAndSendDataMsgToExtDev();
 	}
+	
+	//Если есть статус-данные приемника (RSSI, Link Quality) для внешнего устройства
+	if(!QueRecStatusToExtDev.isEmpty())
+	{
+		//Формируем и отправляем сообщение со статус-данными
+		FormAndSendRecStatusToExtDev();
+	}
 }
 
 
@@ -402,3 +448,97 @@ void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend)
 		SPIMCmdToSend->setCRC();
 	}
 }
+
+
+void FormAndSendRecStatusToExtDev()
+{
+	//Если есть статус-данные приемника для внешнего устройства
+	if(!QueRecStatusToExtDev.isEmpty())
+	{
+		SPIMMessage SPIMmsgToSend;
+
+		//Формируем сообщение с данными для внешнего устройства
+		FormRecStatusMsgToExtDev(&SPIMmsgToSend);
+
+		//Отправляем сформированное сообщение
+		SendDataToExtDev(SPIMmsgToSend.Data, SPIMmsgToSend.Size);
+	}
+}
+
+
+void FormRecStatusMsgToExtDev(SPIMMessage* SPIMCmdToSend)
+{
+	//Если есть статус-данные приемника для внешнего устройства
+	if(!QueRecStatusToExtDev.isEmpty())
+	{	
+		//ID команды
+		uint8_t IDcmd = SPIM_CMD_RECEIVER_STATUS_BACK;
+		//Адресат - внешнешнее управляющее устройство
+		uint8_t address = SPIM_ADDR_EXTDEV;
+		//Порядковый номер команды - нулевой (это не ответ на команду)
+		uint8_t noMsg = 0;		
+		
+		//Получим указатель на тело сообщения
+		uint8_t* pBodyData = SPIMCmdToSend->Body;
+
+		uint16_t bodySize = QueRecStatusToExtDev.PopFrame(pBodyData);
+		
+		SPIMCmdToSend->setHeader(bodySize,address,noMsg,IDcmd);
+		
+		SPIMCmdToSend->setBody(pBodyData,bodySize);
+		
+		SPIMCmdToSend->setCRC();
+	}
+}
+
+
+//TODO Реализовать один из двух способов прошивки:
+// 1) копировать принятые от терминала данные в основную загрузочную область, в случае нарушения обмена
+//	или несовпадения CRC - скопировать прошивку из резервной области флеш в основную;
+// 2) копировать принятые от терминала данные в резервную загрузочную область, в случае если данные прошивки
+//	успешно переданы и CRC дампа корректна - скопировать прошивку из резервной области флеш в основную;
+//TODO Вынести эту функцию, а также все глобальные данные, связанные с ней, в отдельный класс
+uint8_t ProcessFirmwareFrame(uint8_t* pBodyFrame, uint8_t nSizeFrame)
+//uint8_t ProcessFirmwareFrame(SPIMMessage* SPIMCmd)
+{
+	uint8_t nRes;
+	
+	FirmwareFrame FirmFrame(pBodyFrame,nSizeFrame);
+	//FirmwareFrame FirmFrame = (FirmwareFrame)SPIMCmd;
+	
+	uint8_t nTypeOfFrame = FirmFrame.GetTypeOfFrame();
+	
+	switch(nTypeOfFrame)
+	{
+		case FirmwareFrame::TYPE_OF_FRAME_HEADER:
+		{
+			if(StartFirmLoadToFlash())
+				nRes = SPIM_OP_RESULT_SUCCESS;
+
+			break;
+		}
+		case FirmwareFrame::TYPE_OF_FRAME_FIRMDATA:
+		{
+			if(FirmLoadToFlash(FirmFrame.GetFirmData(), FirmFrame.GetSizeOfFirmData()))
+				nRes = SPIM_OP_RESULT_SUCCESS;		//и отвечаем, что все ок, данные будут записаны
+			else
+				nRes = SPIM_OP_RESULT_FAIL;				//если произошла ошибка, отвечаем, что все плохо, можно попробовать повторно
+				
+			break;
+		}
+		case FirmwareFrame::TYPE_OF_FRAME_END:
+		{
+			if(FinishFirmLoadToFlash(FirmFrame.GetFirmCRC(), FirmFrame.GetFirmCmd()))
+				nRes = SPIM_OP_RESULT_SUCCESS;
+
+			break;
+		}
+		default:
+			nRes = SPIM_OP_RESULT_FAIL;
+			break;
+	}
+	
+	return(nRes);
+}
+
+

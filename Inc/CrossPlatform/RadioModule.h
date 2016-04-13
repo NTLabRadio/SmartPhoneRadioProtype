@@ -124,6 +124,7 @@ public:
 	void ApplyAudioSettings();
 	void ApplyRadioConfig();
 	void ApplyRadioFreq();
+	void ApplyRadioSignalPower();
 	
 	uint16_t GetARMSoftVer();
 

@@ -955,6 +955,36 @@ uint8_t *CC1120_FreqRead (SPI_HandleTypeDef *hspi)
 
 }
 
+
+/**
+	* @brief	Записать уровень мощности излучения в трансивер CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	*	@param	nPAPowRamp - значение параметра PA_POWER_RAMP (см. User's Guide)
+	* @retval Результат выполнения функции:
+	*					1 - успешное выполнение;
+	*					0 - ошибка при выполнении функции (занята шина SPI)		
+	*/
+uint8_t CC1120_PowerAmpWrite (SPI_HandleTypeDef *hspi, uint8_t nPAPowRamp)
+{
+	hspiCC1120 = hspi;
+	
+	CC1120_CSN_LOW();
+	
+	pCC1120TxData[0] = nPAPowRamp;
+	if (CC1120_Write (PA_CFG2, REG_ADDRESS, NO_BURST, pCC1120TxData, 1))
+	{
+		return 0;
+	}
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return (1);
+
+}
+
+
 /**
 	* @brief	Прочитать содержимое буфера RX FIFO трансивера CC1120
 	* @param	*hspi - выбор интерфейса SPI для обращения

@@ -56,7 +56,29 @@
 
 //Максимальный размер радиопакета, байт
 #define MAX_RADIOPACK_SIZE	(128)
-	 
+
+
+//Уровень выходного сигнала трансивера СС1120 в режиме пониженной мощности радиомодуля, дБм
+//NO: Параметр может быть задан в пределах от -16 до +14 с шагом 0.5
+#define CC1120_PA_DBM_IN_LOWPOW_MODE (14)
+
+//Уровень выходного сигнала трансивера СС1120 в режиме повышенной мощности радиомодуля, дБм
+//NO: Параметр может быть задан в пределах от -16 до +14 с шагом 0.5
+#define CC1120_PA_DBM_IN_HIGHPOW_MODE (10)
+
+
+//Выражение для вычисления значения настроечного параметра PA power ramp target level трансивера СС1120
+//в зависимости от целевого уровня в дБ (см. User's Guide на CC1120, описание регистров)
+#define CC1120_POWERRAMP_FROM_DBM(LEVEL_DBM) ((uint8_t)(2*LEVEL_DBM +35))
+
+//Значение параметра PA power ramp target level трансивера СС1120 для режима пониженной мощности
+#define CC1120_PA_POWER_RAMP_IN_LOWPOW_MODE		CC1120_POWERRAMP_FROM_DBM(CC1120_PA_DBM_IN_LOWPOW_MODE)
+//Значение параметра PA power ramp target level трансивера СС1120 для режима повышенной мощности
+#define CC1120_PA_POWER_RAMP_IN_HIGHPOW_MODE	CC1120_POWERRAMP_FROM_DBM(CC1120_PA_DBM_IN_HIGHPOW_MODE)
+
+//Значение параметра PA power ramp target level трансивера СС1120 по умолчанию
+#define CC1120_DEFAULT_PA_POWER_RAMP		(CC1120_PA_POWER_RAMP_IN_LOWPOW_MODE)
+
 	 
 #ifdef __cplusplus
 }

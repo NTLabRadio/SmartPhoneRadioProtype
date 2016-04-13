@@ -13,20 +13,30 @@ RadioModule::RadioModule()
 	//По умолчанию устанавливаем режим обработки голоса, поскольку этот режим является универсальным
 	//(в этом режиме данные также обрабатываются)	
 	SetRadioChanType(RADIOCHAN_TYPE_VOICE);
+	
 	//Режим мощности ВЧ сигнала
+	#ifndef DEBUG_SET_SIGNALPOWER_HIGH_AS_DEFAULT
 	SetRadioSignalPower(RADIO_SIGNALPOWER_LOW);
+	#else
+	SetRadioSignalPower(RADIO_SIGNALPOWER_HIGH);
+	#endif
+	
 	//Режим энергосбережения
 	SetARMPowerMode(ARM_POWERMODE_NORMAL);
+	
+	#ifndef TEST_CMX7262
 	//Канальная скорость передачи данных
 	SetRadioBaudRate(RADIO_BAUD_RATE_4800);
 	
 	//Рабочие частоты передачи/приема
 	SetTxFreqChan(DEFAULT_TX_FREQ_CHAN);
 	SetRxFreqChan(DEFAULT_RX_FREQ_CHAN);
+	NoCurFreqChan = DEFAULT_RX_FREQ_CHAN;
 
 	//Настройки аудио
 	SetAudioInLevel(DEFAULT_AUDIO_IN_GAIN);
 	SetAudioOutLevel(DEFAULT_AUDIO_OUT_GAIN);
+	#endif
 	
 	//Уровень приема
 	RSSILevel = 0;
@@ -91,6 +101,7 @@ uint8_t RadioModule::SetRadioSignalPower(uint8_t signalPower)
 	if(signalPower<NUM_RADIO_SIGNALPOWER_MODES)
 	{
 		RadioSignalPower = (en_RadioSignalPowers)signalPower;
+		ApplyRadioSignalPower();
 		return(0);
 	}
 	else
@@ -298,8 +309,9 @@ void RadioModule::ApplyRadioConfig()
 	}
 	
 	CC1120_SetConfig(g_CC1120Struct.hSPI, CC1120_Config, nSizeConfig);
-	
 	//Вместе с конфигурацией изменилась рабочая частота (на частоту, заданную в конфигурации по умолчанию)
+	NoCurFreqChan = DEFAULT_RX_FREQ_CHAN;
+	
 	//Возвращаем частоту, установленную пользователем
 	ApplyRadioFreq();
 	
@@ -396,4 +408,26 @@ uint8_t RadioModule::SetAsyncReqMaskParam(uint8_t mask)
 	AsyncReqMaskParam = mask;
 	
 	return(0);
+}
+
+void RadioModule::ApplyRadioSignalPower()
+{
+	#ifndef SMART_PROTOTYPE
+	if(RadioSignalPower==RADIO_SIGNALPOWER_LOW)
+	{
+		//Настраиваем выходной уровень CC1120: к значению POWER_RAMP добавляем волшебный бит Reserved, 
+		//который подсмотрен в SmartRF Studio		
+		CC1120_PowerAmpWrite(g_CC1120Struct.hSPI, CC1120_PA_POWER_RAMP_IN_LOWPOW_MODE | 0x40);
+		//Front-End переводим в режим Bypass
+		SKY_BYP_HIGH();		
+	}
+	else
+	{
+		//Настраиваем выходной уровень CC1120: к значению POWER_RAMP добавляем волшебный бит Reserved, 
+		//который подсмотрен в SmartRF Studio
+		CC1120_PowerAmpWrite(g_CC1120Struct.hSPI, CC1120_PA_POWER_RAMP_IN_HIGHPOW_MODE | 0x40);
+		//Front-End переводим из режима Bypass в нормальный режим
+		SKY_BYP_LOW();
+	}
+	#endif
 }
