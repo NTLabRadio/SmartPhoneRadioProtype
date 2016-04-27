@@ -18,6 +18,7 @@
 #include "cc1120.h"
 #include "cmx7262.h"
 #include "FIFOBuffers.h"
+#include "mathfuncs.h"
 #include "QueDataFrames.h"
 #include "RadioLogic.h"
 #include "RadioModule.h"
@@ -46,5 +47,8 @@ void VocoderStartEncode(void);
 void FrontEndSetToTx();
 void FrontEndSetToRx();
 #endif
+
+#define CHECK_RSSI_PERIOD 	(100000)
+uint8_t isNeedCheckRSSI();
 
 #endif /* __PROCESSSTATES_H */	 

@@ -16,7 +16,7 @@ uint8_t nSizeLastSPIMMsg = 0xFF;
 
 extern QueDataFrames QueDataFromExtDev;
 extern QueDataFrames QueDataToExtDev;	
-extern QueDataFrames QueRecStatusToExtDev;
+extern QueDataFrames QueReceiverStatsToExtDev;
 
 
 #ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
@@ -208,11 +208,16 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	uint8_t opModeCode = SPIMCmdRcvd->Body[0];
 	
 	//–азбираем код на отдельные параметры
-	uint8_t radioChanType, signalPower, ARMPowerMode, baudRate;
-	SPIMCmdRcvd->ParseOpModeCode(opModeCode, radioChanType, signalPower, ARMPowerMode, baudRate);
+	uint8_t radioChanType, isTestMode, signalPower, ARMPowerMode, baudRate;
+	SPIMMessage::ParseOpModeCode(opModeCode, radioChanType, isTestMode, signalPower, ARMPowerMode, baudRate);
 	
 	//ѕримен€ем прин€тые значени€ параметров рабочего режима
-	pobjRadioModule->SetRadioChanType(radioChanType);
+	pobjRadioModule->SetTestMode(isTestMode);
+	if(!pobjRadioModule->IsTestMode())
+		pobjRadioModule->SetRadioChanType(radioChanType);
+	else
+		//¬ поле radioChanType в тестовом режиме 
+		pobjRadioModule->SetTestPattern(radioChanType);
 	pobjRadioModule->SetRadioSignalPower(signalPower);
 	//TODO ProcessCmdSetMode() вызываетс€ пока в функции FormBodyOfAnswerToExtDev()
 	//«асыпать тут нельз€. »наче ничего не ответим ведущему устройству и не применим остальные параметры,
@@ -228,7 +233,7 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	uint8_t audioCode = SPIMCmdRcvd->Body[1];
 	//–азбираем код на отдельные параметры
 	uint8_t audioOutLevel, audioInLevel;
-	SPIMCmdRcvd->ParseAudioCode(audioCode, audioOutLevel, audioInLevel);
+	SPIMMessage::ParseAudioCode(audioCode, audioOutLevel, audioInLevel);
 
 	//ѕримен€ем прин€тые значени€ аудиопараметров
 	pobjRadioModule->SetAudioOutLevel(audioOutLevel);	
@@ -264,13 +269,15 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 	if(SPIMCmdRcvd->cmdReqParam.isOpModeReq())
 	{
 		//ќпредел€ем параметры рабочего режима радиомодул€
-		uint8_t radioChanType = pobjRadioModule->GetRadioChanType();
 		uint8_t radioSignalPower = pobjRadioModule->GetRadioSignalPower();
 		uint8_t powerMode = pobjRadioModule->GetARMPowerMode();
 		uint8_t baudRate = pobjRadioModule->GetRadioBaudRate();
+		uint8_t isTestMode = pobjRadioModule->IsTestMode();
+		//ѕараметр, определ€ющий тип радиоканала дл€ рабочего режима или тестовый шаблон дл€ тестового режима
+		uint8_t chanParam = (isTestMode ? pobjRadioModule->GetTestPattern() : pobjRadioModule->GetRadioChanType());
 
 		//‘ормируем код рабочего режима
-		uint8_t OpModeCode = SPIMMessage::CmdReqParam::OpModeCode(radioChanType,radioSignalPower,powerMode,baudRate);
+		uint8_t OpModeCode = SPIMMessage::CmdReqParam::OpModeCode(chanParam,isTestMode,radioSignalPower,powerMode,baudRate);
 		
 		pBodyData[bodySize] = OpModeCode;
 		bodySize++;		
@@ -331,10 +338,10 @@ void ProcessDataToExtDev()
 		FormAndSendDataMsgToExtDev();
 	}
 	
-	//≈сли есть статус-данные приемника (RSSI, Link Quality) дл€ внешнего устройства
-	if(!QueRecStatusToExtDev.isEmpty())
+	//≈сли есть статистические данные приемника (RSSI,BER) дл€ внешнего устройства
+	if(!QueReceiverStatsToExtDev.isEmpty())
 	{
-		//‘ормируем и отправл€ем сообщение со статус-данными
+		//‘ормируем и отправл€ем сообщение со стат-данными
 		FormAndSendRecStatusToExtDev();
 	}
 }
@@ -452,8 +459,8 @@ void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend)
 
 void FormAndSendRecStatusToExtDev()
 {
-	//≈сли есть статус-данные приемника дл€ внешнего устройства
-	if(!QueRecStatusToExtDev.isEmpty())
+	//≈сли есть статистические данные приемника (RSSI,BER) дл€ внешнего устройства
+	if(!QueReceiverStatsToExtDev.isEmpty())
 	{
 		SPIMMessage SPIMmsgToSend;
 
@@ -468,8 +475,8 @@ void FormAndSendRecStatusToExtDev()
 
 void FormRecStatusMsgToExtDev(SPIMMessage* SPIMCmdToSend)
 {
-	//≈сли есть статус-данные приемника дл€ внешнего устройства
-	if(!QueRecStatusToExtDev.isEmpty())
+	//≈сли есть статистические данные приемника (RSSI,BER) дл€ внешнего устройства
+	if(!QueReceiverStatsToExtDev.isEmpty())
 	{	
 		//ID команды
 		uint8_t IDcmd = SPIM_CMD_RECEIVER_STATUS_BACK;
@@ -481,7 +488,7 @@ void FormRecStatusMsgToExtDev(SPIMMessage* SPIMCmdToSend)
 		//ѕолучим указатель на тело сообщени€
 		uint8_t* pBodyData = SPIMCmdToSend->Body;
 
-		uint16_t bodySize = QueRecStatusToExtDev.PopFrame(pBodyData);
+		uint16_t bodySize = QueReceiverStatsToExtDev.PopFrame(pBodyData);
 		
 		SPIMCmdToSend->setHeader(bodySize,address,noMsg,IDcmd);
 		

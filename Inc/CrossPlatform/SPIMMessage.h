@@ -71,13 +71,13 @@ public:
 	
 	uint8_t IDBackCmd(uint8_t IDCmd);
 	
-  static void ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& SignalPower, uint8_t& ARMPowerMode, uint8_t& BaudRate);
+	static void ParseOpModeCode(uint8_t opModeCode, uint8_t& RadioChanType, uint8_t& TestMode, uint8_t& SignalPower, uint8_t& ARMPowerMode, uint8_t& BaudRate);
 	static void ParseAudioCode(uint8_t audioCode, uint8_t& AudioOutLevel, uint8_t& AudioInLevel);
 	
 	class CmdReqParam
 	{
 		public:
-			static uint8_t OpModeCode(uint8_t RadioChanType, uint8_t SignalPower, uint8_t ARMPowerMode, uint8_t BaudRate);
+			static uint8_t OpModeCode(uint8_t RadioChanType, uint8_t IsTestMode, uint8_t SignalPower, uint8_t ARMPowerMode, uint8_t BaudRate);
 			static uint8_t AudioCode(uint8_t AudioOutLevel, uint8_t AudioInLevel);
 			
 			void SetPointerToMessage(SPIMMessage* mes);
@@ -155,6 +155,9 @@ private:
 	//Тип радиоканала
 	static const uint8_t SHIFT_RADIOCHANTYPE_IN_OPMODECODE = (0);
 	static const uint8_t MASK_RADIOCHANTYPE_IN_OPMODECODE = (3);
+	//Признак тестового режима
+	static const uint8_t SHIFT_TESTMODE_IN_OPMODECODE = (2);
+	static const uint8_t MASK_TESTMODE_IN_OPMODECODE = (1);
 	//Мощность сигнала передатчика
 	static const uint8_t SHIFT_SIGNALPOWER_IN_OPMODECODE = (3);
 	static const uint8_t MASK_SIGNALPOWER_IN_OPMODECODE = (1);

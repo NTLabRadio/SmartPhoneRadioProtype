@@ -20,6 +20,7 @@
 #include "cmx7262.h"
 #include "SPIMMessage.h"
  
+  
 enum en_RadioChanTypes
 {
 	RADIOCHAN_TYPE_IDLE,	
@@ -70,6 +71,15 @@ enum en_RadioModuleStates
 	NUM_RADIOMODULE_STATES
 };
 
+typedef enum SymbolPatterns_en
+{	
+	SYMBOL_PATTERN_ZEROES,
+	SYMBOL_PATTERN_TONE,
+	NUM_OF_SYMBOL_PATTERNS
+} en_SymbolPatterns;
+
+
+
 class RadioModule
 {
 public:
@@ -110,11 +120,18 @@ public:
 	uint8_t SetRadioChanState(uint8_t radioChanState);
 	uint8_t GetRadioChanState();
 
+	uint8_t SetTestMode(uint8_t isTestMode);
+	uint8_t IsTestMode();
+
+	uint8_t SetTestPattern(uint8_t noPattern);
+	uint8_t GetTestPattern();
+
 	uint8_t SetRadioAddress(uint8_t address);
 	uint8_t GetRadioAddress();
 	
 	uint8_t GetAsyncReqMaskParam();
 	uint8_t SetAsyncReqMaskParam(uint8_t mask);
+
 	
 	uint8_t GetMaskOfChangedParams();
 
@@ -159,6 +176,11 @@ private:
 	//											 - передача
 	en_RadioChanStates RadioChanState;
 
+	//Признак тестового режима
+	uint8_t IsRadioTestMode;
+	//Номер символьного шаблона для тестового режима
+	en_SymbolPatterns NoRadioTestPattern;
+
 	uint8_t RadioAddress;
 	
 	uint8_t AsyncReqMaskParam;
@@ -183,7 +205,11 @@ private:
 	static const uint32_t RADIO_BASE_FREQ 			= 410000000;
 	static const uint32_t RADIO_FREQCHAN_STEP		= 25000;
 	
+	#ifndef SMART_PROTOTYPE
+	static const uint8_t DEFAULT_AUDIO_IN_GAIN 	= 5;
+	#else
 	static const uint8_t DEFAULT_AUDIO_IN_GAIN 	= 3;
+	#endif
 	static const uint8_t DEFAULT_AUDIO_OUT_GAIN = 7;
 
 	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 960;

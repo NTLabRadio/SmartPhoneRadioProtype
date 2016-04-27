@@ -44,6 +44,11 @@ RadioModule::RadioModule()
 	//Текущее состояние радиоканала
 	SetRadioChanState(RADIOCHAN_STATE_IDLE);
 	
+	//Тестовый режим отключен
+	SetTestMode(false);
+	//Паттерн по умолчанию - "Тон"
+	SetTestPattern(SYMBOL_PATTERN_TONE);
+	
 	//Собственный абонентский адрес
 	SetRadioAddress(DEFAULT_RADIO_ADDRESS);
 	
@@ -80,6 +85,21 @@ void RadioModule::SwitchToIdleState()
 }
 
 
+uint8_t RadioModule::SetTestMode(uint8_t isTestMode)
+{
+	if(isTestMode)
+		IsRadioTestMode = true;
+	else
+		IsRadioTestMode	=	false;
+	
+	return(1);
+}
+
+uint8_t RadioModule::IsTestMode()
+{
+	return(IsRadioTestMode);
+}
+
 uint8_t RadioModule::SetRadioChanType(uint8_t chanType)
 {
 	if(chanType<NUM_RADIOCHAN_TYPES)
@@ -89,6 +109,22 @@ uint8_t RadioModule::SetRadioChanType(uint8_t chanType)
 	}
 	else
 		return(1);
+}
+
+uint8_t RadioModule::SetTestPattern(uint8_t noPattern)
+{
+	if(noPattern<NUM_OF_SYMBOL_PATTERNS)
+	{
+		NoRadioTestPattern = (en_SymbolPatterns)noPattern;
+		return(0);
+	}
+	else
+		return(1);
+}
+
+uint8_t RadioModule::GetTestPattern()
+{
+	return(NoRadioTestPattern);
 }
 
 uint8_t RadioModule::GetRadioChanType()

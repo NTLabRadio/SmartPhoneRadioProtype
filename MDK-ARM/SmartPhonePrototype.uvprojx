@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER, STM32F103xE, SMART_PROTOTYPE, DEBUG_USE_LEDS, DEBUG_NO_CNT_SPIM_MSG_CONTROL, _DEBUG_SEND_REC_STATUS_WO_REQUEST</Define>
+              <Define>USE_HAL_DRIVER, STM32F103xE, SMART_PROTOTYPE, DEBUG_USE_LEDS, DEBUG_NO_CNT_SPIM_MSG_CONTROL, DEBUG_SEND_RECEIVER_STATS_WO_REQUEST, TEST_MEAS_BER_ON_PATTERN_ZEROES</Define>
               <Undefine></Undefine>
               <IncludePath>../Inc;../Inc/CrossPlatform;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F1xx/Include</IncludePath>
             </VariousControls>

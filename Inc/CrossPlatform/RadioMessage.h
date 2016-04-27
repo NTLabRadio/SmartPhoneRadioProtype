@@ -48,13 +48,13 @@ public:
 		RADIO_DATATYPE_UNCONF_DATA		=0x03
 	} radioDataTypes_t;
 
-private:
-
-	//ћаксимальный размер всего сообщени€, байт
+		//ћаксимальный размер всего сообщени€, байт
 	static const uint8_t MAX_SIZE_OF_MSG = 128;
 
 	//–азмер заголовка, байт
 	static const uint8_t SIZE_OF_HEADER = 5;
+	
+private:
 
 	//ћаксимальный размер тела сообщени€, байт
 	static const uint8_t MAX_SIZE_OF_BODY = (MAX_SIZE_OF_MSG - SIZE_OF_HEADER);

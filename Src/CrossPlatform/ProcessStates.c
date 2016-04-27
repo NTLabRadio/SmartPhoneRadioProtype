@@ -32,14 +32,16 @@ QueDataFrames QueDataToExtDev(MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV, MAX_RADIOPAC
 
 
 #ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS
-uint16_t g_cntCC1120_IRQ_ProcessInTxMode = 0;
 uint16_t g_cntSendRadioPacks = 0;
 #endif
 
 #ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
 uint16_t g_cntRcvdRadioPacks = 0;
-uint16_t g_cntRcvdPacksWithPayload = 0;
 #endif
+
+extern uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][MAX_RADIOPACK_SIZE];
+
+
 
 // ------------------------------- Описание режима передачи речевого сигнала -------------------------------------
 //
@@ -137,7 +139,6 @@ void ProcessPTTState()
 				//Изменяем рабочее состояние радиомодуля на "подготовку к передаче"
 				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_WAITING);
 				
-				//Запускаем процесс кодирования вокодера
 				VocoderStartEncode();
 				
 				nLengthDataFromCMX7262 = 0;
@@ -156,7 +157,6 @@ void ProcessPTTState()
 				//Изменяем рабочее состояние радиомодуля на "подготовку к приему"
 				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_WAITING);
 				
-				//Запускаем процесс декодирования вокодера
 				VocoderStartDecode();
 				
 				#ifndef TEST_RADIO_IMITATE
@@ -211,10 +211,6 @@ void ProcessRadioState()
 			{
 				//Сбрасываем флаг прерывания
 				g_flCC1120_IRQ_CHECKED = FALSE;
-				
-				#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
-				g_cntCC1120_IRQ_ProcessInTxMode++;
-				#endif
 
 				//Запоминаем, что передатчик находится в свободном состоянии и может передавать следующий пакет данных
 				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
@@ -288,12 +284,13 @@ void ProcessRadioState()
 			//Проверяем, нет ли прерывания, указывающего, что трансивер принял данные
 			if(g_flCC1120_IRQ_CHECKED)
 			{
-				uint8_t pRadioPayloadData[MAX_RADIOPACK_SIZE];
+				uint8_t pRadioPayloadData[MAX_RADIOPACK_SIZE+SIZE_OF_RADIO_STATUS];
 				uint16_t nSizeOfRadioPayload = 0;
 				uint8_t nRadioPayloadType;
+				uint8_t arRadioStatusData[SIZE_OF_RADIO_STATUS];
 				
 				//Забираем данные из буфера RxFIFO трансивера
-				ProcessRadioPack(pRadioPayloadData, nSizeOfRadioPayload, nRadioPayloadType);
+				ProcessRadioPack(pRadioPayloadData, nSizeOfRadioPayload, nRadioPayloadType, arRadioStatusData);
 
 				#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
 				g_cntRcvdRadioPacks++;
@@ -302,25 +299,52 @@ void ProcessRadioState()
 				//Проверям, приняли ли хоть-что нибудь из трансивера
 				if(nSizeOfRadioPayload)
 				{
-					#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
-					g_cntRcvdPacksWithPayload++;
-					#endif
-					
 					if(nRadioPayloadType==RadioMessage::RADIO_DATATYPE_VOICE)
 					{
 						//Копируем полезные данные принятого радиопакета в очередь для вокодера, если в ней есть место
-						if(nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRadioPayload)
+						if( (nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRadioPayload)
+						 && (nSizeOfRadioPayload == RADIOPACK_VOICEMODE_SIZE) )
 							AddDataToFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, pRadioPayloadData, nSizeOfRadioPayload);
+						
+						#ifdef SEND_RECEIVER_STATS_WO_REQUEST
+						//RSSI и LQI читаем из статус-байтов приемника
+						int8_t nRSSIval = ApplyRSSIOffset(arRadioStatusData[0]);
+						uint8_t nLQIAndCRCFlag = arRadioStatusData[1];
+						//BER определяем, сравнивая принятый сигнал с шаблонным
+						int8_t nBERval = BERInPack(pRadioPayloadData, nSizeOfRadioPayload, pobjRadioModule->GetTestPattern());
+						
+						FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
+						#endif
 					}
 					else
 					{
-						//Пакет данных, принятый из радиоинтерфейса, копируем в очередь для внешнего устройства
-						QueDataToExtDev.PushFrame(pRadioPayloadData, nSizeOfRadioPayload);
+						//Пакет данных, принятый из радиоинтерфейса, вместе со статус-байтами копируем в очередь для внешнего устройства
+						memcpy(pRadioPayloadData+nSizeOfRadioPayload, arRadioStatusData, SIZE_OF_RADIO_STATUS);
+						QueDataToExtDev.PushFrame(pRadioPayloadData, nSizeOfRadioPayload+SIZE_OF_RADIO_STATUS);
 					}
 				}
-				//Сбрасываем флаг прерывания 
+				//Сбрасываем флаг прерывания
 				g_flCC1120_IRQ_CHECKED = FALSE;
 			}	//if(g_flCC1120_IRQ_CHECKED)
+			else
+			{
+				//Если нет полезных данных, то проверяем уровень RSSI и передаем его на внешнее устройство
+				#ifdef SEND_RECEIVER_STATS_WO_REQUEST
+				//ProcessRadioState() вызывается часто, так часто выводить RSSI пользователю не надо
+				if(isNeedCheckRSSI())
+				{
+					//Узнаем у трансивера текущий уровень RSSI
+					int8_t nRSSIval = ApplyRSSIOffset(CC1120_CheckRSSI(g_CC1120Struct.hSPI));
+					//Полезного сигнала нету, поэтому считаем, что LQI=127 и CRC неверна
+					uint8_t nLQIAndCRCFlag = 127;
+					//Полезного сигнала нету, поэтому считаем, что BER = 100%
+					int8_t nBERval = 100;
+					
+					FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
+				}
+				#endif				
+				
+			}
 			
 			//Если есть данные для передачи от внешнего устройства, то переходим в режим передачи
 			if(!QueDataFromExtDev.isEmpty())
@@ -344,6 +368,18 @@ void ProcessRadioState()
 
 void CMX7262_TestMode()
 {
+	#ifdef TEST_CMX7262_ENC_PATTERN
+	CMX7262_Encode_CBUS2CBUS(&g_CMX7262Struct);
+	
+	uint8_t numFrames = 3;
+	FillBufByToneSignal((int16_t*)pDataToCMX7262, numFrames*CMX7262_AUDIOFRAME_SIZE_SAMPLES, CMX7262_FREQ_SAMPLING, 1000);
+	CMX7262_TxFIFO_Audio(&g_CMX7262Struct, (uint8_t *)&pDataToCMX7262[0], numFrames);
+	#endif
+	
+	#ifdef TEST_CMX7262_DEC_PATTERN
+	VocoderStartDecode();
+	#endif
+	
 	#ifdef TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE
 	CMX7262_EncodeDecode_Audio(&g_CMX7262Struct);	
 	#endif
@@ -362,7 +398,7 @@ void CMX7262_TestMode()
 		
 		//Заполняем буфер тональным сигналом 1кГц
 		FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
-		CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+		CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0],1);
 		#endif
 	#endif
 }
@@ -374,6 +410,7 @@ void ProcessCMX7262State()
 	if(g_flCMX7262_IRQ_CHECKED)
 	{
 		//Обрабатываем прерывание: проверяем, что хочет CMX7262                                                                                       
+		//Читаем статусный регистр и устанавливаем значение g_CMX7262Struct.uIRQRequest		
 		CMX7262_IRQ(&g_CMX7262Struct);
 		//Сбрасываем флаг, чтобы обнаружить следующее прерывание
 		g_flCMX7262_IRQ_CHECKED = FALSE;
@@ -402,8 +439,25 @@ void ProcessCMX7262State()
 		#else
 		//Тестовые режимы
 			#ifdef TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE
-			CMX7262_RxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataFromCMX7262[0]);			
+			CMX7262_RxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataFromCMX7262[0]);
 			#endif
+			
+			#ifdef TEST_CMX7262_ENC_PATTERN
+			//Если данные еще есть куда складировать
+			if(nLengthDataFromCMX7262 <= MAX_SIZE_OF_DATA_FROM_CMX7262-CMX7262_CODEC_BUFFER_SIZE)
+			{
+				//Забираем их с CMX7262 и записываем в очередь
+				CMX7262_RxFIFO(&g_CMX7262Struct,(uint8_t *)&pDataFromCMX7262[nLengthDataFromCMX7262]);
+				nLengthDataFromCMX7262 += CMX7262_CODEC_BUFFER_SIZE;
+				
+				nLengthDataFromCMX7262 %= 3*CMX7262_CODEC_BUFFER_SIZE;
+			}
+			
+			uint8_t numFrames = 3;
+			FillBufByToneSignal((int16_t*)pDataToCMX7262, numFrames*CMX7262_AUDIOFRAME_SIZE_SAMPLES, CMX7262_FREQ_SAMPLING, 1000);
+			CMX7262_TxFIFO_Audio(&g_CMX7262Struct, (uint8_t *)&pDataToCMX7262[0], numFrames);
+			#endif
+			
 		#endif
 	}
 
@@ -440,30 +494,42 @@ void ProcessCMX7262State()
 		
 	#else
 	//Тестовые режимы
-			#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE			
-				#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
-				//Заполняем буфер тональным сигналом 1кГц
-				FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
-				#endif
-			
-				//Передаем буфер на CMX7262
-				CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
-				#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
-				cntCMX7262TxAudioBuf++;
-				#endif
-			
-				uint16_t nSizeOfTxBuf = sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES;		
-				if(nLengthDataToCMX7262>=nSizeOfTxBuf)
-				{
-					//Удаляем из очереди переданные вокодеру данные
-					//TODO Заменить pDataToCMX7262 на кольцевой буфер
-					RemDataFromFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, nSizeOfTxBuf);
-				}
-				#ifdef DEBUG_PRINTF_CMX7262_EXCHANGE
-				else
-					printf("Bufer pDataToCMX7262 is Empty");
-				#endif
+		#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE			
+			#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_INTERNAL_SIN
+			//Заполняем буфер тональным сигналом 1кГц
+			FillBufByToneSignal((int16_t*)pDataToCMX7262,CMX7262_AUDIOFRAME_SIZE_SAMPLES,CMX7262_FREQ_SAMPLING,1000);
 			#endif
+			
+			//Передаем буфер на CMX7262
+			CMX7262_TxFIFO_Audio(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0],1);
+		
+			#ifdef DEBUG_CMX7262_CNT_TX_AUDIO_BUF
+			cntCMX7262TxAudioBuf++;
+			#endif
+			
+			uint16_t nSizeOfTxBuf = sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES;		
+			if(nLengthDataToCMX7262>=nSizeOfTxBuf)
+			{
+				//Удаляем из очереди переданные вокодеру данные
+				//TODO Заменить pDataToCMX7262 на кольцевой буфер
+				RemDataFromFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, nSizeOfTxBuf);
+			}
+			#ifdef DEBUG_PRINTF_CMX7262_EXCHANGE
+			else
+				printf("Bufer pDataToCMX7262 is Empty");
+			#endif
+		#endif	//#ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE
+				
+		#ifdef TEST_CMX7262_DEC_PATTERN
+		memcpy(pDataToCMX7262,&SymbolPatterns[SYMBOL_PATTERN_TONE][nLengthDataToCMX7262],CMX7262_CODEC_BUFFER_SIZE);
+		CMX7262_TxFIFO(&g_CMX7262Struct,(uint8_t *)&pDataToCMX7262[0]);
+		nLengthDataToCMX7262+=CMX7262_CODEC_BUFFER_SIZE;
+		nLengthDataToCMX7262 %= 3*CMX7262_CODEC_BUFFER_SIZE;
+
+		//Сбрасываем флаг CMX7262_IDW
+		g_CMX7262Struct.uIRQRequest = g_CMX7262Struct.uIRQRequest & ~CMX7262_IDW;
+		#endif
+				
 	#endif	//#ifndef TEST_CMX7262 ... #else
 	}
 
@@ -503,3 +569,13 @@ void FrontEndSetToRx()
 	SKY_TR_LOW();
 }
 #endif
+
+
+uint8_t isNeedCheckRSSI()
+{
+	static uint32_t cntCheckRSSI = 0;
+	cntCheckRSSI++;
+	cntCheckRSSI %= CHECK_RSSI_PERIOD;
+
+	return(cntCheckRSSI==0);
+}

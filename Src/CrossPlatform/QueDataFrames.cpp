@@ -80,10 +80,6 @@ uint16_t QueDataFrames::PushFrame(uint8_t* pData, uint16_t sizeOfData)
 	//Если передан нулевой указатель или нулевой размер, возвращаем 0
 	if((pData==NULL) || (!sizeOfData))
 		return(0);	
-
-	//Если очередь уже заполнена на 100%, возвращаем 0
-	if(m_numFramesInQue==m_maxNumFrames)
-		return(0);
 	
 	//Создаем элемент очереди
 	queFrame_t* curFrame = new queFrame_t;

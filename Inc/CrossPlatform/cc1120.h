@@ -122,9 +122,6 @@ typedef struct
 #define TX_FIFO_FAIL					0xFF				/* Ошибка чтения данных FIFO_TX */
 #define RX_FIFO_FAIL					0xFF				/* Ошибка чтения данных FIFO_RX */
 	 
-	 
-	 
-
 
 #define EXT_PARTNUMBER				0x8F  			/* PARTNUMBER */
 #define EXT_PARTVERSION				0x90  			/* PARTVERSION */
@@ -135,8 +132,11 @@ typedef struct
 #define EXT_FS_VCO4						0x23				/* FS_VCO_4 */
 #define EXT_FS_CHP						0x18				/* FS_CHP */
 #define	EXT_FREQ2							0x0C				/* Frequency configuration. FREQ2 (23_16), FREQ1 (15_8), FREQ0 (7_0) */
+#define EXT_RSSI1							0x71				/* Значение индикатора уровня приема, старшие 8 бит (RSSI[11:4]) */
+#define EXT_RSSI0							0x72				/* Значение индикатора уровня приема, младшие 4 бита (RSSI[3:0]) + признак несущей (CARRIER_SENSE) */
 #define EXT_MARCSTATE					0x73				/* Опрос состояния трансивера */
 #define EXT_FSCAL_CTRL				0x8D				/* запрос Lock detect */
+
 #define S_STATUS							0x3D				/* No operation. May be used to get access to the chip status byte */
 #define S_TX									0x35				/* Enable Tx */	 
 #define S_RX									0x34				/* Enable Rx */
@@ -148,7 +148,7 @@ typedef struct
 #define S_SFSTXON							0x31				/* запуск автоматической калибровки синтезатора */
 #define R_ST_FIFO_ACCESS			0x3F				/* Стандартная доступ к  Tx/Rx FIFO */
 
-#define PA_CFG2 							0x2B
+#define PA_CFG2 							0x2B				/* Power Amplifier Configuration Reg. 2 */
 
 
 #define CC1120_ID							0x48				/* Chip ID CC1120 */ 
@@ -156,6 +156,19 @@ typedef struct
 #define	F_XOSC								0x1E84800		/* Частота опорного генератора 32 МГц */
 
 
+#define RSSI_VALID_MASK_IN_RSSI0_REG 		0x01 				/* Маска поля RSSI_VALID в регистре RSSI0 */
+
+
+#define CC1120_RSSI_OFFSET 	(102)
+
+#ifdef DEBUG_SET_AGC_GAIN_ADJUST
+//Если в регистр AGC_GAIN_ADJUST записать нулевое значение, то значения RSSI, которые выдает приемник, будут отличаться 
+//от реальных значений уровня ~на 102 дБ. Но при записи значения 102 в этот регистр приемник выдает неадекватные значения
+//RSSI при низких уровнях (<-115дБм). Поэтому лучше вычитать это значение "вручную"
+#define CC1120_AGC_GAIN_ADJUST	(CC1120_RSSI_OFFSET}
+#else
+#define CC1120_AGC_GAIN_ADJUST	(0x00)
+#endif
 
 
 /* TX power = 15 */
@@ -191,16 +204,16 @@ static const CC1120regSetting_t CC1120_Config_4800[]= {
 {0x0014,     0x63},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
 {0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
 {0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
-{0x0019,     0x9A},     //AGC_GAIN_ADJUST    RSSI Offset Configuration
+{0x0019,     CC1120_AGC_GAIN_ADJUST},     					//AGC_GAIN_ADJUST    RSSI Offset Configuration
 {0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
 {0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
 {0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
 {0x0020,     0x0B},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..   !!!!!!! Для калибровки, после изменения частоты должно быть 0x0B
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
-{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},   //PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
+{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
 {0x002D,     0x7E},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
-{0x002E,     RADIOPACK_MODE4800_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_MODE4800_EXTSIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -259,16 +272,16 @@ static const CC1120regSetting_t CC1120_Config_9600[]= {
 {0x0014,     0x73},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
 {0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
 {0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
-{0x0019,     0x9A},     //AGC_GAIN_ADJUST    RSSI Offset Configuration
+{0x0019,     CC1120_AGC_GAIN_ADJUST},     					//AGC_GAIN_ADJUST    RSSI Offset Configuration
 {0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
 {0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
 {0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
-{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},   //PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
+{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
 {0x002D,     0x7D},     //PA_CFG0            POWER AMPLIFIER CONFIGURATION REG. 0
-{0x002E,     RADIOPACK_MODE9600_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002E,     RADIOPACK_MODE9600_EXTSIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -328,15 +341,15 @@ static const CC1120regSetting_t CC1120_Config_19200[]= {
 {0x0014,     0x83},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
 {0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
 {0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
-{0x0019,     0x9A},     //AGC_GAIN_ADJUST    RSSI Offset Configuration
+{0x0019,     CC1120_AGC_GAIN_ADJUST},     					//AGC_GAIN_ADJUST    RSSI Offset Configuration
 {0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
 {0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
 {0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
-{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},   //PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
-{0x002E,     RADIOPACK_MODE19200_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
+{0x002E,     RADIOPACK_MODE19200_EXTSIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -397,15 +410,15 @@ static const CC1120regSetting_t CC1120_Config_48000[]= {
 {0x0016,     0x75},     //SYMBOL_RATE0       SYMBOL RATE CONFIGURATION MANTISSA [7:0]
 {0x0017,     0x20},     //AGC_REF            AGC REFERENCE LEVEL CONFIGURATION
 {0x0018,     0x19},     //AGC_CS_THR         CARRIER SENSE THRESHOLD CONFIGURATION
-{0x0019,     0x9A},     //AGC_GAIN_ADJUST    RSSI Offset Configuration
+{0x0019,     CC1120_AGC_GAIN_ADJUST},     					//AGC_GAIN_ADJUST    RSSI Offset Configuration
 {0x001C,     0xA9},     //AGC_CFG1           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 1
 {0x001D,     0xCF},     //AGC_CFG0           AUTOMATIC GAIN CONTROL CONFIGURATION REG. 0
 {0x001E,     0x00},     //FIFO_CFG           FIFO CONFIGURATION
 {0x0020,     0x03},     //SETTLING_CFG       FREQUENCY SYNTHESIZER CALIBRATION AND SETTLING CON..
 {0x0021,     0x14},     //FS_CFG             FREQUENCY SYNTHESIZER CONFIGURATION
 {0x0027,     0x75},     //PKT_CFG1           PACKET CONFIGURATION REG. 1
-{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},   //PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
-{0x002E,     RADIOPACK_MODE48000_EXTSIZE},     //PKT_LEN            PACKET LENGTH CONFIGURATION
+{0x002B,     CC1120_DEFAULT_PA_POWER_RAMP | 0x40},	//PA_CFG2            POWER AMPLIFIER CONFIGURATION REG. 2
+{0x002E,     RADIOPACK_MODE48000_EXTSIZE},     			//PKT_LEN            PACKET LENGTH CONFIGURATION
 {0x2F00,     0x00},     //IF_MIX_CFG         IF MIX CONFIGURATION
 {0x2F01,     0x22},     //FREQOFF_CFG        FREQUENCY OFFSET CORRECTION CONFIGURATION
 {0x2F0C,     0x6C},     //FREQ2              FREQUENCY CONFIGURATION [23:16]
@@ -444,6 +457,8 @@ uint8_t CC1120_CheckModule(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi);
 
 CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi);
+
+int8_t CC1120_CheckRSSI(SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_Tx(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_IDLE_set(SPI_HandleTypeDef *hspi);

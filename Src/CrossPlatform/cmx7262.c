@@ -264,11 +264,14 @@ uint16_t  CMX7262_Init(CMX7262_TypeDef *pCmx7262, SPI_HandleTypeDef *hspi)
 		pCmx7262->uError |= CMX7262_CONFIG_CLK_ERROR;
 		return 0;
 	}
-	#if !defined(TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE) && !defined(TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE)	&& !defined(TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE)	
-	// Set up packet length, hard decision decoding, FEC disabled.
-	CMX7262_Config(pCmx7262, THREE_FRAME | HDD | FEC);
+	
+	#if !defined(TEST_CMX7262_ENCDEC_AUDIO2AUDIO_MODE) 	&& \
+			!defined(TEST_CMX7262_ENCDEC_AUDIO2CBUS_MODE)		&& \
+			!defined(TEST_CMX7262_ENCDEC_CBUS2AUDIO_MODE)
+		// Set up packet length, hard decision decoding, FEC disabled.
+		CMX7262_Config(pCmx7262, THREE_FRAME | HDD | FEC);
 	#else
-	CMX7262_Config(pCmx7262, ONE_FRAME);
+		CMX7262_Config(pCmx7262, ONE_FRAME);
 	#endif
 		
 	// Clear any bits set in the status register and align the shadow register.
@@ -451,6 +454,26 @@ void CMX7262_EncodeDecode_CBUS2Audio (CMX7262_TypeDef *pCmx7262)
 		//enable underflow irq so we know when the call is over.
 	}	
 }
+
+/* Тестовый режим для создания шаблонных сигналов: передача звукового сигнала микросхеме через CBUS, 
+прием результата кодирования через CBUS */
+void CMX7262_Encode_CBUS2CBUS (CMX7262_TypeDef *pCmx7262)
+{
+	// PCM samples in through CBUS and TWELP out through CBUS - in relation to the CMX7262
+	CMX7262_Routing(pCmx7262, SRC_CBUS | DEST_CBUS);
+	
+	// The encoder is started, there will be a packet delay before  we are requested to service it..
+	if (!CMX7262_Transcode (pCmx7262,CMX7262_VCTRL_ENCODE))
+		pCmx7262->uError |= CMX7262_ENCODE_ERROR;
+	else
+	{
+		// Set the soft copy of the mode before we enable the IRQ because this is used by the IRQ
+		// to set the appropriate request flags.
+		pCmx7262->uMode = CMX7262_ENCODE_MODE;
+		CMX7262_EnableIRQ(pCmx7262, IRQ+ODA);
+	}
+}
+
 
 /* Тестовый режим формирования гармонического сигнала на звуковом выходе*/
 void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
@@ -731,14 +754,14 @@ void CMX7262_TxFIFO (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
 }
 
 
-void CMX7262_RxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
+void CMX7262_RxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData, uint8_t numFrames)
 {
-	CBUS_Read8(CBUS_AUDIO_OUT,pData,sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
+	CBUS_Read8(CBUS_AUDIO_OUT,pData,sizeof(uint16_t)*numFrames*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
 }
 
-void CMX7262_TxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData)
+void CMX7262_TxFIFO_Audio (CMX7262_TypeDef  *pCmx7262, uint8_t *pData, uint8_t numFrames)
 {
-	CBUS_Write8(CBUS_AUDIO_IN,pData,sizeof(uint16_t)*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
+	CBUS_Write8(CBUS_AUDIO_IN,pData,sizeof(uint16_t)*numFrames*CMX7262_AUDIOFRAME_SIZE_SAMPLES,pCmx7262->uInterface);
 }
 
 

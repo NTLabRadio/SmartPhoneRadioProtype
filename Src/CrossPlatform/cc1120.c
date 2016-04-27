@@ -248,6 +248,45 @@ CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi)
 }
 
 
+
+/**
+	* @brief	запрос уровня приема сигнала (RSSI) у трансивера CC1120
+	* @param	*hspi - выбор интерфейса SPI для обращения
+	* @note	 
+	* @retval Результат выполнения функции:
+	*					знаковое число (от -127 до 127)
+	*					-128(0x80) - ошибка при выполнении функции (занята шина SPI)
+	*/
+int8_t CC1120_CheckRSSI(SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+	int8_t nRes;
+	
+	uint8_t *valRSSI0 = pCC1120RxData;
+	uint8_t *valRSSI1 = pCC1120RxData;
+	
+	CC1120_CSN_LOW();
+
+	if (CC1120_Read (EXT_RSSI0, EXT_ADDRESS, NO_BURST, valRSSI0, 0x01))
+		nRes = 0x80;	// ошибка обмена по SPI
+
+	if(*valRSSI0 & RSSI_VALID_MASK_IN_RSSI0_REG)
+	{
+		if (CC1120_Read (EXT_RSSI1, EXT_ADDRESS, NO_BURST, valRSSI1, 0x01))
+			nRes = 0x80; // ошибка обмена по SPI
+		
+		nRes = *valRSSI1;
+	}
+	else
+		nRes = 0x80;	//RSSI - невалидный
+	
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return(nRes);
+}
+
 /**
 	* @brief	перевод трансивера CC1120 в режим передачи
 	* @param	*hspi - выбор интерфейса SPI для обращения

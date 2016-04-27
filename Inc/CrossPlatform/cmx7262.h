@@ -297,6 +297,7 @@ void CMX7262_EncodeDecode_Audio(CMX7262_TypeDef *pCmx7262);
 void CMX7262_EncodeDecode_Audio2CBUS(CMX7262_TypeDef *pCmx7262);
 void CMX7262_EncodeDecode_CBUS2Audio(CMX7262_TypeDef *pCmx7262);
 void CMX7262_Test_AudioOut(CMX7262_TypeDef *pCmx7262);
+void CMX7262_Encode_CBUS2CBUS(CMX7262_TypeDef *pCmx7262);
 
 void CMX7262_EnableIRQ(CMX7262_TypeDef *pCmx7262, uint16_t uIRQ);
 void CMX7262_DisableIRQ(CMX7262_TypeDef *pCmx7262, uint16_t uIRQ);
@@ -305,8 +306,8 @@ void CMX7262_IRQ(void *pData);
 void CMX7262_RxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 void CMX7262_TxFIFO(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
 
-void CMX7262_RxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
-void CMX7262_TxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData);
+void CMX7262_RxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData, uint8_t numFrames);
+void CMX7262_TxFIFO_Audio(CMX7262_TypeDef *pCmx7262, uint8_t *pData, uint8_t numFrames);
 
 #ifndef SMART_PROTOTYPE
 void CMX7262_HardwareReset(void);
