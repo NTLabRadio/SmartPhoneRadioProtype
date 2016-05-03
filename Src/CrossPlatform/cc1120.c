@@ -260,7 +260,7 @@ CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi)
 int8_t CC1120_CheckRSSI(SPI_HandleTypeDef *hspi)
 {
 	hspiCC1120 = hspi;
-	int8_t nRes;
+	int8_t nRes = 0;
 	
 	uint8_t *valRSSI0 = pCC1120RxData;
 	uint8_t *valRSSI1 = pCC1120RxData;
@@ -270,15 +270,16 @@ int8_t CC1120_CheckRSSI(SPI_HandleTypeDef *hspi)
 	if (CC1120_Read (EXT_RSSI0, EXT_ADDRESS, NO_BURST, valRSSI0, 0x01))
 		nRes = 0x80;	// ошибка обмена по SPI
 
-	if(*valRSSI0 & RSSI_VALID_MASK_IN_RSSI0_REG)
-	{
-		if (CC1120_Read (EXT_RSSI1, EXT_ADDRESS, NO_BURST, valRSSI1, 0x01))
-			nRes = 0x80; // ошибка обмена по SPI
-		
-		nRes = *valRSSI1;
-	}
-	else
+	if( !(*valRSSI0 & RSSI_VALID_MASK_IN_RSSI0_REG) )
 		nRes = 0x80;	//RSSI - невалидный
+	
+	if(nRes!=0x80)
+	{
+		if (!CC1120_Read (EXT_RSSI1, EXT_ADDRESS, NO_BURST, valRSSI1, 0x01))
+			nRes = *valRSSI1;
+		else
+			nRes = 0x80; // ошибка обмена по SPI
+	}
 	
 	WaitTimeMCS(1e2);
 	
@@ -286,6 +287,31 @@ int8_t CC1120_CheckRSSI(SPI_HandleTypeDef *hspi)
 	
 	return(nRes);
 }
+
+
+int8_t CC1120_CheckAGCGain(SPI_HandleTypeDef *hspi)
+{
+	hspiCC1120 = hspi;
+	int8_t nRes;
+	
+	uint8_t *valAGC = pCC1120RxData;
+	
+	CC1120_CSN_LOW();
+
+	if (!CC1120_Read (EXT_AGC_GAIN3, EXT_ADDRESS, NO_BURST, valAGC, 0x01))
+		nRes = *valAGC;
+	else
+		nRes = 0x80;	// ошибка обмена по SPI
+
+	WaitTimeMCS(1e2);
+	
+	CC1120_CSN_HIGH();
+	
+	return(nRes);
+}
+
+
+
 
 /**
 	* @brief	перевод трансивера CC1120 в режим передачи
@@ -1131,7 +1157,7 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 		break;
 
 		default:
-			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
+			return (DATA_IN_MISMATCH); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
 	}
 
 	
@@ -1144,9 +1170,9 @@ ReadWriteRegTypeDef CC1120_Write (uint8_t uGenAddress, uint8_t uExtAddress, uint
 	
 	//Передаем данные и одновременно принимаем ответ
 	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, pCC1120RxData, uAccesses+buff_index)) 
-		return (SPIBusy);
+		return (SPI_BUSY);
 	else
-		return (ReadWriteOk);
+		return (READ_WRITE_OK);
 
 }
 
@@ -1199,7 +1225,7 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 		break;
 
 		default:
-			return (DataInMismatch); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
+			return (DATA_IN_MISMATCH); // если введенное значение типа регистра ни основной, ни дополнительный, ни DMA 
 	}
 	
 	
@@ -1217,13 +1243,13 @@ ReadWriteRegTypeDef CC1120_Read (uint8_t uGenAddress, uint8_t uExtAddress, uint8
 
 	//Передаем данные и одновременно принимаем ответ
 	if (SPI_TransmitRecieve(hspiCC1120, pCC1120TxData, data_ptr, uAccesses+buff_index)) 
-		return (SPIBusy);
+		return (SPI_BUSY);
 	
 	// сдвиг результата	
 	for (uint8_t i = 0; i< (uAccesses+buff_index); i++)
 		data_ptr[i] = data_ptr[i+buff_index];
 	
-	return (ReadWriteOk);
+	return (READ_WRITE_OK);
 
 }
 

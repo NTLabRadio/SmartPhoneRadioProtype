@@ -36,9 +36,9 @@
 
 typedef enum
 {
-	ReadWriteOk   		= 0x00, // операция завершена успешно
-	SPIBusy       		= 0x01, // шина SPI занята
-	DataInMismatch		= 0x02  // несоответствие формата входных данных
+	READ_WRITE_OK   	= 0x00, // операция завершена успешно
+	SPI_BUSY       		= 0x01, // шина SPI занята
+	DATA_IN_MISMATCH	= 0x02  // несоответствие формата входных данных
 } ReadWriteRegTypeDef;	 
 
 typedef enum
@@ -135,6 +135,7 @@ typedef struct
 #define EXT_RSSI1							0x71				/* Значение индикатора уровня приема, старшие 8 бит (RSSI[11:4]) */
 #define EXT_RSSI0							0x72				/* Значение индикатора уровня приема, младшие 4 бита (RSSI[3:0]) + признак несущей (CARRIER_SENSE) */
 #define EXT_MARCSTATE					0x73				/* Опрос состояния трансивера */
+#define EXT_AGC_GAIN3					0x79				/* Значение усиления АРУ фронт-энда микросхемы, разрешение - 1 дБ */
 #define EXT_FSCAL_CTRL				0x8D				/* запрос Lock detect */
 
 #define S_STATUS							0x3D				/* No operation. May be used to get access to the chip status byte */
@@ -199,6 +200,12 @@ static const CC1120regSetting_t CC1120_Config_4800[]= {
 {0x000B,     0x09},     //MODCFG_DEV_E       MODULATION FORMAT AND FREQUENCY DEVIATION CONFIGUR..
 {0x000C,     0x1C},     //DCFILT_CFG         DIGITAL DC REMOVAL CONFIGURATION
 {0x000D,     0x2C},     //PREAMBLE_CFG1      PREAMBLE LENGTH CONFIGURATION REG. 1
+#ifdef DEBUG_HIGH_IF
+{0x000F,     0x78},     //FREQ_IF_CFG 			 RX Mixer Frequency Configuration	//Высокая ПЧ ~120 кГц
+#endif
+#ifdef DEBUG_ZERO_IF
+{0x000F,     0x00},     //FREQ_IF_CFG 			 RX Mixer Frequency Configuration	//Нулевая ПЧ
+#endif
 {0x0010,     0xC6},     //IQIC               DIGITAL IMAGE CHANNEL COMPENSATION CONFIGURATION
 {0x0013,     0x05},     //MDMCFG0            GENERAL MODEM PARAMETER CONFIGURATION REG. 0
 {0x0014,     0x63},     //SYMBOL_RATE2       SYMBOL RATE CONFIGURATION EXPONENT AND MANTISSA [1..
@@ -459,6 +466,7 @@ uint8_t CC1120_CheckVersion(SPI_HandleTypeDef *hspi);
 CC1120STATUSTypeDef CC1120_Status(SPI_HandleTypeDef *hspi);
 
 int8_t CC1120_CheckRSSI(SPI_HandleTypeDef *hspi);
+int8_t CC1120_CheckAGCGain(SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_Tx(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_IDLE_set(SPI_HandleTypeDef *hspi);

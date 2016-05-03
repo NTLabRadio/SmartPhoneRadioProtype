@@ -75,6 +75,7 @@ typedef enum SymbolPatterns_en
 {	
 	SYMBOL_PATTERN_ZEROES,
 	SYMBOL_PATTERN_TONE,
+	SYMBOL_PATTERN_ANALOG,		//Тест девиации
 	NUM_OF_SYMBOL_PATTERNS
 } en_SymbolPatterns;
 
