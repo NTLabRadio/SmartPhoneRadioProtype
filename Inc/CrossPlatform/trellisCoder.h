@@ -1,4 +1,4 @@
-
+#include <limits.h>
 #include <string.h>
 
 #ifdef STM32F071xB
@@ -17,7 +17,7 @@
 //Размер выходного созвездия
 #define SIZE_OF_TRELLIS_OUTPUT_CONSTELLATION 		(SIZE_OF_TRELLIS_STATE*SIZE_OF_TRELLIS_STATE)
 
-void trellisEnc1_2(int16_t * message, int16_t * out);
-int16_t trellisDec1_2( int16_t *in, int16_t *out);
+void trellisEnc1_2(const int8_t * const pDataIn, int8_t * const pDataOut);
+int16_t trellisDec1_2(const int8_t * const pDataIn, int8_t * const pDataOut);
 
 void TestTrellisCoder();

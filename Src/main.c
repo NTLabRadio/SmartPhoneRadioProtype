@@ -39,10 +39,6 @@
 #include "cmx7262.h"
 #include "ProcessStates.h"
 #include "SPIMLogic.h"
-
-#ifdef DEBUG_TRELLIS_CODER
-#include "trellisCoder.h"
-#endif
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -92,9 +88,6 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	#ifdef DEBUG_TRELLIS_CODER
-	TestTrellisCoder();
-	#endif
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
