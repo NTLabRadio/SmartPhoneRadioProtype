@@ -13,6 +13,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+#include "globals.h"
+#endif
+
 
 #define RADIO_BROADCAST_ADDR 	(0)
 
@@ -63,11 +67,16 @@ private:
 	static const uint8_t MIN_SIZE_OF_MSG = SIZE_OF_HEADER;
 
 	typedef struct {
+		#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+		uint8_t packetLength;   // длина пакета, байт
+		#endif
 		uint8_t dstAddress;     // адрес получателя
 		uint8_t srcAddress;     // адрес источника
 		uint8_t dataType;     	// тип данных (речь / гарант. данные / негарант. данные)
 		uint8_t dataSize;     	// размер полезных данных в сообщении, байт
+		#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
 		uint8_t reserve;
+		#endif
 	} structRadioMsgHeader;
 
 	uint8_t RadioMsgData[MAX_SIZE_OF_MSG];

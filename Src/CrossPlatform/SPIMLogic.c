@@ -61,7 +61,7 @@ void ProcessDataFromExtDev()
 		if(noSPIMMsgRcvd!=noLastSPIMMsgRcvd)
 		{
 			noLastSPIMMsgRcvd = noSPIMMsgRcvd;
-			#endif
+		#endif
 			//Формируем и отправляем ответ, подтверждающий успешный прием команды
 			FormAndSendAnswerToExtDev(pSPIMmsgRcvd);
 		#ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL

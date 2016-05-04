@@ -147,22 +147,22 @@ uint16_t CC1120_TxData(CC1120_TypeDef *pCC1120, uint8_t* pDataBuf, uint16_t size
 {
 	//0. перевод в режим IDLE
 	//NO: Надо ли это?
-	CC1120_IDLE_set(pCC1120->hSPI); 
-	
+	CC1120_IDLE_set(pCC1120->hSPI);
+
 	//1. Очистка Tx FIFO
 	CC1120_TxFIFOFlush(pCC1120->hSPI);
-	
+
 	//2. Загрузка массива данных в Tx FIFO
 	CC1120_TxFIFOWrite(pCC1120->hSPI, pDataBuf, sizeBuf);
-				
+
 	//3. Проверка размера данных в TX FIFO
 	uint8_t nTxFIFONumBytes = CC1120_TxFIFONumBytes(pCC1120->hSPI);
 	if(nTxFIFONumBytes != sizeBuf)
 		return(0);
-				
+
 	//4. Перевод в режим передачи
 	CC1120_Tx(pCC1120->hSPI);
-			
+
 	//WaitTimeMCS(1e3);
 	//CC1120_MARCState(pCC1120->hSPI);
 	

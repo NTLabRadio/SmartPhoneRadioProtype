@@ -53,6 +53,10 @@ RadioMessage::~RadioMessage()
 uint8_t RadioMessage::setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType, uint8_t nDataSize)
 {
 	structRadioMsgHeader strMsgHeader;
+	
+	#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+	strMsgHeader.packetLength = RADIOPACK_VOICEMODE_SIZE + SIZE_OF_HEADER - 1;
+	#endif
 
 	strMsgHeader.dstAddress = nDstAddress;
 

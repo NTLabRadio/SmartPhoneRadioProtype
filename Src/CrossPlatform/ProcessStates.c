@@ -225,6 +225,10 @@ void ProcessRadioState()
 					pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_WAITING);
 					break;
 				}
+				
+				#ifdef DEBUG_WAIT_AFTER_TX_PACKS
+				WaitTimeMCS(5e2);
+				#endif				
 			}
 		
 			//Если передатчик CC1120 свободен, то можно передавать данные
