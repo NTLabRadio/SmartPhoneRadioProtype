@@ -55,7 +55,7 @@ uint8_t RadioMessage::setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_
 	structRadioMsgHeader strMsgHeader;
 	
 	#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
-	strMsgHeader.packetLength = RADIOPACK_VOICEMODE_SIZE + SIZE_OF_HEADER - 1;
+	strMsgHeader.packLength = RADIOPACK_VOICEMODE_SIZE + SIZE_OF_HEADER - 1;
 	#endif
 
 	strMsgHeader.dstAddress = nDstAddress;
@@ -169,4 +169,25 @@ uint8_t RadioMessage::getBody(uint8_t* pBodyData)
 	memcpy(pBodyData,RadioBodyData,RadioBodySize);
 
 	return(RadioBodySize);
+}
+
+
+uint8_t RadioMessage::getMsg(uint8_t* pMsgData)
+{
+	if(!pMsgData)
+		return(0xFF);
+
+	if(!Size)
+		return(0);
+
+	memcpy(pMsgData,RadioMsgData,Size);
+
+	return(Size);
+}
+
+
+uint8_t RadioMessage::applyFEC()
+{
+	
+	return 0;
 }

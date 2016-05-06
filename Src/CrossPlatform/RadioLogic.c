@@ -18,32 +18,49 @@ uint16_t g_cntCC1120_TxDataErrors = 0;
 uint16_t g_cntRcvdPacksWithErrSize = 0;
 #endif
 
-uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][MAX_RADIOPACK_SIZE] =
+#ifndef SEND_RECEIVER_STATS_WO_REQUEST
+extern uint8_t g_flNeedSendReceiverStats;
+#endif
+
+
+//uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][MAX_RADIOPACK_SIZE] =
+uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][RADIOPACK_MODE4800_EXTSIZE] =
 {
 //SYMBOL_PATTERN_ZEROES
-{0x00, 0x01, 0x01, 0x51, 0x00,
+{	
+	#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+	0x00, 0x01, 0x01, 0x51, 0x00,
+	#else
+	0x55, 0x00, 0x01, 0x01, 0x51,
+	#endif
 					 0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
- 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
- 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0},
+ 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0},
 
 //SYMBOL_PATTERN_TONE
-{0x00, 0x01, 0x01, 0x51, 0x00,
+{	
+	#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+	0x00, 0x01, 0x01, 0x51, 0x00,
+	#else
+	0x55, 0x00, 0x01, 0x01, 0x51,
+	#endif	
  0x98, 0x0F, 0x0E, 0x85, 0xAC, 0x72, 0x66, 0xBF, 0x55, 0xEA, 0x51, 0x77, 0x01, 0x78, 0x14, 0x71,
  0x2D, 0x5D, 0xF8, 0x53, 0x34, 0x34, 0x48, 0x1F, 0x03, 0x6B, 0x79, 
  0xB9, 0x8F, 0x07, 0x8D, 0xAE, 0x7B, 0x71, 0x97, 0x74, 0x3E, 0x54, 0xBD, 0x61, 0x38, 0x34, 0x51, 
  0xAD, 0x57, 0xFA, 0x5B, 0x34, 0x34, 0x49, 0x1F, 0x03, 0xEB, 0x7B, 
  0xAA, 0x8B, 0x05, 0x8D, 0x6F, 0x17, 0x33, 0xB7, 0x35, 0x0F, 0x34, 0xFD, 0x01, 0x90, 0x95, 0x39, 
- 0x28, 0x5D, 0xFA, 0xE3, 0xF2, 0x16, 0x21, 0x0F, 0xC2, 0xC1, 0xE9,
- 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,
- 0,0,0,0,0,0,0,0, 0,0},
+ 0x28, 0x5D, 0xFA, 0xE3, 0xF2, 0x16, 0x21, 0x0F, 0xC2, 0xC1, 0xE9},
  
  //SYMBOL_PATTERN_ANALOG
-{0x00, 0x01, 0x01, 0x51, 0x00,
+{	
+	#ifndef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+	0x00, 0x01, 0x01, 0x51, 0x00,
+	#else
+	0x55, 0x00, 0x01, 0x01, 0x51,
+	#endif
 					 1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1,
  0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1,
- 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1,
- 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1}
+ 0,1,0,1,0,1,0,1, 0,1,0,1,0,1,0,1, 0,1,0,1,0,1}
 };
 	
 
@@ -138,6 +155,12 @@ void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint16_t nPay
 		uint8_t noTestPattern = pobjRadioModule->GetTestPattern();
 		RadioPack->setMsg(SymbolPatterns[noTestPattern], RADIOPACK_MODE4800_EXTSIZE);
 	}
+	
+	//TODO:
+	//ƒл€ неречевых данных вызываем помехоустойчивый кодер дл€ RadioPack
+	// одер оставл€ет нетронутыми первые 2 байта (длина и адрес), делит пакет на 12-байтные кадры
+	//и каждый кадр преобразует в 25 байтный. –езультат снова укладываетс€ в RadioPack
+	//ƒл€ стандартных 81-байтных пакетов результат применени€ кодера - 175-байтный пакет
 
 	return;
 }
@@ -172,7 +195,8 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nD
 	}
 	
 	//–адиосообщение составл€ем из данных трансивера без статус-байтов
-	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRecData-SIZE_OF_RADIO_STATUS);
+	uint16_t nSizeOfRadioMessage = nSizeOfRecData-SIZE_OF_RADIO_STATUS;
+	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRadioMessage);
 
 	//ƒанные заголовка радиосообщени€
 	uint8_t dstAddress = RadioMsgRcvd.getDstAddress();
@@ -185,8 +209,25 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nD
 
 	// опируем отдельно статус-байты приемника. ќни могут понадобитьс€ внешнему устройству
 	if(pRadioStatusData)
-		memcpy(pRadioStatusData, RadioPackRcvd+nSizeOfRecData-SIZE_OF_RADIO_STATUS, SIZE_OF_RADIO_STATUS);
+		memcpy(pRadioStatusData, RadioPackRcvd+nSizeOfRadioMessage, SIZE_OF_RADIO_STATUS);
 
+	#ifdef SEND_RECEIVER_STATS
+	if(nDataType==RadioMessage::RADIO_DATATYPE_VOICE)
+	{
+		//RSSI и LQI читаем из статус-байтов приемника
+		int8_t nRSSIval = ApplyRSSIOffset(pRadioStatusData[0]);
+		uint8_t nLQIAndCRCFlag = pRadioStatusData[1];
+		
+		//BER определ€ем, сравнива€ прин€тый сигнал с шаблонным
+		int8_t nBERval = BERInPack(RadioPackRcvd, nSizeOfRadioMessage, pobjRadioModule->GetTestPattern());
+
+		#ifndef SEND_RECEIVER_STATS_WO_REQUEST
+		if(g_flNeedSendReceiverStats)
+		#endif
+			FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
+	}
+	#endif
+	
 	return;
 }
 
@@ -215,7 +256,6 @@ uint8_t BERInPack(uint8_t* pPackData, uint8_t nSizePackData, uint8_t typePattern
 		return(resBER);
 	
 	uint8_t *pPattern = SymbolPatterns[typePattern];
-	pPattern+=RadioMessage::SIZE_OF_HEADER;
 	
 	while(cntSymbols--)
 	{

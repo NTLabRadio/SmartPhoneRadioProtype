@@ -874,7 +874,7 @@ uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const CC1120regSetting
 
 		if (pCC1120RxData[0] != CC1120_Config[i].data)
 		{
-			#ifdef DEBUG_USE_LEDS
+			#ifdef USE_LEDS
 			LED2_ON();
 			#endif
 			return (2);

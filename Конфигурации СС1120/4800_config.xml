@@ -146,7 +146,7 @@
         </Register>
         <Register>
             <Name>PKT_CFG1</Name>
-            <Value>0x75</Value>
+            <Value>0x45</Value>
         </Register>
         <Register>
             <Name>PKT_LEN</Name>
@@ -204,10 +204,10 @@
         <Property role="44" name="m_chkAutoScroll">2</Property>
     </contrx>
     <packettx>
-        <Property role="42" name="m_edtPayloadSize">80</Property>
+        <Property role="42" name="m_edtPayloadSize">86</Property>
         <Property role="42" name="m_edtPacketCount">100</Property>
         <Property role="42" name="m_edtPacketCountEsy">100</Property>
-        <Property role="42" name="m_edtRandomPacketData">2c 53 cb c9 12 1e 33 74 9e 0c f4 d5 d4 9f d4 a4 59 7e 35 cf 32 22 f4 cc cf d3 90 2d 48 d3 8f 75 e6 d9 1d 2a e5 c0 f7 2b 78 81 87 44 0e 5f 50 00 d4 61 8d be 7b 05 15 07 3b 33 82 1f 18 70 92 da 64 54 ce b1 85 3e 69 15 f8 46 6a 04 96 73 0e </Property>
+        <Property role="42" name="m_edtRandomPacketData">61 40 14 b1 3b 6a a5 11 28 c1 8c d6 a9 0b 87 97 8c 2f f1 15 1d 9a 95 c1 9b e1 c0 7e e9 a8 9a a7 86 c2 b5 54 bf 9a e7 d9 23 d1 55 90 38 28 d1 d9 6c a1 66 5e 4e e1 30 9c fe d9 71 9f e2 a5 e2 0c 9b b4 47 65 38 2a 46 89 a9 82 79 7a 76 78 c2 63 b1 26 df da 29 </Property>
         <Property role="42" name="m_edtPacketData"></Property>
         <Property role="42" name="m_edtAccessAddress"></Property>
         <Property role="42" name="m_edtDeviceAddress"></Property>
@@ -224,7 +224,7 @@
         <Property role="42" name="m_edtAddress">00</Property>
         <Property role="46" name="m_cmbLengthConfig">0</Property>
         <Property role="42" name="m_edtLengthConfig">86</Property>
-        <Property role="52" name="m_spnPktInterval">200</Property>
+        <Property role="52" name="m_spnPktInterval">210</Property>
         <Property role="44" name="m_chkDefPktInterval">2</Property>
     </packettx>
     <packetrx>
@@ -239,11 +239,11 @@
         <Property role="44" name="m_chkAdvanced">2</Property>
         <Property role="44" name="m_chk802154gMode">0</Property>
         <Property role="46" name="m_cmbSyncWord">-1</Property>
-        <Property role="46" name="m_cmbAddressConfig">3</Property>
+        <Property role="46" name="m_cmbAddressConfig">0</Property>
         <Property role="44" name="m_chkAddress">0</Property>
         <Property role="44" name="m_chkFifoAutoFlush">0</Property>
         <Property role="42" name="m_edtAddress">0</Property>
-        <Property role="46" name="m_cmbLengthConfig_adv">1</Property>
+        <Property role="46" name="m_cmbLengthConfig_adv">0</Property>
         <Property role="42" name="m_edtLengthConfig_adv">86</Property>
     </packetrx>
     <commandpanel>

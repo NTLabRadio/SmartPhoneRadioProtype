@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE configuration SYSTEM "C:/Program Files (x86)/Texas Instruments/SmartRF Tools/SmartRF Studio 7/config/xml/configdata.dtd"[]>
+<!DOCTYPE configuration SYSTEM "E:/Program Files (x86)/Texas Instruments/SmartRF Tools/SmartRF Studio 7/config/xml/configdata.dtd"[]>
 <dcpanelconfiguration>
     <Devicename>CC1120</Devicename>
     <Description>Saved configuration data</Description>
@@ -146,7 +146,7 @@
         </Register>
         <Register>
             <Name>PKT_CFG1</Name>
-            <Value>0x75</Value>
+            <Value>0x45</Value>
         </Register>
         <Register>
             <Name>PKT_LEN</Name>
@@ -178,83 +178,84 @@
         </Register>
     </registersettings>
     <dcpanel>
-        <Property name="m_chkRegView" role="44">2</Property>
-        <Property name="m_chkRfParameters" role="44">2</Property>
-        <Property name="m_tabUserMode" role="37">1</Property>
-        <Property name="m_easyModeSettings" role="33">-1</Property>
-        <Property name="m_typicalSettings" role="33">-1</Property>
-        <Property name="m_testFuncPanel" role="37">3</Property>
+        <Property role="44" name="m_chkRegView">2</Property>
+        <Property role="44" name="m_chkCmdView">0</Property>
+        <Property role="44" name="m_chkRfParameters">2</Property>
+        <Property role="37" name="m_tabUserMode">1</Property>
+        <Property role="33" name="m_easyModeSettings">-1</Property>
+        <Property role="33" name="m_typicalSettings">-1</Property>
+        <Property role="37" name="m_testFuncPanel">3</Property>
     </dcpanel>
     <rfparameters>
-        <Property name="m_cmbFrontends" role="46">0</Property>
-        <Property name="m_chkHGMorBYP" role="44">2</Property>
-        <Property name="m_cmbEmRevs" role="46">-1</Property>
-        <Property name="Xtal frequency" role="46">32.000000</Property>
+        <Property role="46" name="m_cmbFrontends">0</Property>
+        <Property role="44" name="m_chkHGMorBYP">2</Property>
+        <Property role="46" name="m_cmbEmRevs">-1</Property>
+        <Property role="46" name="Xtal frequency">32.000000</Property>
     </rfparameters>
     <conttx>
-        <Property name="m_rbtModulated" role="45">1</Property>
-        <Property name="m_rbtUnmodulated" role="45">0</Property>
-        <Property name="m_cmbDataFormat" role="46">-1</Property>
-        <Property name="m_chkFreqSweep" role="44">0</Property>
-        <Property name="m_chkChanSweep" role="44">0</Property>
+        <Property role="45" name="m_rbtModulated">1</Property>
+        <Property role="45" name="m_rbtUnmodulated">0</Property>
+        <Property role="46" name="m_cmbDataFormat">-1</Property>
+        <Property role="44" name="m_chkFreqSweep">0</Property>
+        <Property role="44" name="m_chkChanSweep">0</Property>
     </conttx>
     <contrx>
-        <Property name="m_cmbDataFormat" role="46">-1</Property>
-        <Property name="m_chkAutoScroll" role="44">2</Property>
+        <Property role="46" name="m_cmbDataFormat">-1</Property>
+        <Property role="44" name="m_chkAutoScroll">2</Property>
     </contrx>
     <packettx>
-        <Property name="m_edtPayloadSize" role="42">90</Property>
-        <Property name="m_edtPacketCount" role="42">100</Property>
-        <Property name="m_edtPacketCountEsy" role="42">100</Property>
-        <Property name="m_edtRandomPacketData" role="42">86 38 43 ee f2 88 d3 fc d0 18 e6 be db 47 aa bc 4b fa c4 11 9e 4a 3a c1 98 7a 90 4d 89 2c 31 85 ce d4 11 9e 9a 6c 91 84 f7 6a a3 71 07 ef 2e bf 90 41 b4 fb b7 7b 32 3a 0c 83 47 b0 c7 3d 99 7e 51 fe 75 cc 07 44 b5 18 3a a4 e7 cd 7a 03 ab 18 14 09 5d f7 d9 d3 f4 93 21 </Property>
-        <Property name="m_edtPacketData" role="42"></Property>
-        <Property name="m_edtAccessAddress" role="42"></Property>
-        <Property name="m_edtDeviceAddress" role="42"></Property>
-        <Property name="m_chkAddSeqNbr" role="44">0</Property>
-        <Property name="m_chkInfinite" role="44">0</Property>
-        <Property name="m_chkInfiniteEsy" role="44">0</Property>
-        <Property name="m_rbtRandom" role="45">1</Property>
-        <Property name="m_rbtText" role="45">0</Property>
-        <Property name="m_rbtHex" role="45">0</Property>
-        <Property name="m_chkAdvanced" role="44">2</Property>
-        <Property name="m_cmbSyncWord" role="46">-1</Property>
-        <Property name="m_cmbPreambleCount" role="46">-1</Property>
-        <Property name="m_chkAddress" role="44">2</Property>
-        <Property name="m_edtAddress" role="42">10</Property>
-        <Property name="m_cmbLengthConfig" role="46">0</Property>
-        <Property name="m_edtLengthConfig" role="42">86</Property>
-        <Property name="m_spnPktInterval" role="52">90</Property>
-        <Property name="m_chkDefPktInterval" role="44">2</Property>
+        <Property role="42" name="m_edtPayloadSize">86</Property>
+        <Property role="42" name="m_edtPacketCount">100</Property>
+        <Property role="42" name="m_edtPacketCountEsy">100</Property>
+        <Property role="42" name="m_edtRandomPacketData">5a 8d 4e 2d 99 e7 3d b1 60 de b1 80 ad 08 41 e9 67 41 a5 d5 9f e4 18 9f 15 42 00 26 fe 4c d1 21 04 93 2f b3 8f 73 53 40 43 8a af 7e ca 6f d5 cf d3 a1 95 ce 5a be 65 27 2a f6 07 ad a1 be 65 a6 b4 c9 c0 69 32 34 09 2c 4d 01 8f 17 56 c6 db 9d c8 a6 d8 0b 88 </Property>
+        <Property role="42" name="m_edtPacketData"></Property>
+        <Property role="42" name="m_edtAccessAddress"></Property>
+        <Property role="42" name="m_edtDeviceAddress"></Property>
+        <Property role="44" name="m_chkAddSeqNbr">0</Property>
+        <Property role="44" name="m_chkInfinite">0</Property>
+        <Property role="44" name="m_chkInfiniteEsy">0</Property>
+        <Property role="45" name="m_rbtRandom">1</Property>
+        <Property role="45" name="m_rbtText">0</Property>
+        <Property role="45" name="m_rbtHex">0</Property>
+        <Property role="44" name="m_chkAdvanced">2</Property>
+        <Property role="46" name="m_cmbSyncWord">-1</Property>
+        <Property role="46" name="m_cmbPreambleCount">-1</Property>
+        <Property role="44" name="m_chkAddress">2</Property>
+        <Property role="42" name="m_edtAddress">10</Property>
+        <Property role="46" name="m_cmbLengthConfig">0</Property>
+        <Property role="42" name="m_edtLengthConfig">86</Property>
+        <Property role="52" name="m_spnPktInterval">90</Property>
+        <Property role="44" name="m_chkDefPktInterval">2</Property>
     </packettx>
     <packetrx>
-        <Property name="m_edtPacketCount" role="42">100</Property>
-        <Property name="m_edtPacketCountEsy" role="42">100</Property>
-        <Property name="m_edtAccessAddress" role="42"></Property>
-        <Property name="m_chkInfinite" role="44">0</Property>
-        <Property name="m_chkInfiniteEsy" role="44">0</Property>
-        <Property name="m_cmbViewFormat" role="46">0</Property>
-        <Property name="m_chkSeqNbrIncluded" role="44">0</Property>
-        <Property name="m_edtDumpFile" role="42">C:/Users/Pavel Moroshek/Desktop/222.txt</Property>
-        <Property name="m_chkAdvanced" role="44">2</Property>
-        <Property name="m_chk802154gMode" role="44">0</Property>
-        <Property name="m_cmbSyncWord" role="46">-1</Property>
-        <Property name="m_cmbAddressConfig" role="46">3</Property>
-        <Property name="m_chkAddress" role="44">0</Property>
-        <Property name="m_chkFifoAutoFlush" role="44">0</Property>
-        <Property name="m_edtAddress" role="42">0</Property>
-        <Property name="m_cmbLengthConfig" role="46">0</Property>
-        <Property name="m_edtLengthConfig" role="42">86</Property>
+        <Property role="42" name="m_edtPacketCount">100</Property>
+        <Property role="42" name="m_edtPacketCountEsy">100</Property>
+        <Property role="42" name="m_edtAccessAddress"></Property>
+        <Property role="44" name="m_chkInfinite">0</Property>
+        <Property role="44" name="m_chkInfiniteEsy">0</Property>
+        <Property role="46" name="m_cmbViewFormat">0</Property>
+        <Property role="44" name="m_chkSeqNbrIncluded">0</Property>
+        <Property role="42" name="m_edtDumpFile"></Property>
+        <Property role="44" name="m_chkAdvanced">2</Property>
+        <Property role="44" name="m_chk802154gMode">0</Property>
+        <Property role="46" name="m_cmbSyncWord">-1</Property>
+        <Property role="46" name="m_cmbAddressConfig">0</Property>
+        <Property role="44" name="m_chkAddress">0</Property>
+        <Property role="44" name="m_chkFifoAutoFlush">0</Property>
+        <Property role="42" name="m_edtAddress">0</Property>
+        <Property role="46" name="m_cmbLengthConfig_adv">0</Property>
+        <Property role="42" name="m_edtLengthConfig_adv">86</Property>
     </packetrx>
     <commandpanel>
-        <Property name="m_chkInsertLength" role="44">0</Property>
-        <Property name="m_edtTxFifo" role="42"></Property>
-        <Property name="m_edtRxFifo" role="42"></Property>
-        <Property name="m_cmbInstrInput" role="46">-1</Property>
+        <Property role="44" name="m_chkInsertLength">0</Property>
+        <Property role="42" name="m_edtTxFifo"></Property>
+        <Property role="42" name="m_edtRxFifo"></Property>
+        <Property role="46" name="m_cmbInstrInput">-1</Property>
     </commandpanel>
     <packetRxSniffMode>
-        <Property name="m_edtPreambleLength" role="42">8</Property>
-        <Property name="m_edtCarrierSenseThreshold" role="42">-90</Property>
-        <Property name="m_rbtRssi" role="45">1</Property>
-        <Property name="m_rbtPreamble" role="45">0</Property>
+        <Property role="42" name="m_edtPreambleLength">8</Property>
+        <Property role="42" name="m_edtCarrierSenseThreshold">-90</Property>
+        <Property role="45" name="m_rbtRssi">1</Property>
+        <Property role="45" name="m_rbtPreamble">0</Property>
     </packetRxSniffMode>
 </dcpanelconfiguration>

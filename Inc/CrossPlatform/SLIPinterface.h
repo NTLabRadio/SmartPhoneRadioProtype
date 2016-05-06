@@ -33,6 +33,8 @@ public:
 	//Максимальный размер SLIP-пакета
 	//Протокол SLIP операцией байт-стафинга может увеличивать размер данных в 2 раза + 2 символа FEND
 	static const uint16_t  MAX_SIZE_OF_PACK = (2*MAX_SIZE_OF_SLIP_PACK_PAYLOAD + 2);
+	//Минимальный размер SLIP-пакета - только 2 символа FEND
+	static const uint16_t  MIN_SIZE_OF_PACK = (2);
 
 private:
 	//Специальные символы протокола SLIP

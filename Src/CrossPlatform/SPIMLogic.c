@@ -27,6 +27,10 @@ uint16_t g_cntDataPckToExtDev = 0;
 uint16_t g_cntFramesPushToQue = 0;
 #endif
 
+#ifndef SEND_RECEIVER_STATS_WO_REQUEST
+uint8_t g_flNeedSendReceiverStats = 0;
+#endif
+
 
 void SPIMInit()
 {
@@ -196,6 +200,24 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			*pBodyData = nAnswer;
 			break;
 		}
+		#ifdef SEND_RECEIVER_STATS
+		case SPIM_CMD_RECEIVER_STATUS:
+		{		
+			#ifndef SEND_RECEIVER_STATS_WO_REQUEST
+			g_flNeedSendReceiverStats = SPIMCmdRcvd->Body[0]&1;
+			#endif
+			
+			//Если размер команды ненулевой (должен быть равен 1)
+			if(SPIMCmdRcvd->getSizeBody())
+			{
+				//Формируем тело ответа, состоящее из первого (и единственного) байта команды
+				bodySize = 1;
+				*pBodyData = SPIMCmdRcvd->Body[0];
+			}
+			
+			break;
+		}
+		#endif
 		default:
 			break;
 	}
@@ -347,7 +369,7 @@ void ProcessDataToExtDev()
 }
 
 
-void ProcessAsyncReq()
+void ProcessAsyncData()
 {
 	ProcessDataToExtDev();
 	

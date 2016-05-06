@@ -16,9 +16,10 @@
 #include "RadioMessage.h"
 #include "RadioModule.h"
 
+#define RADIO_BROADCAST_ADDR 	(0)
+
 #define MAX_NUM_RECEIVE_STATS_IN_QUE_TO_EXT_DEV 	(15)
 #define SIZE_OF_RECEIVER_STATS 										(3)
-
 
 extern RadioModule* pobjRadioModule;
 extern CC1120_TypeDef  g_CC1120Struct;

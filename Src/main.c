@@ -145,7 +145,8 @@ int main(void)
 	CMX7262_TestMode();
 	#endif
 
-	#ifdef DEBUG_USE_LEDS
+	#ifdef USE_LEDS
+	//Сигнализируем о том, что модуль загрузился
 	LED1_ON();
 	#endif
   /* USER CODE END 2 */
@@ -159,17 +160,18 @@ int main(void)
 		{
 			//Обрабатываем их
 			ProcessDataFromExtDev();
-			
+
 			//Указываем, что данные обработаны
 			UARTstate = UART_IDLE;
 		}
 
-		ProcessAsyncReq();
+		//Передача асинхронных данных (без непосредственного запроса от внешнего устройства)
+		ProcessAsyncData();
 
 		//Обработка состояния модуля CMX7262: передача/прием/тест
 		ProcessCMX7262State();
 
-		#ifndef TEST_CMX7262		
+		#ifndef TEST_CMX7262
 		//Обрабатываем тангенту
 		ProcessPTTState();
 

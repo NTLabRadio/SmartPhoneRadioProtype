@@ -39,8 +39,11 @@ uint16_t g_cntSendRadioPacks = 0;
 uint16_t g_cntRcvdRadioPacks = 0;
 #endif
 
-extern uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][MAX_RADIOPACK_SIZE];
+#ifndef SEND_RECEIVER_STATS_WO_REQUEST
+extern uint8_t g_flNeedSendReceiverStats;
+#endif
 
+extern uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][RADIOPACK_MODE4800_EXTSIZE];
 
 
 // ------------------------------- Описание режима передачи речевого сигнала -------------------------------------
@@ -225,10 +228,6 @@ void ProcessRadioState()
 					pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_WAITING);
 					break;
 				}
-				
-				#ifdef DEBUG_WAIT_AFTER_TX_PACKS
-				WaitTimeMCS(5e2);
-				#endif				
 			}
 		
 			//Если передатчик CC1120 свободен, то можно передавать данные
@@ -309,16 +308,6 @@ void ProcessRadioState()
 						if( (nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRadioPayload)
 						 && (nSizeOfRadioPayload == RADIOPACK_VOICEMODE_SIZE) )
 							AddDataToFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, pRadioPayloadData, nSizeOfRadioPayload);
-						
-						#ifdef SEND_RECEIVER_STATS_WO_REQUEST
-						//RSSI и LQI читаем из статус-байтов приемника
-						int8_t nRSSIval = ApplyRSSIOffset(arRadioStatusData[0]);
-						uint8_t nLQIAndCRCFlag = arRadioStatusData[1];
-						//BER определяем, сравнивая принятый сигнал с шаблонным
-						int8_t nBERval = BERInPack(pRadioPayloadData, nSizeOfRadioPayload, pobjRadioModule->GetTestPattern());
-						
-						FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
-						#endif
 					}
 					else
 					{
@@ -333,7 +322,7 @@ void ProcessRadioState()
 			else
 			{
 				//Если нет полезных данных, то проверяем уровень RSSI и передаем его на внешнее устройство
-				#ifdef SEND_RECEIVER_STATS_WO_REQUEST
+				#ifdef SEND_RECEIVER_STATS
 				//ProcessRadioState() вызывается часто, так часто выводить RSSI пользователю не надо
 				if(isNeedCheckRSSI())
 				{
@@ -344,10 +333,17 @@ void ProcessRadioState()
 					//Полезного сигнала нету, поэтому считаем, что BER = 100%
 					int8_t nBERval = 100;
 					
-					FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
+					#ifdef DEBUG_SHOW_CC1120_AGC_INSTEAD_RSSI
+					int8_t nAGCgain = CC1120_AGCGain(g_CC1120Struct.hSPI);
+					nRSSIval = nAGCgain;
+					#endif
+
+					#ifndef SEND_RECEIVER_STATS_WO_REQUEST
+					if(g_flNeedSendReceiverStats)
+					#endif
+						FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
 				}
-				#endif				
-				
+				#endif
 			}
 			
 			//Если есть данные для передачи от внешнего устройства, то переходим в режим передачи

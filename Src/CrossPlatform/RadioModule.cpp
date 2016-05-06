@@ -45,7 +45,12 @@ RadioModule::RadioModule()
 	SetRadioChanState(RADIOCHAN_STATE_IDLE);
 	
 	//Тестовый режим отключен
+	#ifndef DEBUG_TESTMODE_AS_DEFAULT
 	SetTestMode(false);
+	#else
+	SetTestMode(true);
+	#endif
+	
 	//Паттерн по умолчанию - "Тон"
 	SetTestPattern(SYMBOL_PATTERN_TONE);
 	
