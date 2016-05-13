@@ -137,7 +137,7 @@
           <Target>
             <UseTarget>1</UseTarget>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
-            <RunToMain>0</RunToMain>
+            <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
             <RestoreWatchpoints>1</RestoreWatchpoints>
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls>--cpp</MiscControls>
-              <Define>USE_HAL_DRIVER, STM32F103xE, SMART_PROTOTYPE, DEBUG_USE_LEDS, DEBUG_NO_CNT_SPIM_MSG_CONTROL, SEND_RECEIVER_STATS, SEND_RECEIVER_STATS_WO_REQUEST, DEBUG_CC1120_VARIABLE_PACKET_LENGTH</Define>
+              <Define>USE_HAL_DRIVER, STM32F103xE, SMART_PROTOTYPE, USE_LEDS, DEBUG_NO_CNT_SPIM_MSG_CONTROL, SEND_RECEIVER_STATS, SEND_RECEIVER_STATS_WO_REQUEST, DEBUG_CC1120_VARIABLE_PACKET_LENGTH, DEBUG_APPLY_FEC_ON_RADIODATA</Define>
               <Undefine></Undefine>
               <IncludePath>../Inc;../Inc/CrossPlatform;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Include;../Drivers/CMSIS/Device/ST/STM32F1xx/Include</IncludePath>
             </VariousControls>

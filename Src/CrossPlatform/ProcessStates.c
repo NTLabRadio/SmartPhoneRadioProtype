@@ -24,11 +24,11 @@ uint16_t cntCMX7262TxAudioBuf = 0;
 
 #define MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV 	(5)
 //Очередь пакетов данных, принятых от внешнего управляющего устройства для отправки в радиоинтерфейс
-QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, MAX_RADIOPACK_SIZE);
+QueDataFrames QueDataFromExtDev(MAX_NUM_RADIOPACKS_IN_QUE_FROM_EXT_DEV, RADIOPACK_MAX_SIZE);
 
 #define MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV 	(5)
 //Очередь пакетов данных, принятых из радиоинтерфейса, предназначенных внешнему управляющему устройству
-QueDataFrames QueDataToExtDev(MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV, MAX_RADIOPACK_SIZE);
+QueDataFrames QueDataToExtDev(MAX_NUM_RADIOPACKS_IN_QUE_TO_EXT_DEV, RADIOPACK_MAX_SIZE);
 
 
 #ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS
@@ -43,7 +43,7 @@ uint16_t g_cntRcvdRadioPacks = 0;
 extern uint8_t g_flNeedSendReceiverStats;
 #endif
 
-extern uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][RADIOPACK_MODE4800_EXTSIZE];
+extern uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][RADIOPACK_DEFAULT_SIZE];
 
 
 // ------------------------------- Описание режима передачи речевого сигнала -------------------------------------
@@ -193,177 +193,200 @@ void ProcessRadioState()
 	switch(pobjRadioModule->GetRadioModuleState())
 	{		
 		case RADIOMODULE_STATE_TX_WAITING:
-			//Если накопили достаточно звуковых данных от вокодера, переключаемся в режим RADIOMODULE_STATE_TX_RUNNING
-			if( (nLengthDataFromCMX7262 > SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX) ||
-			//или есть данные для передачи от внешнего устройства
-			(!QueDataFromExtDev.isEmpty()) )
-			{
-				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_RUNNING);
-				//Отмечаем, что передатчик находится в свободном состоянии и может передавать следующий пакет данных
-				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
-				
-				#ifndef SMART_PROTOTYPE
-				FrontEndSetToTx();			
-				#endif
-			}
-		break;
+			ProcessTxWaiting();
+			break;
 
 		case RADIOMODULE_STATE_TX_RUNNING:
-			//Если было прерывание о том, что пакет передан
-			if(g_flCC1120_IRQ_CHECKED)
-			{
-				//Сбрасываем флаг прерывания
-				g_flCC1120_IRQ_CHECKED = FALSE;
-
-				//Запоминаем, что передатчик находится в свободном состоянии и может передавать следующий пакет данных
-				g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
-				
-				//Если передавали пакет данных, то переходим в режим приема
-				if(pobjRadioModule->GetRadioChanType()==RADIOCHAN_TYPE_DATA)
-				{
-					//Изменяем состояние радиоканала на "прием"
-					pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
-					
-					//Изменяем рабочее состояние радиомодуля на "подготовку к приему"
-					pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_WAITING);
-					break;
-				}
-			}
-		
-			//Если передатчик CC1120 свободен, то можно передавать данные
-			if(g_CC1120Struct.TxState!=CC1120_TX_STATE_ACTIVE)
-			{
-				//Если в очереди от вокодера достаточно данных для формирования одного радиопакета, то посылаем данные в трансивер
-				if(nLengthDataFromCMX7262 >= RADIOPACK_VOICEMODE_SIZE)
-				{
-					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_VOICE);					
-					
-					//Из данных вокодера формируем радиопакет и отправляем его в трансивер
-					FormAndSendRadioPack(pDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE, RadioMessage::RADIO_DATATYPE_VOICE);
-
-					//Удаляем переданные данные из очереди данных от вокодера
-					RemDataFromFIFOBuf(pDataFromCMX7262, nLengthDataFromCMX7262, RADIOPACK_VOICEMODE_SIZE);
-					
-					//Запоминаем, что теперь передатчик находится в активном состоянии передачи
-					g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
-				}
-				
-				//Если есть данные для передачи от внешнего устройства
-				if(!QueDataFromExtDev.isEmpty())
-				{
-					pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);					
-					
-					uint8_t pDataPack[RADIOPACK_DATAMODE_SIZE];
-					//Забираем из очереди один пакет данных для передачи
-					uint16_t sizePack = QueDataFromExtDev.PopFrame(pDataPack);
-					
-					//Формируем радиопакет и отправляем его в трансивер
-					FormAndSendRadioPack(pDataPack, sizePack, RadioMessage::RADIO_DATATYPE_CONF_DATA);
-						
-					#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
-					g_cntSendRadioPacks++;
-					#endif
-					
-					//Запоминаем, что теперь передатчик находится в активном состоянии передачи
-					g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
-				}
-			}
-		break;
+			ProcessTxRunning();
+			break;
 
 		case RADIOMODULE_STATE_RX_WAITING:
-			//Подготавливаем трансивер к приему данных
-			TransceiverStartRx();
-		
-			pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_RUNNING);
-		
-			pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_IDLE);
-		
-			#ifndef SMART_PROTOTYPE
-			FrontEndSetToRx();
-			#endif
-		break;
+			ProcessRxWaiting();
+			break;
 
 		case RADIOMODULE_STATE_RX_RUNNING:
-			//Проверяем, нет ли прерывания, указывающего, что трансивер принял данные
-			if(g_flCC1120_IRQ_CHECKED)
-			{
-				uint8_t pRadioPayloadData[MAX_RADIOPACK_SIZE+SIZE_OF_RADIO_STATUS];
-				uint16_t nSizeOfRadioPayload = 0;
-				uint8_t nRadioPayloadType;
-				uint8_t arRadioStatusData[SIZE_OF_RADIO_STATUS];
-				
-				//Забираем данные из буфера RxFIFO трансивера
-				ProcessRadioPack(pRadioPayloadData, nSizeOfRadioPayload, nRadioPayloadType, arRadioStatusData);
-
-				#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
-				g_cntRcvdRadioPacks++;
-				#endif
-				
-				//Проверям, приняли ли хоть-что нибудь из трансивера
-				if(nSizeOfRadioPayload)
-				{
-					if(nRadioPayloadType==RadioMessage::RADIO_DATATYPE_VOICE)
-					{
-						//Копируем полезные данные принятого радиопакета в очередь для вокодера, если в ней есть место
-						if( (nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRadioPayload)
-						 && (nSizeOfRadioPayload == RADIOPACK_VOICEMODE_SIZE) )
-							AddDataToFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, pRadioPayloadData, nSizeOfRadioPayload);
-					}
-					else
-					{
-						//Пакет данных, принятый из радиоинтерфейса, вместе со статус-байтами копируем в очередь для внешнего устройства
-						memcpy(pRadioPayloadData+nSizeOfRadioPayload, arRadioStatusData, SIZE_OF_RADIO_STATUS);
-						QueDataToExtDev.PushFrame(pRadioPayloadData, nSizeOfRadioPayload+SIZE_OF_RADIO_STATUS);
-					}
-				}
-				//Сбрасываем флаг прерывания
-				g_flCC1120_IRQ_CHECKED = FALSE;
-			}	//if(g_flCC1120_IRQ_CHECKED)
-			else
-			{
-				//Если нет полезных данных, то проверяем уровень RSSI и передаем его на внешнее устройство
-				#ifdef SEND_RECEIVER_STATS
-				//ProcessRadioState() вызывается часто, так часто выводить RSSI пользователю не надо
-				if(isNeedCheckRSSI())
-				{
-					//Узнаем у трансивера текущий уровень RSSI
-					int8_t nRSSIval = ApplyRSSIOffset(CC1120_CheckRSSI(g_CC1120Struct.hSPI));
-					//Полезного сигнала нету, поэтому считаем, что LQI=127 и CRC неверна
-					uint8_t nLQIAndCRCFlag = 127;
-					//Полезного сигнала нету, поэтому считаем, что BER = 100%
-					int8_t nBERval = 100;
-					
-					#ifdef DEBUG_SHOW_CC1120_AGC_INSTEAD_RSSI
-					int8_t nAGCgain = CC1120_AGCGain(g_CC1120Struct.hSPI);
-					nRSSIval = nAGCgain;
-					#endif
-
-					#ifndef SEND_RECEIVER_STATS_WO_REQUEST
-					if(g_flNeedSendReceiverStats)
-					#endif
-						FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
-				}
-				#endif
-			}
-			
-			//Если есть данные для передачи от внешнего устройства, то переходим в режим передачи
-			if(!QueDataFromExtDev.isEmpty())
-			{
-				//Изменяем состояние радиоканала на "передачу"
-				pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_TRANSMIT);
-				
-				//Изменяем рабочее состояние радиомодуля на "подготовку к передаче"
-				pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_WAITING);
-				
-				pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
-				break;
-			}
-		break;
+			ProcessRxRunning();
+			break;
 			
 		default:
-		break;
+			break;
 	}
 }
+
+
+void ProcessTxWaiting()
+{
+	//Если накопили достаточно звуковых данных от вокодера, переключаемся в режим RADIOMODULE_STATE_TX_RUNNING
+	if( (nLengthDataFromCMX7262 > SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX) ||
+	//или есть данные для передачи от внешнего устройства
+	(!QueDataFromExtDev.isEmpty()) )
+	{
+		pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_RUNNING);
+		//Отмечаем, что передатчик находится в свободном состоянии и может передавать следующий пакет данных
+		g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
+		
+		#ifndef SMART_PROTOTYPE
+		FrontEndSetToTx();			
+		#endif
+	}
+}
+
+
+void ProcessTxRunning()
+{
+	//Если было прерывание о том, что пакет передан
+	if(g_flCC1120_IRQ_CHECKED)
+	{
+		//Сбрасываем флаг прерывания
+		g_flCC1120_IRQ_CHECKED = FALSE;
+
+		//Запоминаем, что передатчик находится в свободном состоянии и может передавать следующий пакет данных
+		g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
+		
+		//Если передавали пакет данных, то переходим в режим приема
+		if(pobjRadioModule->GetRadioChanType()==RADIOCHAN_TYPE_DATA)
+		{
+			//Изменяем состояние радиоканала на "прием"
+			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
+			
+			//Изменяем рабочее состояние радиомодуля на "подготовку к приему"
+			pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_WAITING);
+			return;
+		}
+	}
+
+	//Если передатчик CC1120 свободен, то можно передавать данные
+	if(g_CC1120Struct.TxState!=CC1120_TX_STATE_ACTIVE)
+	{
+		//Если в очереди от вокодера достаточно данных для формирования одного радиопакета, то посылаем данные в трансивер
+		if(nLengthDataFromCMX7262 >= RADIOPACK_VOICEMODE_PAYLOAD_SIZE)
+		{
+			pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_VOICE);					
+			
+			//Из данных вокодера формируем радиопакет и отправляем его в трансивер
+			FormAndSendRadioPack(pDataFromCMX7262, RADIOPACK_VOICEMODE_PAYLOAD_SIZE, RadioMessage::RADIO_DATATYPE_VOICE);
+
+			//Удаляем переданные данные из очереди данных от вокодера
+			RemDataFromFIFOBuf(pDataFromCMX7262, nLengthDataFromCMX7262, RADIOPACK_VOICEMODE_PAYLOAD_SIZE);
+			
+			//Запоминаем, что теперь передатчик находится в активном состоянии передачи
+			g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
+		}
+		
+		//Если есть данные для передачи от внешнего устройства
+		if(!QueDataFromExtDev.isEmpty())
+		{
+			pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);					
+			
+			uint8_t pDataPack[RADIOPACK_DATAMODE_PAYLOAD_SIZE];
+			//Забираем из очереди один пакет данных для передачи
+			uint16_t sizePack = QueDataFromExtDev.PopFrame(pDataPack);
+			
+			//Формируем радиопакет и отправляем его в трансивер
+			FormAndSendRadioPack(pDataPack, sizePack, RadioMessage::RADIO_DATATYPE_CONF_DATA);
+				
+			#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+			g_cntSendRadioPacks++;
+			#endif
+			
+			//Запоминаем, что теперь передатчик находится в активном состоянии передачи
+			g_CC1120Struct.TxState = CC1120_TX_STATE_ACTIVE;
+		}
+	}
+}
+
+
+void ProcessRxWaiting()
+{
+	//Подготавливаем трансивер к приему данных
+	TransceiverStartRx();
+
+	pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_RUNNING);
+
+	pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_IDLE);
+
+	#ifndef SMART_PROTOTYPE
+	FrontEndSetToRx();
+	#endif
+}
+
+
+void ProcessRxRunning()
+{
+	//Проверяем, нет ли прерывания, указывающего, что трансивер принял данные
+	if(g_flCC1120_IRQ_CHECKED)
+	{
+		uint8_t pRadioPayloadData[RADIOPACK_MAX_SIZE];
+		uint16_t nSizeOfRadioPayload = 0;
+		uint8_t nRadioPayloadType;
+		uint8_t arRadioStatusData[SIZE_OF_RADIO_STATUS];
+		
+		//Забираем данные из буфера RxFIFO трансивера
+		ProcessRadioPack(pRadioPayloadData, nSizeOfRadioPayload, nRadioPayloadType, arRadioStatusData);
+
+		#ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
+		g_cntRcvdRadioPacks++;
+		#endif
+		
+		//Проверям, приняли ли хоть-что нибудь из трансивера
+		if(nSizeOfRadioPayload)
+		{
+			if(nRadioPayloadType==RadioMessage::RADIO_DATATYPE_VOICE)
+			{
+				//Копируем полезные данные принятого радиопакета в очередь для вокодера, если в ней есть место
+				if( (nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-nSizeOfRadioPayload)
+				 && (nSizeOfRadioPayload == RADIOPACK_VOICEMODE_PAYLOAD_SIZE) )
+					AddDataToFIFOBuf(pDataToCMX7262, nLengthDataToCMX7262, pRadioPayloadData, nSizeOfRadioPayload);
+			}
+			else
+			{
+				//Пакет данных, принятый из радиоинтерфейса, вместе со статус-байтами копируем в очередь для внешнего устройства
+				memcpy(pRadioPayloadData+nSizeOfRadioPayload, arRadioStatusData, SIZE_OF_RADIO_STATUS);
+				QueDataToExtDev.PushFrame(pRadioPayloadData, nSizeOfRadioPayload+SIZE_OF_RADIO_STATUS);
+			}
+		}
+		//Сбрасываем флаг прерывания
+		g_flCC1120_IRQ_CHECKED = FALSE;
+	}	//if(g_flCC1120_IRQ_CHECKED)
+	else
+	{
+		//Если нет полезных данных, то проверяем уровень RSSI и передаем его на внешнее устройство
+		#ifdef SEND_RECEIVER_STATS
+		//ProcessRadioState() вызывается часто, так часто выводить RSSI пользователю не надо
+		if(isNeedCheckRSSI())
+		{
+			//Узнаем у трансивера текущий уровень RSSI
+			int8_t nRSSIval = ApplyRSSIOffset(CC1120_CheckRSSI(g_CC1120Struct.hSPI));
+			//Полезного сигнала нету, поэтому считаем, что LQI=127 и CRC неверна
+			uint8_t nLQIAndCRCFlag = 127;
+			//Полезного сигнала нету, поэтому считаем, что BER = 100%
+			int8_t nBERval = 100;
+			
+			#ifdef DEBUG_SHOW_CC1120_AGC_INSTEAD_RSSI
+			int8_t nAGCgain = CC1120_AGCGain(g_CC1120Struct.hSPI);
+			nRSSIval = nAGCgain;
+			#endif
+
+			#ifndef SEND_RECEIVER_STATS_WO_REQUEST
+			if(g_flNeedSendReceiverStats)
+			#endif
+				FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
+		}
+		#endif
+	}	//if(g_flCC1120_IRQ_CHECKED) ... else ...
+	
+	//Если есть данные для передачи от внешнего устройства, то переходим в режим передачи
+	if(!QueDataFromExtDev.isEmpty())
+	{
+		//Изменяем состояние радиоканала на "передачу"
+		pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_TRANSMIT);
+		
+		//Изменяем рабочее состояние радиомодуля на "подготовку к передаче"
+		pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_WAITING);
+		
+		pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
+	}
+}	//ProcessRxRunning()
 
 
 void CMX7262_TestMode()

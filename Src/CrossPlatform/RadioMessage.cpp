@@ -50,21 +50,22 @@ RadioMessage::~RadioMessage()
 }
 
 
-uint8_t RadioMessage::setHeader(uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nDataType, uint8_t nDataSize)
+uint8_t RadioMessage::setHeader(uint8_t nPackLength, uint8_t nDstAddress, uint8_t nSrcAddress, uint8_t nPayloadType, uint8_t nPayloadSize)
 {
 	structRadioMsgHeader strMsgHeader;
 	
 	#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
-	strMsgHeader.packLength = RADIOPACK_VOICEMODE_SIZE + SIZE_OF_HEADER - 1;
+	//strMsgHeader.packLength = RADIOPACK_VOICEMODE_PAYLOAD_SIZE + SIZE_OF_HEADER - 1;
+	strMsgHeader.packLength = nPackLength;
 	#endif
 
 	strMsgHeader.dstAddress = nDstAddress;
 
 	strMsgHeader.srcAddress = nSrcAddress;
 
-	strMsgHeader.dataType = nDataType;
+	strMsgHeader.payloadType = nPayloadType;
 	
-	strMsgHeader.dataSize = nDataSize;
+	strMsgHeader.payloadSize = nPayloadSize;
 
 	memcpy((void*)RadioHeaderData,(void*)&strMsgHeader,SIZE_OF_HEADER);
 
@@ -117,6 +118,18 @@ uint8_t RadioMessage::getHeader(uint8_t* pHeaderData)
 }
 
 
+#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
+uint8_t RadioMessage::getPackLength()
+{
+	structRadioMsgHeader *RadioMsgHeader;
+
+	RadioMsgHeader = (structRadioMsgHeader*)RadioHeaderData;
+
+	return(RadioMsgHeader->packLength);
+}
+#endif
+
+
 uint8_t RadioMessage::getDstAddress()
 {
 	structRadioMsgHeader *RadioMsgHeader;
@@ -138,23 +151,23 @@ uint8_t RadioMessage::getSrcAddress()
 }
 
 
-uint8_t RadioMessage::getDataType()
+uint8_t RadioMessage::getPayloadType()
 {
 	structRadioMsgHeader *RadioMsgHeader;
 
 	RadioMsgHeader = (structRadioMsgHeader*)RadioHeaderData;
 
-	return(RadioMsgHeader->dataType);
+	return(RadioMsgHeader->payloadType);
 }
 
 
-uint8_t RadioMessage::getDataSize()
+uint8_t RadioMessage::getPayloadSize()
 {
 	structRadioMsgHeader *RadioMsgHeader;
 
 	RadioMsgHeader = (structRadioMsgHeader*)RadioHeaderData;
 
-	return(RadioMsgHeader->dataSize);
+	return(RadioMsgHeader->payloadSize);
 }
 
 
@@ -183,11 +196,4 @@ uint8_t RadioMessage::getMsg(uint8_t* pMsgData)
 	memcpy(pMsgData,RadioMsgData,Size);
 
 	return(Size);
-}
-
-
-uint8_t RadioMessage::applyFEC()
-{
-	
-	return 0;
 }

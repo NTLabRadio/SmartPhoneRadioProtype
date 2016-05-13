@@ -2,11 +2,11 @@
   * @file    trellisCoder.h
   * @brief   Файл, содержащий объявление объектов и функций, реализующих алгоритмы
   *					помехоустойчивого	кодирования и декодирования треллис(сверточного)-кода.
-	*  				Треллис-код имеет структуру, точно совпадающую со структурой кода 
-	*					стандарта APCO25,Phase1, который применяется для помехозащиты 
-	*					негарантированных данных. эффективность кода - 1/2. Реализация также 
-	*					включает в себя алгоритм перемежения данных. Алгоритм декодирования - 
-	*					на базе алгоритма Витерби с жесткими решениями.
+	*  				2 типа кодеров, реализованных в этом модуле, точно соответствуют кодерам
+	*					стандарта APCO25,Phase1, применяемым для помехозащиты гарантированных и
+	*					негарантированных данных. Эффективность кодеров - 1/2 и 3/4. 
+	*					Реализация также включает в себя алгоритм перемежения данных. Алгоритм 
+	*					декодирования - на базе алгоритма Витерби с жесткими решениями.
 	*					Данный метод кодирования оптимален для совместного применения с 
 	*					4-позиционной манипуляцией (перемежение выполняется для дибитов, ошибка
 	*					2 смежных битов может привести к невозможности восстановления данных) и 
@@ -35,19 +35,35 @@
 #include "stm32f1xx_hal.h"
 #endif
 
+//2^x
+#define POW2(x) (1<<(x))
+
 //Размер кадра данных до кодирования, бит
-#define SIZE_OF_UNCODED_FRAME	(96)
-//Размер кадра данных после кодирования, бит
-#define SIZE_OF_CODED_FRAME		(196)
+#define SIZE_OF_UNCODED_FRAME_TRELLIS_1_2	(96)
+#define SIZE_OF_UNCODED_FRAME_TRELLIS_3_4	(144)
+
+//Размер кадра данных после кодирования, бит (одинаковый для алгоритмов 1/2 и 3/4)
+#define SIZE_OF_CODED_FRAME_TRELLIS		(196)
 
 //Размер состояния FSM (автомата конечного состояния) кодера, бит
-#define SIZE_OF_TRELLIS_STATE	(4)
+//Этот же размер имеют входных символы кодера
+#define SIZE_OF_STATE_TRELLIS_1_2		(2)
+#define SIZE_OF_STATE_TRELLIS_3_4		(3)
+
+#define NUM_STATES_TRELLIS_1_2 (POW2(SIZE_OF_STATE_TRELLIS_1_2))
+#define NUM_STATES_TRELLIS_3_4 (POW2(SIZE_OF_STATE_TRELLIS_3_4))
+
+//Размер выходного символа кодера, бит
+#define SIZE_OF_OUTPUT_TRELLIS	(4)
 //Размер выходного созвездия
-#define SIZE_OF_TRELLIS_OUTPUT_CONSTELLATION 		(SIZE_OF_TRELLIS_STATE*SIZE_OF_TRELLIS_STATE)
+#define SIZE_OF_TRELLIS_OUTPUT_CONSTELLATION 		(SIZE_OF_OUTPUT_TRELLIS*SIZE_OF_OUTPUT_TRELLIS)
 
 void trellisEnc1_2(const int8_t * const pDataIn, int8_t * const pDataOut);
+void trellisEnc3_4(const int8_t * const pDataIn, int8_t * const pDataOut);
 int16_t trellisDec1_2(const int8_t * const pDataIn, int8_t * const pDataOut);
+int16_t trellisDec3_4(const int8_t * const pDataIn, int8_t * const pDataOut);
 
-void TestTrellisCoder();
+void TestTrellisCoder1_2();
+void TestTrellisCoder3_4();
 
 #endif // TRELLISCODER_H

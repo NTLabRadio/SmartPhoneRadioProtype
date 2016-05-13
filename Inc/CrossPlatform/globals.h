@@ -24,38 +24,37 @@
 #define FALSE (0)
 	 
 	 
-	 
 //Длительность звуковых данных одного вокодерного буфера, мс
 #define CMX7262_BUFFER_DURATION_MS (60)
-
-//Число буферов данных вокодера, накапливаемых радимодулем прежде чем инициализировать передачу
-#define NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX	(3)		//60 мс x 3 = 180 мс
 
 //Число буферов данных вокодера в одном радиопакете
 #define NUM_CMX7262_BUFFERS_IN_RADIOPACK	(3)				//60 мс x 3 = 180 мс
 
-//Размер радиопакета в режиме речевого обмена, только речевые данные
-#define RADIOPACK_VOICEMODE_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK * CMX7262_CODEC_BUFFER_SIZE)
+//Размер полезных данных радиопакета в режиме речевого обмена
+#define RADIOPACK_VOICEMODE_PAYLOAD_SIZE 	(NUM_CMX7262_BUFFERS_IN_RADIOPACK * CMX7262_CODEC_BUFFER_SIZE)
 
 //Размер радиопакета в режиме передачи данных
-#define RADIOPACK_DATAMODE_SIZE 	(RADIOPACK_VOICEMODE_SIZE)
+#define RADIOPACK_DATAMODE_PAYLOAD_SIZE 	(RADIOPACK_VOICEMODE_PAYLOAD_SIZE)
+
+//Число буферов данных вокодера, накапливаемых радимодулем прежде чем инициализировать передачу
+#define NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX	(3)		//60 мс x 3 = 180 мс
 
 //Размер данных от вокодера, накапливаемый радимодулем прежде чем инициализировать передачу
 #define SIZE_OF_DATA_FROM_CMX7262_INITACCUM_FOR_TX	(NUM_CMX7262_BUFFERS_INITACCUM_FOR_TX * CMX7262_CODEC_BUFFER_SIZE)
 
-//Размер расширенного радиопакета в режиме речевого обмена, речевые данные + служебные
-//Служебные данные - только 1-байтовый адрес, предваряющий речевые данные
-#define RADIOPACK_MODE4800_EXTSIZE	(RADIOPACK_VOICEMODE_SIZE+5)
+//Максимальный размер радиопакета, байт
+#ifndef RADIOPACK_SIZE_GREATER_THAN_127
+	#define RADIOPACK_MAX_SIZE	(127)
+#else
+	#define RADIOPACK_MAX_SIZE	(255)
+#endif
 
-#define RADIOPACK_MODE9600_EXTSIZE	(RADIOPACK_MODE4800_EXTSIZE)
-#define RADIOPACK_MODE19200_EXTSIZE	(RADIOPACK_MODE4800_EXTSIZE)
-#define RADIOPACK_MODE48000_EXTSIZE	(RADIOPACK_MODE4800_EXTSIZE)
+//Размер расширенного радиопакета в режиме речевого обмена, речевые данные + служебные
+//#define RADIOPACK_DEFAULT_SIZE	(RADIOPACK_VOICEMODE_PAYLOAD_SIZE + RadioMessage::SIZE_OF_HEADER)
+#define RADIOPACK_DEFAULT_SIZE	(RADIOPACK_VOICEMODE_PAYLOAD_SIZE + 5)
 
 //Число статус-байтов, добавляемых СС1120 к полезным принятым данным и сообщающих уровень RSSI, LQI и результат проверки CRC
 #define SIZE_OF_RADIO_STATUS	(2)
-
-//Максимальный размер радиопакета, байт
-#define MAX_RADIOPACK_SIZE	(255)
 
 
 //Уровень выходного сигнала трансивера СС1120 в режиме пониженной мощности радиомодуля, дБм

@@ -478,7 +478,7 @@ uint8_t CC1120_TxFIFOWrite(SPI_HandleTypeDef *hspi, uint8_t *fifo_write_data_ptr
 	
 	CC1120_CSN_LOW();
 	
-	if (CC1120_Write (R_ST_FIFO_ACCESS, REG_ADDRESS, BURST, fifo_write_data_ptr,tx_num))
+	if (CC1120_Write (R_ST_FIFO_ACCESS, REG_ADDRESS, BURST, fifo_write_data_ptr, tx_num))
 		return 0;
 	
 	WaitTimeMCS(10e2);

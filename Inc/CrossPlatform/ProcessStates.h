@@ -35,6 +35,10 @@ void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize);
 void ProcessPTTState(void);
 
 void ProcessRadioState(void);
+void ProcessTxWaiting(void);
+void ProcessTxRunning(void);
+void ProcessRxWaiting(void);
+void ProcessRxRunning(void);
 
 void CMX7262_TestMode(void);
 void ProcessCMX7262State(void);

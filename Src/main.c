@@ -88,6 +88,10 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	#ifdef DEBUG_TRELLIS_CODER
+	//TestTrellisCoder1_2();
+	TestTrellisCoder3_4();
+	#endif
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/

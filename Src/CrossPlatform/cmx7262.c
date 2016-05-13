@@ -498,7 +498,7 @@ void CMX7262_Test_AudioOut (CMX7262_TypeDef *pCmx7262)
 	
 	//Код частоты NCO
 	//Расчет кода частоты - п.8.1.9 Frequency Control документа D/7262_FI-1.x/4 August 2013 (datasheet)
-	uData = floor((nFreq * UINT16_MAX)/CMX7262_FREQ_SAMPLING);	
+	uData = floor(((double)nFreq * UINT16_MAX)/CMX7262_FREQ_SAMPLING);
 	CBUS_Write16(FREQ_CONTROL,&uData,1,pCmx7262->uInterface);
 	
 	// The test mode is started, there will be a delay before we are requested to service it..
