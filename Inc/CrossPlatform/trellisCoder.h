@@ -26,14 +26,7 @@
 
 #include <limits.h>
 #include <string.h>
-
-#ifdef STM32F071xB
-#include "stm32f0xx_hal.h"
-#endif
-	 
-#ifdef STM32F103xE	 
-#include "stm32f1xx_hal.h"
-#endif
+#include <stdint.h>
 
 //2^x
 #define POW2(x) (1<<(x))

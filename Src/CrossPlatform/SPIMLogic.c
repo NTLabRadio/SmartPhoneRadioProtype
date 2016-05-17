@@ -3,21 +3,15 @@
 //TODO В этом модуле достаточно много функций взаимосвязано с большим набором данных
 //Надо вынести это в класс
 
-//Объект для обработки принятых сообщений SPIM-протокола
-SPIMMessage*	pSPIMmsgRcvd;
-//Объект для формирования сообщений SPIM-протокола для отправки
-SPIMMessage*	pSPIMmsgToSend;
+extern QueDataFrames QueDataFromExtDev;
+extern QueDataFrames QueDataToExtDev;	
+extern QueDataFrames QueReceiverStatsToExtDev;
 
 #ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
 uint8_t noLastSPIMMsgRcvd;
 uint8_t pLastSPIMMsgData[MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
 uint8_t nSizeLastSPIMMsg = 0xFF;
 #endif
-
-extern QueDataFrames QueDataFromExtDev;
-extern QueDataFrames QueDataToExtDev;	
-extern QueDataFrames QueReceiverStatsToExtDev;
-
 
 #ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
 uint16_t g_cntDataPckToExtDev = 0;
@@ -27,28 +21,15 @@ uint16_t g_cntDataPckToExtDev = 0;
 uint16_t g_cntFramesPushToQue = 0;
 #endif
 
-#ifndef SEND_RECEIVER_STATS_WO_REQUEST
-uint8_t g_flNeedSendReceiverStats = 0;
-#endif
-
-
-void SPIMInit()
-{
-	//Создаем объекты для обработки и формирования сообщений SPIM-протокола
-	pSPIMmsgRcvd = new SPIMMessage;
-}
-
-void SPIMDeInit()
-{
-	//Удаляем объекты для обработки и формирования сообщений SPIM-протокола
-	delete pSPIMmsgRcvd;
-}
 
 void ProcessDataFromExtDev()
 {
-	pSPIMmsgRcvd->setMsg(pUARTRxSLIPPack,nSizeSLIPPack);
+	//Объект для обработки принятых сообщений SPIM-протокола
+	SPIMMessage	SPIMmsgRcvd;
 	
-	if(pSPIMmsgRcvd->checkCRC())
+	SPIMmsgRcvd.setMsg(pUARTRxSLIPPack,nSizeSLIPPack);
+	
+	if(SPIMmsgRcvd.checkCRC())
 	{
 		#ifdef DEBUG_PRINTF_SPIM_DATA
 		printf("Rcvd SPIM Message\n");
@@ -58,7 +39,7 @@ void ProcessDataFromExtDev()
 		#endif
 
 		//Порядковый номер принятого сообщения
-		uint8_t noSPIMMsgRcvd = pSPIMmsgRcvd->getNoMsg();
+		uint8_t noSPIMMsgRcvd = SPIMmsgRcvd.getNoMsg();
 		
 		#ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
 		//Проверяем, не была ли принята ранее эта команда (по порядковому номеру)
@@ -67,7 +48,7 @@ void ProcessDataFromExtDev()
 			noLastSPIMMsgRcvd = noSPIMMsgRcvd;
 		#endif
 			//Формируем и отправляем ответ, подтверждающий успешный прием команды
-			FormAndSendAnswerToExtDev(pSPIMmsgRcvd);
+			FormAndSendAnswerToExtDev(&SPIMmsgRcvd);
 		#ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
 		}
 		else
@@ -200,12 +181,9 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			*pBodyData = nAnswer;
 			break;
 		}
-		#ifdef SEND_RECEIVER_STATS
 		case SPIM_CMD_RECEIVER_STATUS:
 		{		
-			#ifndef SEND_RECEIVER_STATS_WO_REQUEST
-			g_flNeedSendReceiverStats = SPIMCmdRcvd->Body[0]&1;
-			#endif
+			pobjRadioModule->SetAsyncReqReceiverStats(SPIMCmdRcvd->Body[0]&1);
 			
 			//Если размер команды ненулевой (должен быть равен 1)
 			if(SPIMCmdRcvd->getSizeBody())
@@ -217,7 +195,6 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 			
 			break;
 		}
-		#endif
 		default:
 			break;
 	}

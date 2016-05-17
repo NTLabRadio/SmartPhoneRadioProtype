@@ -55,7 +55,6 @@ uint8_t RadioMessage::setHeader(uint8_t nPackLength, uint8_t nDstAddress, uint8_
 	structRadioMsgHeader strMsgHeader;
 	
 	#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
-	//strMsgHeader.packLength = RADIOPACK_VOICEMODE_PAYLOAD_SIZE + SIZE_OF_HEADER - 1;
 	strMsgHeader.packLength = nPackLength;
 	#endif
 

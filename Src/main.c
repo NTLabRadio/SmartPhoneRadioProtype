@@ -133,9 +133,6 @@ int main(void)
 	// Инициализируем работу по UART
 	UART_InitInterface(&huart1);
 
-	//Инициализируем все, что необходимо для протокола межмодульного обмена SPIM
-	SPIMInit();
-
 	#ifdef DEBUG_CHECK_PERIPH_MODULES_ON_STARTUP	//Проверка работоспособности периферийных модулей
 	CC1120_CheckModule(&hspi1);
 	CMX7262_CheckModule(&hspi1);

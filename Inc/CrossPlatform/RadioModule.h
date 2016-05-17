@@ -132,9 +132,11 @@ public:
 	
 	uint8_t GetAsyncReqMaskParam();
 	uint8_t SetAsyncReqMaskParam(uint8_t mask);
-
 	
 	uint8_t GetMaskOfChangedParams();
+	
+	uint8_t IsAsyncReqReceiverStats();
+	uint8_t SetAsyncReqReceiverStats(uint8_t nCmd);
 
 	uint8_t isTxMode();
 	uint8_t isRxMode();
@@ -186,6 +188,10 @@ private:
 	
 	uint8_t AsyncReqMaskParam;
 	uint8_t MaskOfChangedParams;
+	
+	//Признак того, что от внешнего устройства был принят асинхронный запрос статистики приема (RSSI,BER)
+	//=0 - статистика приема не нужна внешнему устройству, =1 - нужна
+	uint8_t AsyncReqReceiverStats;
 
 	struct RadioModuleSettings
 	{

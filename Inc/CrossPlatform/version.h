@@ -18,7 +18,7 @@
 #endif
 
 #define	ARM_SOFT_MAJ_VER	(1)
-#define	ARM_SOFT_MIN_VER	(6)
+#define	ARM_SOFT_MIN_VER	(7)
 	 
 #define	ARM_SOFT_VER	((ARM_SOFT_MAJ_VER<<8) | ARM_SOFT_MIN_VER)
 	 

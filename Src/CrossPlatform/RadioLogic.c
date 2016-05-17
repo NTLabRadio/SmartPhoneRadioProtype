@@ -1,10 +1,5 @@
 #include "RadioLogic.h"
 
-//Данные радиопакета для передачи
-uint8_t RadioPackForSend[RADIOPACK_MAX_SIZE];
-
-//Данные принятого радиопакета
-uint8_t RadioPackRcvd[RADIOPACK_MAX_SIZE+SIZE_OF_RADIO_STATUS];
 
 //Очередь данных статистики приема (RSSI+BER), предназначенных внешнему управляющему устройству
 QueDataFrames QueReceiverStatsToExtDev(MAX_NUM_RECEIVE_STATS_IN_QUE_TO_EXT_DEV, SIZE_OF_RECEIVER_STATS);
@@ -16,10 +11,6 @@ uint16_t g_cntCC1120_TxDataErrors = 0;
 
 #ifdef DEBUG_CHECK_ERRORS_IN_RCV_RADIO_PACKS
 uint16_t g_cntRcvdPacksWithErrSize = 0;
-#endif
-
-#ifndef SEND_RECEIVER_STATS_WO_REQUEST
-extern uint8_t g_flNeedSendReceiverStats;
 #endif
 
 
@@ -175,6 +166,9 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nP
 	//Флаг, указыюващий на то, что данные из буфера RxFIFO прочитаны
 	uint8_t flDataRcvdFromCC1120 = false;
 	
+	//Данные принятого радиопакета
+	uint8_t RadioPackRcvd[RADIOPACK_MAX_SIZE];
+	
 	//Читаем данные из буфера RxFIFO только если размер данных адекватный (ненулевой и не слишком большой)
 	if((nSizeOfRecData<=RADIOPACK_MAX_SIZE) && (nSizeOfRecData))
 	{
@@ -228,8 +222,8 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nP
 		//BER определяем, сравнивая принятый сигнал с шаблонным
 		int8_t nBERval = BERInPack(RadioPackRcvd, nSizeOfRadioMessage, pobjRadioModule->GetTestPattern());
 
-		#ifndef SEND_RECEIVER_STATS_WO_REQUEST
-		if(g_flNeedSendReceiverStats)
+		#ifndef DEBUG_SEND_RECEIVER_STATS_WO_REQUEST
+		if(pobjRadioModule->IsAsyncReqReceiverStats())
 		#endif
 			FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
 	}

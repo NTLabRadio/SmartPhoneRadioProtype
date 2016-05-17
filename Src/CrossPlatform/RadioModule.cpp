@@ -58,6 +58,8 @@ RadioModule::RadioModule()
 	SetRadioAddress(DEFAULT_RADIO_ADDRESS);
 	
 	SetAsyncReqMaskParam(0);
+	
+	SetAsyncReqReceiverStats(false);
 }
 
 
@@ -474,4 +476,20 @@ void RadioModule::ApplyRadioSignalPower()
 		SKY_BYP_LOW();
 	}
 	#endif
+}
+
+
+uint8_t RadioModule::IsAsyncReqReceiverStats()
+{
+	return(AsyncReqReceiverStats);
+}
+
+uint8_t RadioModule::SetAsyncReqReceiverStats(uint8_t nCmd)
+{
+	if(nCmd)
+		AsyncReqReceiverStats = true;
+	else
+		AsyncReqReceiverStats = false;
+	
+	return(0);
 }

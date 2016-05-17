@@ -2,11 +2,6 @@
 
 SPI_HandleTypeDef *hspi_CMX7262 = NULL;
 
-uint8_t nCMX7262TxNumBytes = 0;
-uint8_t pCMX7262TxData[256];
-uint8_t nCMX7262RxNumBytes = 0;
-uint8_t pCMX7262RxData[256];
-
 
 uint8_t CMX7262_CheckModule(SPI_HandleTypeDef *hspi)
 {

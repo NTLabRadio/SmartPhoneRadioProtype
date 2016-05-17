@@ -514,13 +514,13 @@ uint8_t CC1120_SFSTXON_set (SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_RxFIFONumBytes(SPI_HandleTypeDef *hspi);
 uint8_t CC1120_RxFIFOFlush(SPI_HandleTypeDef *hspi);
-uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
+volatile uint8_t *CC1120_RxFIFORead(SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_ConfigWrite(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum);
 uint8_t CC1120_ConfigReadCompare(SPI_HandleTypeDef *hspi, const CC1120regSetting_t *CC1120_Config, uint8_t configRegNum);
 
 uint8_t CC1120_FreqWrite(SPI_HandleTypeDef *hspi, uint8_t *freq);
-uint8_t *CC1120_FreqRead(SPI_HandleTypeDef *hspi);
+volatile uint8_t *CC1120_FreqRead(SPI_HandleTypeDef *hspi);
 
 uint8_t CC1120_PowerAmpWrite(SPI_HandleTypeDef *hspi, uint8_t nPAPowRamp);
 

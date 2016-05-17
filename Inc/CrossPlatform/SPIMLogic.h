@@ -43,9 +43,6 @@ enum en_SPIMOperationResults
 	SPIM_OP_RESULT_SUCCESS 		= 0x01
 };
 
-void SPIMInit(void);
-void SPIMDeInit(void);
-
 void ProcessDataFromExtDev(void);
 void FormAndSendAnswerToExtDev(SPIMMessage* SPIMmsgRcvd);
 void FormAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, SPIMMessage* SPIMBackCmdToSend);

@@ -39,9 +39,6 @@ uint16_t g_cntSendRadioPacks = 0;
 uint16_t g_cntRcvdRadioPacks = 0;
 #endif
 
-#ifndef SEND_RECEIVER_STATS_WO_REQUEST
-extern uint8_t g_flNeedSendReceiverStats;
-#endif
 
 extern uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][RADIOPACK_DEFAULT_SIZE];
 
@@ -367,8 +364,8 @@ void ProcessRxRunning()
 			nRSSIval = nAGCgain;
 			#endif
 
-			#ifndef SEND_RECEIVER_STATS_WO_REQUEST
-			if(g_flNeedSendReceiverStats)
+			#ifndef DEBUG_SEND_RECEIVER_STATS_WO_REQUEST
+			if(pobjRadioModule->IsAsyncReqReceiverStats())
 			#endif
 				FormAndPushToQueRecStatsMsg(nRSSIval, nLQIAndCRCFlag, nBERval);
 		}

@@ -26,11 +26,6 @@ uint8_t UTF8DataSLIPPack[2*MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
 #endif
 
 
-//Буфер полезных данных для передачи в UART
-uint8_t pUARTTxPayload[MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
-//Размер буфера полезных данных на передачу в UART
-uint16_t nSizeTxPayload;
-																			
 //Буфер для передачи данных в UART
 uint8_t pUARTTxBuf[(MAX_SIZE_OF_SLIP_PACK_PAYLOAD*3)/2];
 //Размер пакета на передачу в UART
@@ -242,6 +237,11 @@ uint8_t CheckForSerialProtocolData(uint8_t* pPayloadPackData, uint16_t& nSizePac
 	*/
 void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData)
 {
+	//Буфер полезных данных для передачи в UART
+	uint8_t pUARTTxPayload[MAX_SIZE_OF_SLIP_PACK_PAYLOAD];
+	//Размер буфера полезных данных на передачу в UART
+	uint16_t nSizeTxPayload;
+	
 	memcpy(pUARTTxPayload,pData,nSizeData);
 	nSizeTxPayload = nSizeData;
 
@@ -249,22 +249,22 @@ void SendDataToExtDev(uint8_t* pData, uint16_t nSizeData)
 	while(!Cplt_UART_DMA_Transmit)
 	{
 	}
-	
+
 	objSLIPinterface->FormPack(pUARTTxPayload, nSizeTxPayload, pUARTTxBuf, nSizeTxBuf);
 
 		#ifdef DEBUG_PRINTF_SLIP_DATA
 		printf("SLIP Pack Ready for Send\n * Pack Data:");
 
 		memcpy(UTF8DataSLIPPack,pUARTTxBuf,nSizeTxBuf);
-		
+
 		ConvertHexIntToUTF8(UTF8DataSLIPPack,nSizeTxBuf);
 		printf((const char*)UTF8DataSLIPPack);
-		
+
 		printf("\n");
 		#endif
 
 	HAL_UART_Transmit_DMA(huartExtDev, pUARTTxBuf, nSizeTxBuf);
-	
+
 	Cplt_UART_DMA_Transmit = FALSE;
 }
 
