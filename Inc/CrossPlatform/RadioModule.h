@@ -219,8 +219,15 @@ private:
 	#endif
 	static const uint8_t DEFAULT_AUDIO_OUT_GAIN = 7;
 
-	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 960;
-	static const uint16_t DEFAULT_RX_FREQ_CHAN	= 960;
+	#ifndef DEFAULT_RADIOFREQ_434MHZ
+	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 640;	//426 ÌÃö	
+	static const uint16_t DEFAULT_RX_FREQ_CHAN	= 640;	//426 ÌÃö
+	#else
+	static const uint16_t DEFAULT_TX_FREQ_CHAN	= 960;	//434 ÌÃö	
+	static const uint16_t DEFAULT_RX_FREQ_CHAN	= 960;	//434 ÌÃö
+	#endif
+	
+	static const uint16_t UNKNOWN_FREQ_CHAN	= 0xFFFF;
 	
 	static const uint8_t DEFAULT_RADIO_ADDRESS	= 1;
 	

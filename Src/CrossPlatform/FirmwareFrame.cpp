@@ -1,5 +1,6 @@
 #include "FirmwareFrame.h"
 
+#ifdef DEFINE_FIRMWARE_FRAME_CLASS
 
 FirmwareFrame::FirmwareFrame(const uint8_t* pMsgData, uint16_t msgSize): SPIMMessage(pMsgData, msgSize)
 {
@@ -88,3 +89,5 @@ uint16_t FirmwareFrame::GetFirmCmd()
 {
 	return(FirmCmd);
 }
+
+#endif

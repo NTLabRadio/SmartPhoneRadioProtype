@@ -16,6 +16,7 @@
 
 #include "SPIMMessage.h"
 
+#ifdef DEFINE_FIRMWARE_FRAME_CLASS
 class FirmwareFrame: public SPIMMessage 
 {
 public:
@@ -61,5 +62,6 @@ private:
 	static const uint8_t FIRMCRC_POS_IN_FRAME = (2);
 	static const uint8_t FIRMCMD_POS_IN_FRAME = (4);
 };
+#endif
 
 #endif // FIRMWAREFRAME_H

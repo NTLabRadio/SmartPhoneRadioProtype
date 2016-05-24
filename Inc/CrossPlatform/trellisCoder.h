@@ -39,7 +39,7 @@
 #define SIZE_OF_CODED_FRAME_TRELLIS		(196)
 
 //Размер состояния FSM (автомата конечного состояния) кодера, бит
-//Этот же размер имеют входных символы кодера
+//Этот же размер имеют входные символы кодера
 #define SIZE_OF_STATE_TRELLIS_1_2		(2)
 #define SIZE_OF_STATE_TRELLIS_3_4		(3)
 
@@ -56,7 +56,7 @@ void trellisEnc3_4(const int8_t * const pDataIn, int8_t * const pDataOut);
 int16_t trellisDec1_2(const int8_t * const pDataIn, int8_t * const pDataOut);
 int16_t trellisDec3_4(const int8_t * const pDataIn, int8_t * const pDataOut);
 
-void TestTrellisCoder1_2();
-void TestTrellisCoder3_4();
+void TestTrellisCoder1_2(void);
+void TestTrellisCoder3_4(void);
 
 #endif // TRELLISCODER_H

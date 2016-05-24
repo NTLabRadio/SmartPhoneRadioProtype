@@ -1,11 +1,5 @@
 #include "SPIMLogic.h"
 
-//TODO ¬ этом модуле достаточно много функций взаимосв€зано с большим набором данных
-//Ќадо вынести это в класс
-
-extern QueDataFrames QueDataFromExtDev;
-extern QueDataFrames QueDataToExtDev;	
-extern QueDataFrames QueReceiverStatsToExtDev;
 
 #ifndef DEBUG_NO_CNT_SPIM_MSG_CONTROL
 uint8_t noLastSPIMMsgRcvd;
@@ -175,7 +169,9 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 		}
 		case SPIM_CMD_SEND_FIRM_FRAME:
 		{
+			#ifdef DEFINE_FIRMWARE_FRAME_CLASS
 			uint8_t nAnswer = ProcessFirmwareFrame(SPIMCmdRcvd->Body,SPIMCmdRcvd->getSizeBody());
+			#endif
 
 			bodySize = 1;
 			*pBodyData = nAnswer;
@@ -497,7 +493,7 @@ void FormRecStatusMsgToExtDev(SPIMMessage* SPIMCmdToSend)
 	}
 }
 
-
+#ifdef DEFINE_FIRMWARE_FRAME_CLASS
 //TODO –еализовать один из двух способов прошивки:
 // 1) копировать прин€тые от терминала данные в основную загрузочную область, в случае нарушени€ обмена
 //	или несовпадени€ CRC - скопировать прошивку из резервной области флеш в основную;
@@ -546,5 +542,5 @@ uint8_t ProcessFirmwareFrame(uint8_t* pBodyFrame, uint8_t nSizeFrame)
 	
 	return(nRes);
 }
-
+#endif
 

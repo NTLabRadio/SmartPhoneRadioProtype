@@ -23,6 +23,11 @@ extern uint8_t pUARTRxSLIPPack[];
 extern uint16_t nSizeSLIPPack;
 extern RadioModule* pobjRadioModule;
 
+extern QueDataFrames QueDataFromExtDev;
+extern QueDataFrames QueDataToExtDev;	
+extern QueDataFrames QueReceiverStatsToExtDev;
+
+
 enum en_SPIMaddrs
 {
 	SPIM_ADDR_STM32				=0x1,		//контроллер STM32 целевого устройства (радимодуля)
@@ -62,7 +67,9 @@ void FormDataMsgToExtDev(SPIMMessage* SPIMCmdToSend);
 void FormAndSendRecStatusToExtDev(void);
 void FormRecStatusMsgToExtDev(SPIMMessage* SPIMCmdToSend);
 
+#ifdef DEFINE_FIRMWARE_FRAME_CLASS
 uint8_t ProcessFirmwareFrame(uint8_t* pBodyFrame, uint8_t nSizeFrame);
 //uint8_t ProcessFirmwareFrame(SPIMMessage* SPIMCmd);
+#endif
 
 #endif // SPIMLOGIC_H

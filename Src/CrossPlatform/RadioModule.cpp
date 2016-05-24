@@ -20,14 +20,14 @@ RadioModule::RadioModule()
 	#else
 	SetRadioSignalPower(RADIO_SIGNALPOWER_HIGH);
 	#endif
-	
+
 	//Режим энергосбережения
 	SetARMPowerMode(ARM_POWERMODE_NORMAL);
-	
+
 	#ifndef TEST_CMX7262
 	//Канальная скорость передачи данных
 	SetRadioBaudRate(RADIO_BAUD_RATE_4800);
-	
+
 	//Рабочие частоты передачи/приема
 	SetTxFreqChan(DEFAULT_TX_FREQ_CHAN);
 	SetRxFreqChan(DEFAULT_RX_FREQ_CHAN);
@@ -40,20 +40,20 @@ RadioModule::RadioModule()
 	
 	//Уровень приема
 	RSSILevel = 0;
-	
+
 	//Текущее состояние радиоканала
 	SetRadioChanState(RADIOCHAN_STATE_IDLE);
-	
+
 	//Тестовый режим отключен
 	#ifndef DEBUG_TESTMODE_AS_DEFAULT
 	SetTestMode(false);
 	#else
 	SetTestMode(true);
 	#endif
-	
+
 	//Паттерн по умолчанию - "Тон"
 	SetTestPattern(SYMBOL_PATTERN_TONE);
-	
+
 	//Собственный абонентский адрес
 	SetRadioAddress(DEFAULT_RADIO_ADDRESS);
 	
@@ -356,7 +356,7 @@ void RadioModule::ApplyRadioConfig()
 	
 	CC1120_SetConfig(g_CC1120Struct.hSPI, CC1120_Config, nSizeConfig);
 	//Вместе с конфигурацией изменилась рабочая частота (на частоту, заданную в конфигурации по умолчанию)
-	NoCurFreqChan = DEFAULT_RX_FREQ_CHAN;
+	NoCurFreqChan = UNKNOWN_FREQ_CHAN;
 	
 	//Возвращаем частоту, установленную пользователем
 	ApplyRadioFreq();

@@ -8,7 +8,7 @@ const int8_t TableTransTrellis1_2[NUM_STATES_TRELLIS_1_2][NUM_STATES_TRELLIS_1_2
 						   9, 6, 5,10};
 
 // Таблица переходов автомата конечного состояния для треллис-кодера 3/4 (Trellis Encoder State Transition Table)
-const short TableTransTrellis3_4[NUM_STATES_TRELLIS_3_4][NUM_STATES_TRELLIS_3_4] =
+const int16_t TableTransTrellis3_4[NUM_STATES_TRELLIS_3_4][NUM_STATES_TRELLIS_3_4] =
 						 {{0, 8, 4,12, 2,10, 6,14},
 							{4,12, 2,10, 6,14, 0, 8},
 							{1, 9, 5,13, 3,11, 7,15},
@@ -205,7 +205,7 @@ typedef struct SoManyWays
 {
 	//массив путей с лучшими метриками
 	int8_t arr[(SIZE_OF_CODED_FRAME_TRELLIS+SIZE_OF_OUTPUT_TRELLIS)/SIZE_OF_OUTPUT_TRELLIS][NUM_STATES_TRELLIS_3_4];
-} arSoManyWays;
+} SoManyWays;
 
 
 //Декодер кода треллиса 1/2
@@ -216,10 +216,10 @@ int16_t trellisDec1_2(const int8_t * const pDataIn, int8_t * const pDataOut)
 {
 	int16_t i, n, j;	
 	int16_t arPathMetrics[NUM_STATES_TRELLIS_1_2];			//метрики лучших путей, входящих в каждую из вершин решетки треллиса
-	int16_t arPrevPathMetrics[NUM_STATES_TRELLIS_1_2]; //метрики лучших путей на предыдущем шаге
+	int16_t arPrevPathMetrics[NUM_STATES_TRELLIS_1_2]; 	//метрики лучших путей на предыдущем шаге
 	int16_t nMinPathMetric, nPathMetric;
 	uint16_t step;
-	arSoManyWays ways;
+	SoManyWays ways;
 	int8_t pDecoderIn[SIZE_OF_CODED_FRAME_TRELLIS];
 
 	#ifndef TRELLIS_WITHOUT_INTERLEAVER
@@ -299,7 +299,7 @@ int16_t trellisDec3_4(const int8_t * const pDataIn, int8_t * const pDataOut)
 	int16_t arPrevPathMetrics[NUM_STATES_TRELLIS_3_4]; 	//метрики лучших путей на предыдущем шаге
 	int16_t nMinPathMetric, nPathMetric;
 	uint16_t step;
-	arSoManyWays ways;
+	SoManyWays ways;
 	int8_t pDecoderIn[SIZE_OF_CODED_FRAME_TRELLIS];
 
 	#ifndef TRELLIS_WITHOUT_INTERLEAVER

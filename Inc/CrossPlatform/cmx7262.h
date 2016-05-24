@@ -14,9 +14,6 @@
 #ifndef __CMX7262_H
 #define __CMX7262_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif
 
 #include <math.h>       /* для floor() */
 
@@ -33,43 +30,19 @@
 #include "globals.h"
 #include "spi_periphery.h"
 #include "timers.h"
-	 
+
+#ifdef CMX7262_IMAGE_IN_EEPROM
+#include "StoreCMXImage.h"
+#endif
+
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 
 #define CBUS_INTERFACE_CMX7262 (0)
  
-
-#ifdef STM32F103xE	 
-//Memory Map
-//                   Start            Space     Current length
-//      ARM Code     0x08000000	      64kbytes  
-#define START_7262   0x08010000	    //112kbytes ~91kbytes
-//      Settings     0x0803f800        2kbytes   Set to a page size to allow an erase. Currently 32 bytes are used, but will
-// grow if we decide to add more settings to flash	 (см. ADDR_FLASH_PAGE)
-
-	 // Address for final page in flash into which the defaults are saved.
-#define ADDR_FLASH_PAGE     ((uint32_t)0x0803F800)
-#endif
-
-
-#ifdef STM32F071xB
-//Memory Map
-//	                   Start            Space     Current length
-#ifdef SIZE_OF_ARMFIRM_34KB
-	//      ARM Code     0x08000000	      34kbytes
-	#define START_7262   0x08008800	    //92kbytes ~91kbytes
-	// Address for final page in flash into which the defaults are saved.
-	#define ADDR_FLASH_PAGE     ((uint32_t)0x0801F800)
-#else
-	//      ARM Code     0x08000000	      32kbytes
-	#define START_7262   0x08008000	    //92kbytes ~91kbytes
-	// Address for final page in flash into which the defaults are saved.
-	#define ADDR_FLASH_PAGE     ((uint32_t)0x0801F000)
-#endif
-
-#endif
-
-
-
 
 //Частота дискретизации входного/выходного аудиосигнала, Гц
 #define CMX7262_FREQ_SAMPLING						(8000)
@@ -83,7 +56,7 @@
 #define CMX7262_AUDIOFRAME_SIZE_SAMPLES	(160)	 
 	 
 #ifdef TEST_CMX7262_ENCDEC_CBUS2AUDIO_EXTSIGNAL_FROM_UART
-//Перед тем, как перервести CMX7262 в режим EncDec, ожидаем накопления некоторого числа звуковых фреймов от UART
+//Перед тем, как перевести CMX7262 в режим EncDec, ожидаем накопления некоторого числа звуковых фреймов от UART
 //Число накапливаемых фреймов:
 	#define CMX7262_NUM_AUDIO_FRAMES_FROM_UART_TO_START_TESTMODE (10)
 #endif	 

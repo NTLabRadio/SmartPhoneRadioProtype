@@ -14,7 +14,6 @@ uint16_t g_cntRcvdPacksWithErrSize = 0;
 #endif
 
 
-//uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][RADIOPACK_MAX_SIZE] =
 uint8_t SymbolPatterns[NUM_OF_SYMBOL_PATTERNS][RADIOPACK_DEFAULT_SIZE] =
 {
 //SYMBOL_PATTERN_ZEROES
@@ -66,7 +65,6 @@ void FormAndSendRadioPack(uint8_t* pPayloadData, uint16_t nPayloadSize, uint8_t 
 	//Отправляем сформированный пакет в эфир
 	#ifndef TEST_RADIO_IMITATE
 	SendRadioPackToTansceiver(RadioMsgToSend.Data, RadioMsgToSend.Size);
-	//SendRadioPackToTansceiver(RadioMsgToSend.Data, 129);	//тест максимального размера радиопакета
 	#else
 	//В режиме радиоимитатора не отправляем в эфир, а накапливаем в буфер для воспроизведения по отпусканию тангенты
 	//Накапливаем только полезную нагрузку
@@ -272,7 +270,10 @@ uint8_t BERInPack(uint8_t* pPackData, uint8_t nSizePackData, uint8_t typePattern
 
 int8_t ApplyRSSIOffset(int8_t nRSSIRegValue)
 {
-	int16_t nRSSIRealValue = (int16_t)nRSSIRegValue - (CC1120_RSSI_OFFSET-CC1120_AGC_GAIN_ADJUST);
+	int16_t nRSSIRealValue = (int16_t)nRSSIRegValue - (CC1120_RSSI_OFFSET+CC1120_AGC_GAIN_ADJUST);
+	
+	if(nRSSIRealValue<-UCHAR_MAX)
+		nRSSIRealValue = (int8_t)nRSSIRealValue;
 	
 	nRSSIRealValue = (nRSSIRealValue<SCHAR_MIN) ? SCHAR_MIN : nRSSIRealValue;
 		

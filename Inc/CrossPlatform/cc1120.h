@@ -166,9 +166,9 @@ typedef struct
 //Если в регистр AGC_GAIN_ADJUST записать нулевое значение, то значения RSSI, которые выдает приемник, будут отличаться 
 //от реальных значений уровня ~на 102 дБ. Но при записи значения 102 в этот регистр приемник выдает неадекватные значения
 //RSSI при низких уровнях (<-115дБм). Поэтому лучше вычитать это значение "вручную"
-#define CC1120_AGC_GAIN_ADJUST	(CC1120_RSSI_OFFSET}
+#define CC1120_AGC_GAIN_ADJUST	(CC1120_RSSI_OFFSET)
 #else
-#define CC1120_AGC_GAIN_ADJUST	(0x00)
+#define CC1120_AGC_GAIN_ADJUST	(0)
 #endif
 
 

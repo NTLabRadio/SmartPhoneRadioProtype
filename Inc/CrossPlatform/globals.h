@@ -13,9 +13,6 @@
 #ifndef __GLOBALS_H
 #define __GLOBALS_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif
 
 #include <limits.h>	 
 #include "cmx7262.h"
@@ -23,6 +20,52 @@
 #define TRUE 	(1)
 #define FALSE (0)
 	 
+
+// ------------------------- Memory Map ----------------------------
+	 
+#define MAX_SIZE_OF_CMX7262_IMAGE	 	(92*1024)	//92кБ
+	 
+#ifdef STM32F103xE	 //Макет
+	//                   								Start											Space     							Current length
+	#define ARM_CODE_ADDR     					((uint32_t)0x08000000)    //64kbytes  
+	#define CMX7262_IMAGE_ADDR  				((uint32_t)0x08010000)	  //112kbytes 						~91kbytes
+	#define RADIOMODULE_SETTINGS_ADDR	 	((uint32_t)0x0803F800)		//2kbytes								32 bytes
+	
+	#define CMX7262_IMAGE_IN_FLASH
+#endif
+
+
+#ifdef STM32F071xB	//Радиомодуль
+
+#ifdef SIZE_OF_ARMFIRM_32KB
+	//                   								Start											Space     							Current length
+	#define ARM_CODE_ADDR     					((uint32_t)0x08000000)    //32kbytes  
+	#define CMX7262_IMAGE_ADDR   				((uint32_t)0x08008000)	  //92kbytes 							~91kbytes
+	#define RADIOMODULE_SETTINGS_ADDR		((uint32_t)0x0801F000)		//4kbytes								32 bytes
+	
+	#define CMX7262_IMAGE_IN_FLASH
+#endif
+
+#ifdef SIZE_OF_ARMFIRM_34KB
+	//                   								Start											Space     							Current length
+	#define ARM_CODE_ADDR     					((uint32_t)0x08000000)    //34kbytes  
+	#define CMX7262_IMAGE_ADDR   				((uint32_t)0x08008800)	  //92kbytes 							~91kbytes
+	#define RADIOMODULE_SETTINGS_ADDR		((uint32_t)0x0801F800)		//2kbytes								32 bytes
+	
+	#define CMX7262_IMAGE_IN_FLASH
+#endif
+
+#if !defined(SIZE_OF_ARMFIRM_32KB) && !defined(SIZE_OF_ARMFIRM_34KB)
+	//                   								Start											Space     							Current length
+	#define ARM_CODE_ADDR     					((uint32_t)0x08000000)    //127kbytes  
+	#define RADIOMODULE_SETTINGS_ADDR		((uint32_t)0x0801FC00)		//1kbytes								32 bytes
+	
+	#define CMX7262_IMAGE_IN_EEPROM
+#endif
+
+#endif	 
+	 
+// --------------------------------------------------------------------
 	 
 //Длительность звуковых данных одного вокодерного буфера, мс
 #define CMX7262_BUFFER_DURATION_MS (60)
@@ -78,9 +121,5 @@
 //Значение параметра PA power ramp target level трансивера СС1120 по умолчанию
 #define CC1120_DEFAULT_PA_POWER_RAMP		(CC1120_PA_POWER_RAMP_IN_LOWPOW_MODE)
 
-	 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /* __GLOBALS_H */
