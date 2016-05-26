@@ -414,6 +414,16 @@ void RadioModule::SetCC1120Freq(uint32_t lFreq)
 	FreqCode[2] = (uint8_t)(setFreqCode  & 0x000000FF);
 	
 	CC1120_FreqWrite(g_CC1120Struct.hSPI,FreqCode);
+	
+	//Калибровка PLL
+	CC1120_ManualCalibration(g_CC1120Struct.hSPI);
+
+	WaitTimeMCS(1e2);
+	
+	//Повторная калибровка PLL
+	CC1120_ManualCalibration(g_CC1120Struct.hSPI);
+	
+	WaitTimeMCS(1e2);			
 }
 
 

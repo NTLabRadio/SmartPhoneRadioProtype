@@ -13,6 +13,7 @@ uint16_t g_cntDataPckToExtDev = 0;
 
 #ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
 uint16_t g_cntFramesPushToQue = 0;
+uint16_t g_cntFramesNoPushToQue = 0;
 #endif
 
 
@@ -139,7 +140,12 @@ void FormBodyOfAnswerToExtDev(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint
 				#endif
 			}
 			else
+			{
 				nAnswer = SPIM_OP_RESULT_FAIL;			//если места нет, отвечаем, что все плохо, стоит попробовать попозже
+				#ifdef DEBUG_CHECK_ERRORS_IN_SEND_RADIO_PACKS				
+				g_cntFramesNoPushToQue++;
+				#endif				
+			}
 
 			bodySize = 1;
 			*pBodyData = nAnswer;
