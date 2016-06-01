@@ -149,7 +149,7 @@ void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint8_t nPayl
 	//Ќе примен€ем только дл€ режима "речь, 4800 бод", поскольку не хватит канальной скорости
 	uint8_t nBaudRate = pobjRadioModule->GetRadioBaudRate();
 	uint8_t isNarrowChan = ((nPayloadDataType==RadioMessage::RADIO_DATATYPE_VOICE) &&	(nBaudRate==RADIO_BAUD_RATE_4800));
-	if(pobjRadioModule->isDataCoded() && (!isNarrowChan))
+	if(pobjRadioModule->isFECEnabled() && (!isNarrowChan))
 		EncodeRadioMsg(RadioPack);
 
 	return;
@@ -192,7 +192,7 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nP
 	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRadioMessage);
 
 	//≈сли включено помехоустойчивое кодирование, декодируем данные
-	if(pobjRadioModule->isDataCoded())
+	if(pobjRadioModule->isFECEnabled())
 		DecodeRadioMsg(&RadioMsgRcvd);
 	
 	//ƒанные заголовка радиосообщени€

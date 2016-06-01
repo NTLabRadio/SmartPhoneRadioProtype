@@ -123,9 +123,8 @@ void RadioModuleDeInit()
 void ProcessPTTState()
 {
 	//≈сли в данный момент не передаем данные
-	if(pobjRadioModule->GetRadioChanType()!=RADIOCHAN_TYPE_DATA)
+	if(pobjRadioModule->GetTxTrafficType()!=TRAFFIC_TYPE_DATA)
 	{
-		
 		//≈сли нажата тангета
 		if(PTT_PRESSED())
 		{
@@ -165,8 +164,7 @@ void ProcessPTTState()
 				nLengthDataFromCMX7262 = 0;
 			}
 		}	//if(PTT_PRESSED())
-		
-	}	//if(pobjRadioModule->GetRadioChanType()!=RADIOCHAN_TYPE_DATA)
+	}	//if(pobjRadioModule->GetTxTrafficType()!=TRAFFIC_TYPE_DATA)
 }
 
 
@@ -175,13 +173,12 @@ void RadioImitator_TxData(uint8_t* pPackData, uint16_t packSize)
 	if(nLengthDataToCMX7262 <= MAX_SIZE_OF_DATA_TO_CMX7262-packSize)
 	{
 		memcpy(&pDataToCMX7262[nLengthDataToCMX7262],pPackData,packSize);
-								
-		nLengthDataToCMX7262+=packSize;		
+
+		nLengthDataToCMX7262+=packSize;
 	}
-	
+
 	g_flCC1120_IRQ_CHECKED = TRUE;
 }
-
 
 
 void ProcessRadioState()
@@ -241,7 +238,7 @@ void ProcessTxRunning()
 		g_CC1120Struct.TxState = CC1120_TX_STATE_WAIT;
 		
 		//≈сли передавали пакет данных, то переходим в режим приема
-		if(pobjRadioModule->GetRadioChanType()==RADIOCHAN_TYPE_DATA)
+		if(pobjRadioModule->GetTxTrafficType()==TRAFFIC_TYPE_DATA)
 		{
 			//»змен€ем состо€ние радиоканала на "прием"
 			pobjRadioModule->SetRadioChanState(RADIOCHAN_STATE_WAIT_RECEIVE);
@@ -258,7 +255,7 @@ void ProcessTxRunning()
 		//≈сли в очереди от вокодера достаточно данных дл€ формировани€ одного радиопакета, то посылаем данные в трансивер
 		if(nLengthDataFromCMX7262 >= RADIOPACK_VOICEMODE_PAYLOAD_SIZE)
 		{
-			pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_VOICE);					
+			pobjRadioModule->SetTxTrafficType(TRAFFIC_TYPE_VOICE);
 			
 			//»з данных вокодера формируем радиопакет и отправл€ем его в трансивер
 			FormAndSendRadioPack(pDataFromCMX7262, RADIOPACK_VOICEMODE_PAYLOAD_SIZE, RadioMessage::RADIO_DATATYPE_VOICE);
@@ -273,7 +270,7 @@ void ProcessTxRunning()
 		//≈сли есть данные дл€ передачи от внешнего устройства
 		if(!QueDataFromExtDev.isEmpty())
 		{
-			pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);					
+			pobjRadioModule->SetTxTrafficType(TRAFFIC_TYPE_DATA);
 			
 			uint8_t pDataPack[RADIOPACK_DATAMODE_PAYLOAD_SIZE];
 			//«абираем из очереди один пакет данных дл€ передачи
@@ -300,7 +297,7 @@ void ProcessRxWaiting()
 
 	pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_RX_RUNNING);
 
-	pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_IDLE);
+	pobjRadioModule->SetTxTrafficType(TRAFFIC_TYPE_IDLE);
 
 	#ifndef SMART_PROTOTYPE
 	FrontEndSetToRx();
@@ -381,7 +378,7 @@ void ProcessRxRunning()
 		//»змен€ем рабочее состо€ние радиомодул€ на "подготовку к передаче"
 		pobjRadioModule->SetRadioModuleState(RADIOMODULE_STATE_TX_WAITING);
 		
-		pobjRadioModule->SetRadioChanType(RADIOCHAN_TYPE_DATA);
+		pobjRadioModule->SetTxTrafficType(TRAFFIC_TYPE_DATA);
 	}
 }	//ProcessRxRunning()
 

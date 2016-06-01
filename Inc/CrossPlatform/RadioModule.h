@@ -87,6 +87,14 @@ enum en_FECModes
 	NUM_FEC_MODES
 };
 
+enum en_TrafficTypes
+{
+	TRAFFIC_TYPE_IDLE,	
+	TRAFFIC_TYPE_VOICE		=1,
+	TRAFFIC_TYPE_DATA			=2,
+	NUM_TRAFFIC_TYPES
+};
+
 
 class RadioModule
 {
@@ -125,6 +133,9 @@ public:
 	
 	uint8_t SetFECMode(uint8_t nFECCode);
 	uint8_t GetFECMode();
+	
+	uint8_t SetTxTrafficType(uint8_t trafficType);
+	uint8_t GetTxTrafficType();
 
 	uint8_t GetRSSILevel();
 	
@@ -158,7 +169,7 @@ public:
 	
 	uint16_t GetARMSoftVer();
 	
-	uint8_t isDataCoded();
+	uint8_t isFECEnabled();
 
 private:
 	
@@ -186,6 +197,9 @@ private:
 
 	//Режим помехозащиты
 	uint8_t FECMode;
+
+	//Тип передаваемого трафика
+	en_TrafficTypes TxTrafficType;
 
 	uint8_t RSSILevel;
 	
