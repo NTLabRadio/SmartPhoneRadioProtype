@@ -90,6 +90,7 @@ public:
 			uint8_t isAudioReq();
 			uint8_t isRxFreqReq();
 			uint8_t isTxFreqReq();
+			uint8_t isFECModeReq();
 			uint8_t isRSSIReq();
 			uint8_t isChanStateReq();
 		
@@ -101,8 +102,9 @@ public:
 			static const uint8_t AUDIO_MASK_IN_REQ = (1<<2);
 			static const uint8_t TXFREQ_MASK_IN_REQ = (1<<3);
 			static const uint8_t RXFREQ_MASK_IN_REQ = (1<<4);
-			static const uint8_t RSSI_MASK_IN_REQ = (1<<5);
-			static const uint8_t CHANSTATE_MASK_IN_REQ = (1<<6);		
+			static const uint8_t FECMODE_MASK_IN_REQ = (1<<5);
+			static const uint8_t RSSI_MASK_IN_REQ = (1<<6);
+			static const uint8_t CHANSTATE_MASK_IN_REQ = (1<<7);		
 		
 		private:
 			SPIMMessage* objSPIMMessage;			

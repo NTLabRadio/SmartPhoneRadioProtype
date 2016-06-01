@@ -71,7 +71,7 @@ enum en_RadioModuleStates
 	NUM_RADIOMODULE_STATES
 };
 
-typedef enum SymbolPatterns_en
+typedef enum en_SymbolPatterns
 {	
 	SYMBOL_PATTERN_ZEROES,
 	SYMBOL_PATTERN_TONE,
@@ -79,6 +79,13 @@ typedef enum SymbolPatterns_en
 	NUM_OF_SYMBOL_PATTERNS
 } en_SymbolPatterns;
 
+
+enum en_FECModes
+{
+	ONLY_TWELP,
+	TRELLIS_3_4_AND_TWELP,
+	NUM_FEC_MODES
+};
 
 
 class RadioModule
@@ -115,6 +122,9 @@ public:
 
 	uint8_t SetAudioOutLevel(uint8_t audioLevel);
 	uint8_t GetAudioOutLevel();
+	
+	uint8_t SetFECMode(uint8_t nFECCode);
+	uint8_t GetFECMode();
 
 	uint8_t GetRSSILevel();
 	
@@ -147,6 +157,8 @@ public:
 	void ApplyRadioSignalPower();
 	
 	uint16_t GetARMSoftVer();
+	
+	uint8_t isDataCoded();
 
 private:
 	
@@ -171,6 +183,9 @@ private:
 
 	uint8_t AudioInLevel;
 	uint8_t AudioOutLevel;
+
+	//Режим помехозащиты
+	uint8_t FECMode;
 
 	uint8_t RSSILevel;
 	

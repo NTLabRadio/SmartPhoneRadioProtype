@@ -36,6 +36,9 @@ RadioModule::RadioModule()
 	//Настройки аудио
 	SetAudioInLevel(DEFAULT_AUDIO_IN_GAIN);
 	SetAudioOutLevel(DEFAULT_AUDIO_OUT_GAIN);
+	
+	//Режим помехозащиты
+	SetFECMode(ONLY_TWELP);
 	#endif
 	
 	//Уровень приема
@@ -242,6 +245,23 @@ uint8_t RadioModule::SetAudioOutLevel(uint8_t audioLevel)
 uint8_t RadioModule::GetAudioOutLevel()
 {
 	return(AudioOutLevel);
+}
+
+uint8_t RadioModule::SetFECMode(uint8_t nFECCode)
+{
+	if(nFECCode<NUM_FEC_MODES)
+	{
+		FECMode = (en_FECModes)nFECCode;
+
+		return(0);
+	}
+	else
+		return(1);	
+}
+
+uint8_t RadioModule::GetFECMode()
+{
+	return(FECMode);
 }
 
 uint8_t RadioModule::GetRSSILevel()
@@ -502,4 +522,9 @@ uint8_t RadioModule::SetAsyncReqReceiverStats(uint8_t nCmd)
 		AsyncReqReceiverStats = false;
 	
 	return(0);
+}
+
+uint8_t RadioModule::isDataCoded()
+{
+	return(FECMode==TRELLIS_3_4_AND_TWELP);
 }

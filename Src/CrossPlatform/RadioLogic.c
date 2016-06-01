@@ -145,11 +145,12 @@ void FormRadioPack(RadioMessage* RadioPack, uint8_t* pPayloadData, uint8_t nPayl
 		RadioPack->setMsg(SymbolPatterns[noTestPattern], RADIOPACK_DEFAULT_SIZE);
 	}
 	
-	#ifdef DEBUG_APPLY_FEC_ON_RADIODATA
-	//Для неречевых данных вызываем помехоустойчивый кодер, который меняет содержимое сообщения,
-	//изменяя длину и кодируя все данные сообщения кроме первых 2х байт заголовка
-	EncodeRadioMsg(RadioPack);
-	#endif
+	//Если включена поддержка помехоустойчивого кодирования данных, применяем его
+	//Не применяем только для режима "речь, 4800 бод", поскольку не хватит канальной скорости
+	uint8_t nBaudRate = pobjRadioModule->GetRadioBaudRate();
+	uint8_t isNarrowChan = ((nPayloadDataType==RadioMessage::RADIO_DATATYPE_VOICE) &&	(nBaudRate==RADIO_BAUD_RATE_4800));
+	if(pobjRadioModule->isDataCoded() && (!isNarrowChan))
+		EncodeRadioMsg(RadioPack);
 
 	return;
 }
@@ -190,9 +191,9 @@ void ProcessRadioPack(uint8_t* pPayloadData, uint16_t& nPayloadSize, uint8_t& nP
 	uint16_t nSizeOfRadioMessage = nSizeOfRecData-SIZE_OF_RADIO_STATUS;
 	RadioMessage RadioMsgRcvd(RadioPackRcvd,nSizeOfRadioMessage);
 
-	#ifdef DEBUG_APPLY_FEC_ON_RADIODATA
-	DecodeRadioMsg(&RadioMsgRcvd);
-	#endif	
+	//Если включено помехоустойчивое кодирование, декодируем данные
+	if(pobjRadioModule->isDataCoded())
+		DecodeRadioMsg(&RadioMsgRcvd);
 	
 	//Данные заголовка радиосообщения
 	#ifdef DEBUG_CC1120_VARIABLE_PACKET_LENGTH
@@ -281,10 +282,13 @@ int8_t ApplyRSSIOffset(int8_t nRSSIRegValue)
 }
 
 
-//Кодер оставляет нетронутыми первые 2 байта (длина и адрес), делит пакет на 12-байтные кадры
-//и каждый кадр преобразует в 25 байтный. Результат снова укладывается в RadioPack
+//Функция помехоустойчивого кодирования радиосообщения
+//NO: Функция изменяет содержимое исходного сообщения, изменяя длину и кодируя все данные сообщения 
+//кроме первых 2х байт заголовка
+//Кодер оставляет нетронутыми первые 2 байта (длина и адрес), делит пакет на 18-байтные кадры
+//и каждый кадр преобразует в 24.5 байтный. Результат снова укладывается в RadioPack
 //Для стандартного 86-байтного пакета (c 5-байтным заголовком) результат применения кодера - 
-//177-байтный пакет (25*7+2)
+//125-байтный пакет (24.5*5+2+выравнивание 0.5)
 void EncodeRadioMsg(RadioMessage* RadioPack)
 {
 	#ifdef DEBUG_USE_TL_LINES

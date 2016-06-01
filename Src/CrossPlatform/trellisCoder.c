@@ -18,6 +18,7 @@ const int16_t TableTransTrellis3_4[NUM_STATES_TRELLIS_3_4][NUM_STATES_TRELLIS_3_
 							{2,10, 6,14, 0, 8, 4,12},
 							{6,14, 0, 8, 4,12, 2,10}};
 							 
+#ifdef APCO25_INTERLEAVER
 // Таблица для перемежения дибитов (Interleave Table)
 const int8_t TableInterleave[SIZE_OF_CODED_FRAME_TRELLIS/2] =
 								 {0,1,8,9,16,17,24,25,
@@ -32,7 +33,8 @@ const int8_t TableInterleave[SIZE_OF_CODED_FRAME_TRELLIS/2] =
 							   92,93,6,7,14,15,22,23,
 							   30,31,38,39,46,47,54,55,
 							   62,63,70,71,78,79,86,87,
-							   94,95};						   
+							   94,95};
+#endif								 
 						   
 //Constellation to Dibit Pair Mapping
 //Кодер сопоставляет числам 0-15 (можно их назвать номерами точек созвездия) пары дибитов в соответствии со следующей таблицей
@@ -109,12 +111,7 @@ void trellisEnc1_2(const int8_t * const pDataIn, int8_t * const pDataOut)
 
 	#ifndef TRELLIS_WITHOUT_INTERLEAVER
 	//Перемежение
-	uint16_t cntDataOutDibits;
-	for(cntDataOutDibits=0,cntDataOutBits=0; cntDataOutDibits<SIZE_OF_CODED_FRAME_TRELLIS/2; cntDataOutDibits++,cntDataOutBits+=2)
-	{
-		pDataOut[cntDataOutBits] = pCoderOut[(TableInterleave[cntDataOutDibits]<<1)+1];	
-		pDataOut[cntDataOutBits+1] = pCoderOut[(TableInterleave[cntDataOutDibits]<<1)];
-	}
+	InterleaveTrellisData(pCoderOut, pDataOut);
 	#else
 	memcpy(pDataOut,pCoderOut,SIZE_OF_CODED_FRAME_TRELLIS*sizeof(int8_t));
 	#endif
@@ -169,12 +166,7 @@ void trellisEnc3_4(const int8_t * const pDataIn, int8_t * const pDataOut)
 	pCoderOut[cntDataOutBits+3] = (nDibitOut>>1) & 1;
 
 	#ifndef TRELLIS_WITHOUT_INTERLEAVER
-	uint16_t cntDataOutDibits;
-	for(cntDataOutDibits=0,cntDataOutBits=0; cntDataOutDibits<SIZE_OF_CODED_FRAME_TRELLIS/2; cntDataOutDibits++,cntDataOutBits+=2)
-	{
-		pDataOut[cntDataOutBits] = pCoderOut[(TableInterleave[cntDataOutDibits]<<1)+1];
-		pDataOut[cntDataOutBits+1] = pCoderOut[(TableInterleave[cntDataOutDibits]<<1)];
-	}
+	InterleaveTrellisData(pCoderOut, pDataOut);
 	#else
 	memcpy(pDataOut,pCoderOut,SIZE_OF_CODED_FRAME_TRELLIS*sizeof(int8_t));
 	#endif	
@@ -225,12 +217,7 @@ int16_t trellisDec1_2(const int8_t * const pDataIn, int8_t * const pDataOut)
 	#ifndef TRELLIS_WITHOUT_INTERLEAVER
 	//1. Деперемежение
 	//NO: Кроме деперемежения 16-битных слов еще делается изменение порядка байтов в словах
-	uint16_t cntDataInBits, cntDataInDibits;
-	for(cntDataInDibits=0,cntDataInBits=0; cntDataInDibits<SIZE_OF_CODED_FRAME_TRELLIS/2; cntDataInDibits++,cntDataInBits+=2)
-	{
-		pDecoderIn[(TableInterleave[cntDataInDibits]<<1)] = pDataIn[cntDataInBits];	
-		pDecoderIn[(TableInterleave[cntDataInDibits]<<1)+1] = pDataIn[cntDataInBits+1];
-	}
+	DeinterleaveTrellisData((int8_t*)pDataIn, pDecoderIn);
 	#else
 	memcpy(pDecoderIn,pDataIn,SIZE_OF_CODED_FRAME_TRELLIS*sizeof(int8_t));
 	#endif
@@ -242,7 +229,7 @@ int16_t trellisDec1_2(const int8_t * const pDataIn, int8_t * const pDataOut)
 	{		
 		//Выделяем 2 дибита
 		int8_t nDibitPairVal;
-		#ifndef TRELLIS_WITHOUT_INTERLEAVER
+		#ifdef APCO25_INTERLEAVER
 		nDibitPairVal = (pDecoderIn[n]<<3) + (pDecoderIn[n+1]<<2) + (pDecoderIn[n+2]<<1) + (pDecoderIn[n+3]);
 		#else
 		nDibitPairVal = (pDecoderIn[n+1]<<3) + (pDecoderIn[n]<<2) + (pDecoderIn[n+3]<<1) + (pDecoderIn[n+2]);
@@ -305,12 +292,7 @@ int16_t trellisDec3_4(const int8_t * const pDataIn, int8_t * const pDataOut)
 	#ifndef TRELLIS_WITHOUT_INTERLEAVER
 	//1. Деперемежение
 	//NO: Кроме деперемежения 16-битных слов еще делается изменение порядка байтов в словах
-	uint16_t cntDataInBits, cntDataInDibits;
-	for(cntDataInDibits=0,cntDataInBits=0; cntDataInDibits<SIZE_OF_CODED_FRAME_TRELLIS/2; cntDataInDibits++,cntDataInBits+=2)
-	{
-		pDecoderIn[(TableInterleave[cntDataInDibits]<<1)] = pDataIn[cntDataInBits];	
-		pDecoderIn[(TableInterleave[cntDataInDibits]<<1)+1] = pDataIn[cntDataInBits+1];
-	}
+	DeinterleaveTrellisData((int8_t*)pDataIn, pDecoderIn);
 	#else
 	memcpy(pDecoderIn,pDataIn,SIZE_OF_CODED_FRAME_TRELLIS*sizeof(int8_t));
 	#endif
@@ -322,7 +304,7 @@ int16_t trellisDec3_4(const int8_t * const pDataIn, int8_t * const pDataOut)
 	{		
 		//Выделяем 2 дибита
 		int8_t nDibitPairVal;
-		#ifndef TRELLIS_WITHOUT_INTERLEAVER
+		#ifdef APCO25_INTERLEAVER
 		nDibitPairVal = (pDecoderIn[n]<<3) + (pDecoderIn[n+1]<<2) + (pDecoderIn[n+2]<<1) + (pDecoderIn[n+3]);
 		#else
 		nDibitPairVal = (pDecoderIn[n+1]<<3) + (pDecoderIn[n]<<2) + (pDecoderIn[n+3]<<1) + (pDecoderIn[n+2]);
@@ -368,6 +350,61 @@ int16_t trellisDec3_4(const int8_t * const pDataIn, int8_t * const pDataOut)
 														//и в него же должен вернуться). она хранит число исправленных ошибок
 }
 
+
+void InterleaveTrellisData(int8_t* pDataIn, int8_t* pDataOut)
+{
+	#ifdef APCO25_INTERLEAVER
+	uint16_t cntDataOutDibits, cntDataOutBits;
+	for(cntDataOutDibits=0,cntDataOutBits=0; cntDataOutDibits<SIZE_OF_CODED_FRAME_TRELLIS/2; cntDataOutDibits++,cntDataOutBits+=2)
+	{
+		pDataOut[cntDataOutBits] = pDataIn[(TableInterleave[cntDataOutDibits]<<1)+1];	
+		pDataOut[cntDataOutBits+1] = pDataIn[(TableInterleave[cntDataOutDibits]<<1)];
+	}
+	#else
+	uint8_t cntRaws, cntCloumns;
+	int8_t InterleaveMatrix[NUM_RAWS_IN_INTERLEAVE_MATRIX][NUM_COLUMNS_IN_INTERLEAVE_MATRIX];
+
+	//Заполняем по рядам матрицу перемежения
+	uint16_t cntBits = 0;	
+	for(cntRaws=0; cntRaws<NUM_RAWS_IN_INTERLEAVE_MATRIX; cntRaws++)
+		for(cntCloumns=0; cntCloumns<NUM_COLUMNS_IN_INTERLEAVE_MATRIX; cntCloumns++)
+			InterleaveMatrix[cntRaws][cntCloumns] = pDataIn[cntBits++];
+	
+	//Читаем матрицу перемежения по столбцам
+	cntBits = 0;	
+	for(cntCloumns=0; cntCloumns<NUM_COLUMNS_IN_INTERLEAVE_MATRIX; cntCloumns++)
+		for(cntRaws=0; cntRaws<NUM_RAWS_IN_INTERLEAVE_MATRIX; cntRaws++)
+			pDataOut[cntBits++] = InterleaveMatrix[cntRaws][cntCloumns];	
+	#endif
+}
+
+
+void DeinterleaveTrellisData(int8_t* pDataIn, int8_t* pDataOut)
+{
+	#ifdef APCO25_INTERLEAVER
+	uint16_t cntDataInBits, cntDataInDibits;
+	for(cntDataInDibits=0,cntDataInBits=0; cntDataInDibits<SIZE_OF_CODED_FRAME_TRELLIS/2; cntDataInDibits++,cntDataInBits+=2)
+	{
+		pDataOut[(TableInterleave[cntDataInDibits]<<1)] = pDataIn[cntDataInBits];	
+		pDataOut[(TableInterleave[cntDataInDibits]<<1)+1] = pDataIn[cntDataInBits+1];
+	}
+	#else
+	uint8_t cntRaws, cntCloumns;
+	int8_t InterleaveMatrix[NUM_RAWS_IN_INTERLEAVE_MATRIX][NUM_COLUMNS_IN_INTERLEAVE_MATRIX];
+
+	//Заполняем матрицу перемежения по столбцам
+	uint16_t cntBits = 0;	
+	for(cntCloumns=0; cntCloumns<NUM_COLUMNS_IN_INTERLEAVE_MATRIX; cntCloumns++)
+		for(cntRaws=0; cntRaws<NUM_RAWS_IN_INTERLEAVE_MATRIX; cntRaws++)
+			InterleaveMatrix[cntRaws][cntCloumns] = pDataIn[cntBits++];
+	
+	//Читаем матрицу перемежения по рядам 
+	cntBits = 0;	
+	for(cntRaws=0; cntRaws<NUM_RAWS_IN_INTERLEAVE_MATRIX; cntRaws++)
+		for(cntCloumns=0; cntCloumns<NUM_COLUMNS_IN_INTERLEAVE_MATRIX; cntCloumns++)
+			pDataOut[cntBits++] = InterleaveMatrix[cntRaws][cntCloumns];
+	#endif
+}
 
 
 #ifdef DEBUG_TRELLIS_DEC_3_4_SIRIUS_OPTIMIZATION
@@ -415,7 +452,7 @@ int16_t trellisDec3_4_Sirius(const int8_t * const pDataIn, int8_t * const pDataO
 		int8_t nDibitPairVal;
 		#ifndef TRELLIS_WITHOUT_INTERLEAVER
 		nDibitPairVal = (pDecoderIn[n]<<3) + (pDecoderIn[n+1]<<2) + (pDecoderIn[n+2]<<1) + (pDecoderIn[n+3]);
-		#else
+		#else		
 		nDibitPairVal = (pDecoderIn[n+1]<<3) + (pDecoderIn[n]<<2) + (pDecoderIn[n+3]<<1) + (pDecoderIn[n+2]);
 		#endif
 		
@@ -548,10 +585,10 @@ void TestTrellisCoder3_4()
 
 	//Вносим канальные ошибки
 	
-	//EncodedData[1] ^= 1;
-	//EncodedData[3] ^= 1; //EncodedData[4] ^= 1;
-	EncodedData[10] ^= 1; EncodedData[18] ^= 1;
-	EncodedData[48] ^= 1; EncodedData[56] ^= 1;
+	EncodedData[1] ^= 1;
+	EncodedData[3] ^= 1; EncodedData[4] ^= 1;
+	//EncodedData[10] ^= 1; EncodedData[18] ^= 1;
+	//EncodedData[48] ^= 1; EncodedData[56] ^= 1;
 	EncodedData[94] ^= 1;
 	EncodedData[126] ^= 1;
 

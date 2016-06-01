@@ -7,10 +7,11 @@
 	*					негарантированных данных. Эффективность кодеров - 1/2 и 3/4. 
 	*					Реализация также включает в себя алгоритм перемежения данных. Алгоритм 
 	*					декодирования - на базе алгоритма Витерби с жесткими решениями.
-	*					Данный метод кодирования оптимален для совместного применения с 
-	*					4-позиционной манипуляцией (перемежение выполняется для дибитов, ошибка
-	*					2 смежных битов может привести к невозможности восстановления данных) и 
-	*					для относительно небольших размеров пакетов данных
+	*					Кроме стандартного алгоритма перемежения, оптимального для 4-позиционной 
+	*					манипуляции (перемежение выполняется для дибитов, ошибка 2 смежных битов 
+	*					может привести к невозможности восстановления данных) (директива 
+	*					препроцессора APCO25_INTERLEAVER), реализован побитовый матричный алгоритм
+	*					перемежения для применения с 2-позиционной манипуляцией
 	*					Описание алгоритма кодирования см. в стандарте TIA-102.BAAA-A
 	*
 	*******************************************************************************
@@ -51,10 +52,18 @@
 //Размер выходного созвездия
 #define SIZE_OF_TRELLIS_OUTPUT_CONSTELLATION 		(SIZE_OF_OUTPUT_TRELLIS*SIZE_OF_OUTPUT_TRELLIS)
 
+#ifndef APCO25_INTERLEAVER
+	#define NUM_RAWS_IN_INTERLEAVE_MATRIX			(7)
+	#define NUM_COLUMNS_IN_INTERLEAVE_MATRIX	(SIZE_OF_CODED_FRAME_TRELLIS/NUM_RAWS_IN_INTERLEAVE_MATRIX)
+#endif
+
 void trellisEnc1_2(const int8_t * const pDataIn, int8_t * const pDataOut);
 void trellisEnc3_4(const int8_t * const pDataIn, int8_t * const pDataOut);
 int16_t trellisDec1_2(const int8_t * const pDataIn, int8_t * const pDataOut);
 int16_t trellisDec3_4(const int8_t * const pDataIn, int8_t * const pDataOut);
+
+void InterleaveTrellisData(int8_t* pDataIn, int8_t* pDataOut);
+void DeinterleaveTrellisData(int8_t* pDataIn, int8_t* pDataOut);
 
 void TestTrellisCoder1_2(void);
 void TestTrellisCoder3_4(void);

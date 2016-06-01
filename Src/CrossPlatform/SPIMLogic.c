@@ -256,6 +256,14 @@ void ProcessCmdSetMode(SPIMMessage* SPIMCmdRcvd)
 	
 	//Применяем код рабочей частоты приемачи
 	pobjRadioModule->SetRxFreqChan(RXFreqCode);
+	
+	//Читаем код помехозащиты
+	uint8_t FECCode;
+	//TODO Неименованная константа
+	FECCode = SPIMCmdRcvd->Body[6];
+	
+	//Применяем код помехозащиты
+	pobjRadioModule->SetFECMode(FECCode);
 }
 
 
@@ -314,12 +322,19 @@ void FormCurrentParamAnswer(SPIMMessage* SPIMCmdRcvd, uint8_t* pBodyData, uint8_
 		bodySize+=sizeof(nTxFreq);
 	}	
 	
+	//Если запрашивается режим помехозащиты
+	if(SPIMCmdRcvd->cmdReqParam.isFECModeReq())
+	{
+		pBodyData[bodySize] = pobjRadioModule->GetFECMode();
+		bodySize++;
+	}		
+	
 	//Если запрашивается текущий уровень приема сигнала
 	if(SPIMCmdRcvd->cmdReqParam.isRSSIReq())
 	{
 		pBodyData[bodySize] = pobjRadioModule->GetRSSILevel();
 		bodySize++;
-	}		
+	}
 	
 	//Если запрашивается текущее состояние радиоканала
 	if(SPIMCmdRcvd->cmdReqParam.isChanStateReq())
